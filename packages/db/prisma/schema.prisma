@@ -42,6 +42,20 @@ enum EventVisibility {
   @@schema("public")
 }
 
+enum EventCategory {
+  RUNNING
+  CYCLING
+  SPORTS
+  GRADUATION
+  FESTIVAL
+  CONCERT
+  CELEBRATION
+  CORPORATE
+  OTHER
+
+  @@schema("public")
+}
+
 enum ProcessingStatus {
   UPLOADING
   UPLOADED
@@ -193,6 +207,7 @@ model Event {
   endsAt            DateTime        @map("ends_at") @db.Timestamptz(3)
   timezone          String          @default("Asia/Ulaanbaatar")
   ownerId           String          @map("owner_id") @db.Uuid
+  category          EventCategory   @default(OTHER)
   visibility        EventVisibility @default(HIDDEN)
   accessTokenHash   String?         @map("access_token_hash") // UNLISTED холбоосны токены hash
   featured          Boolean         @default(false)
@@ -218,6 +233,7 @@ model Event {
   dailyStats     EventDailyStat[]
 
   @@index([visibility, startsAt])
+  @@index([visibility, category, startsAt])
   @@index([expiresAt])
   @@index([ownerId])
   @@map("event")

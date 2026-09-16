@@ -23,6 +23,18 @@
     "browseEvents": "Эвэнтүүд үзэх",
     "photographerLogin": "Зурагчин уу? Нэвтрэх"
   },
+  "categories": {
+    "all": "Бүгд",
+    "RUNNING": "Гүйлт, марафон",
+    "CYCLING": "Дугуй",
+    "SPORTS": "Спорт",
+    "GRADUATION": "Төгсөлт",
+    "FESTIVAL": "Фестиваль",
+    "CONCERT": "Концерт",
+    "CELEBRATION": "Баяр ёслол",
+    "CORPORATE": "Байгууллагын арга хэмжээ",
+    "OTHER": "Бусад"
+  },
   "events": {
     "title": "Эвэнтүүд",
     "searchPlaceholder": "Эвэнтийн нэрээр хайх",
@@ -85,6 +97,7 @@
   "eventForm": {
     "title": "Эвэнтийн нэр",
     "description": "Тайлбар",
+    "category": "Ангилал",
     "location": "Байршил",
     "startsAt": "Эхлэх",
     "endsAt": "Дуусах",

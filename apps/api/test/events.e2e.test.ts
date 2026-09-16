@@ -100,10 +100,22 @@ describe('events', () => {
     await anonymous(ctx).get(`/events/${slug}`).query({ t: newToken }).expect(200);
   });
 
-  it('lists public events', async () => {
-    await owner.agent.patch(`/photographer/events/${eventId}`).send({ visibility: 'PUBLIC' }).expect(200);
+  it('lists public events and filters by category', async () => {
+    const res = await owner.agent
+      .patch(`/photographer/events/${eventId}`)
+      .send({ visibility: 'PUBLIC', category: 'RUNNING' })
+      .expect(200);
+    expect(res.body.category).toBe('RUNNING');
+
     const list = await anonymous(ctx).get('/events').query({ q: ctx.run }).expect(200);
     expect(list.body.items.map((e: { id: string }) => e.id)).toContain(eventId);
+    expect(list.body.items.find((e: { id: string }) => e.id === eventId).category).toBe('RUNNING');
+
+    const running = await anonymous(ctx).get('/events').query({ q: ctx.run, category: 'RUNNING' }).expect(200);
+    expect(running.body.items.map((e: { id: string }) => e.id)).toContain(eventId);
+    const concerts = await anonymous(ctx).get('/events').query({ q: ctx.run, category: 'CONCERT' }).expect(200);
+    expect(concerts.body.items).toHaveLength(0);
+    await anonymous(ctx).get('/events').query({ category: 'PARTY' }).expect(400);
   });
 
   it('recomputes expiry when the end date changes and rejects inverted dates', async () => {

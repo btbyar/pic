@@ -1,4 +1,4 @@
-import type { EventVisibility, Role, UserStatus } from '@pic/shared';
+import type { EventCategory, EventVisibility, Role, UserStatus } from '@pic/shared';
 
 // API хариуны хэлбэр (apps/api/src/**/*.service.ts-тэй тохирно)
 
@@ -20,6 +20,7 @@ interface EventBase {
   startsAt: string;
   endsAt: string;
   timezone: string;
+  category: EventCategory;
   featured: boolean;
   pricePerPhoto: number;
   bundlePrice: number | null;

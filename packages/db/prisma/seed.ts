@@ -8,7 +8,7 @@ import {
   computeEventExpiresAt,
   defaultSystemSettings,
 } from '@pic/shared';
-import { createPrismaClient, type EventVisibility } from '../src/index.js';
+import { createPrismaClient, type EventCategory, type EventVisibility } from '../src/index.js';
 
 config({ path: ['.env', '../../.env'], quiet: true });
 
@@ -30,6 +30,7 @@ interface SeedEvent {
   slug: string;
   title: string;
   location: string;
+  category: EventCategory;
   startsAt: string;
   endsAt: string;
   visibility: EventVisibility;
@@ -44,6 +45,7 @@ const EVENTS: SeedEvent[] = [
     slug: 'tuul-trail-run-2026',
     title: 'Туул голын трейл гүйлт 2026',
     location: 'Төв аймаг, Туул гол',
+    category: 'RUNNING',
     startsAt: '2026-06-14T07:00:00+08:00',
     endsAt: '2026-06-14T15:00:00+08:00',
     visibility: 'PUBLIC',
@@ -56,6 +58,7 @@ const EVENTS: SeedEvent[] = [
     slug: 'graduation-2026-school-12',
     title: 'Төгсөлтийн баяр 2026 — 12-р сургууль',
     location: 'Улаанбаатар',
+    category: 'GRADUATION',
     startsAt: '2026-06-20T10:00:00+08:00',
     endsAt: '2026-06-20T18:00:00+08:00',
     visibility: 'UNLISTED',
@@ -68,6 +71,7 @@ const EVENTS: SeedEvent[] = [
     slug: 'spring-music-fest-2026',
     title: 'Хаврын хөгжмийн наадам 2026',
     location: 'Улаанбаатар, Сүхбаатарын талбай',
+    category: 'FESTIVAL',
     startsAt: '2026-09-26T16:00:00+08:00',
     endsAt: '2026-09-26T23:00:00+08:00',
     visibility: 'HIDDEN',
@@ -146,6 +150,7 @@ async function main() {
       const data = {
         title: e.title,
         location: e.location,
+        category: e.category,
         startsAt,
         endsAt,
         visibility: e.visibility,

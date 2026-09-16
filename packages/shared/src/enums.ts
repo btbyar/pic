@@ -10,6 +10,19 @@ export type UserStatus = (typeof USER_STATUSES)[number];
 export const EVENT_VISIBILITIES = ['PUBLIC', 'UNLISTED', 'HIDDEN'] as const;
 export type EventVisibility = (typeof EVENT_VISIBILITIES)[number];
 
+export const EVENT_CATEGORIES = [
+  'RUNNING',
+  'CYCLING',
+  'SPORTS',
+  'GRADUATION',
+  'FESTIVAL',
+  'CONCERT',
+  'CELEBRATION',
+  'CORPORATE',
+  'OTHER',
+] as const;
+export type EventCategory = (typeof EVENT_CATEGORIES)[number];
+
 export const PROCESSING_STATUSES = ['UPLOADING', 'UPLOADED', 'DERIVED', 'INDEXED', 'FAILED'] as const;
 export type ProcessingStatus = (typeof PROCESSING_STATUSES)[number];
 

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Event, Prisma, type PrismaClient } from '@pic/db';
-import { computeEventExpiresAt, type CreateEventInput, slugify, type UpdateEventInput } from '@pic/shared';
+import { computeEventExpiresAt, type CreateEventInput, type EventCategory, slugify, type UpdateEventInput } from '@pic/shared';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext } from '../auth/decorators';
 import { randomToken, sha256Hex } from '../common/crypto';
@@ -53,6 +53,7 @@ export class EventsService {
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           timezone: input.timezone,
+          category: input.category,
           visibility: input.visibility,
           accessTokenHash: link ? sha256Hex(link) : null,
           pricePerPhoto: input.pricePerPhoto,
@@ -198,13 +199,14 @@ export class EventsService {
 
   // ================================================================ нийтийн
 
-  async listPublic(query: { cursor?: string | undefined; q?: string | undefined }) {
+  async listPublic(query: { cursor?: string | undefined; q?: string | undefined; category?: EventCategory | undefined }) {
     const events = await this.prisma.event.findMany({
       where: {
         visibility: 'PUBLIC',
         deletedAt: null,
         expiresAt: { gt: new Date() },
         ...(query.q ? { title: { contains: query.q, mode: 'insensitive' } } : {}),
+        ...(query.category ? { category: query.category } : {}),
       },
       include: {
         _count: { select: { photos: { where: VISIBLE_PHOTO } } },
@@ -288,6 +290,7 @@ export class EventsService {
       startsAt: e.startsAt,
       endsAt: e.endsAt,
       timezone: e.timezone,
+      category: e.category,
       featured: e.featured,
       pricePerPhoto: e.pricePerPhoto,
       bundlePrice: e.bundlePrice,

@@ -23,6 +23,9 @@
 | 15 | Хувилбар түгжилт | TypeScript 6.0.3 (pnpm catalog), Prisma 7.10.0, pnpm 12.4.2, Node 24 LTS. TS 7 болон Prisma 8-rc ашиглахгүй |
 | 16 | Dev storage | MinIO-г `quay.io`-ийн түгжсэн tag-аар (Docker Hub-аас устсан). Prod: Cloudflare R2 |
 | 17 | DB тест | Docker-гүйгээр PGlite (WASM Postgres + pgvector) дээр migration-ыг ажиллуулж шалгана |
+| 18 | Хэрэглэгчийн төрөл | Оролцогч (бүртгэлгүй), зурагчин, админ. Тусдаа "зохион байгуулагч" төрөл MVP-д байхгүй — эвэнтийг зурагчин үүсгэж, бусдыг урина |
+| 19 | Эвэнтийн ангилал | Prisma enum `EventCategory` (гүйлт, дугуй, спорт, төгсөлт, фестиваль, концерт, баяр ёслол, байгууллага, бусад). Шинэ ангилалд migration шаардлагатай |
+| 20 | Web ↔ API | Browser `/api/*` → Next.js rewrite → NestJS. Session cookie first-party хэвээр, CORS шаардлагагүй |
 
 ---
 
@@ -136,6 +139,7 @@ model Event {
   ownerId          String                             // үүсгэсэн зурагчин
   visibility       EventVisibility @default(HIDDEN)
   accessTokenHash  String?                            // UNLISTED холбоосны токен
+  category         EventCategory @default(OTHER)        // RUNNING, CYCLING, GRADUATION ...
   featured         Boolean  @default(false)
   pricePerPhoto    Int                                // ₮
   bundlePrice      Int?                               // "Миний бүх зураг" багц (асуулт #4)
@@ -488,3 +492,18 @@ model EventDailyStat {                                 // Redis counter → 5 м
 | Зураг устахад нүүр устана | FK `ON DELETE CASCADE` | embedding тоо 0 болно |
 
 Хайлтын SQL-ийн хэлбэрийг (event-ээр шүүсэн exact cosine) мөн тест давтдаг тул §4-ийн шийдвэр кодоос салж хоцрохгүй.
+
+---
+
+## 9. Үе шатны нэмэлт ажил (зах зээлийн судалгаанаас)
+
+pix.mn, gnb.mn-тэй харьцуулж нэмсэн (2026-09-16). Функцийг санаа болгон авна, дизайн/брэндийг хуулахгүй.
+
+| Боломж | Үе шат | Тэмдэглэл |
+|---|---|---|
+| Эвэнтийн ангилал, жагсаалтын шүүлтүүр | 2b ✅ | |
+| Зурагчны нийтийн профайл (нэр, студи, байршил, эвэнтийн тоо, галерей) | 6 | `PhotographerProfile`-д `slug`, `bio`, `city`, `avatarKey` нэмнэ; `/photographers`, `/photographers/[slug]` |
+| Нүүр хуудасны статистик (эвэнт, зургийн тоо) | 6 | `EventDailyStat`-аас, cache-тэй |
+| "Миний татсан зургууд" | 5 | Бүртгэлгүй худалдан авагчид: захиалгын нууц холбоос + сонголттой имэйл |
+| Видео | MVP-ээс гадуур | |
+| Англи хэл | MVP-ээс гадуур | next-intl бүтэц бэлэн |

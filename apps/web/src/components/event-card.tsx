@@ -15,6 +15,7 @@ export async function EventCard({ event }: { event: PublicEvent }) {
         <h2 className="font-semibold leading-snug">{event.title}</h2>
         {event.featured ? <Badge tone="amber">{t('events.featured')}</Badge> : null}
       </div>
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{t(`categories.${event.category}`)}</p>
       <p className="text-sm text-slate-600">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
       {event.location ? <p className="text-sm text-slate-600">{event.location}</p> : null}
       <div className="mt-auto flex items-center justify-between pt-2 text-sm">

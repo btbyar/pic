@@ -1,6 +1,6 @@
 'use client';
 
-import { EVENT_VISIBILITIES, type EventVisibility } from '@pic/shared';
+import { EVENT_CATEGORIES, EVENT_VISIBILITIES, type EventCategory, type EventVisibility } from '@pic/shared';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
 import { type ApiError, fieldErrors, useErrorMessage } from '@/lib/api-client';
@@ -12,6 +12,7 @@ export interface EventFormValues {
   title: string;
   description: string | null;
   location: string | null;
+  category: EventCategory;
   startsAt: string;
   endsAt: string;
   pricePerPhoto: number;
@@ -35,6 +36,7 @@ function readForm(form: FormData): EventFormValues {
     title: text('title') ?? '',
     description: text('description'),
     location: text('location'),
+    category: String(form.get('category')) as EventCategory,
     startsAt: localInputToIso(String(form.get('startsAt'))),
     endsAt: localInputToIso(String(form.get('endsAt'))),
     pricePerPhoto: int('pricePerPhoto') ?? 0,
@@ -61,6 +63,7 @@ export function EventForm({
   const t = useTranslations('eventForm');
   const te = useTranslations('errors');
   const tc = useTranslations('common');
+  const tcat = useTranslations('categories');
   const errorMessage = useErrorMessage();
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
@@ -87,6 +90,21 @@ export function EventForm({
       <fieldset disabled={disabled || busy} className="flex flex-col gap-4">
         <Field label={t('title')} htmlFor="title" error={err('title')}>
           <Input id="title" name="title" required minLength={3} maxLength={120} defaultValue={initial?.title} invalid={invalid.has('title')} />
+        </Field>
+
+        <Field label={t('category')} htmlFor="category" error={err('category')}>
+          <select
+            id="category"
+            name="category"
+            defaultValue={initial?.category ?? 'OTHER'}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base"
+          >
+            {EVENT_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {tcat(c)}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">

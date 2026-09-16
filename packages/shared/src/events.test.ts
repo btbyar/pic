@@ -32,7 +32,7 @@ describe('createEventSchema', () => {
 
   it('applies safe defaults (hidden until the photographer publishes)', () => {
     const parsed = createEventSchema.parse(valid);
-    expect(parsed).toMatchObject({ visibility: 'HIDDEN', timezone: 'Asia/Ulaanbaatar', faceSearchEnabled: true });
+    expect(parsed).toMatchObject({ category: 'OTHER', visibility: 'HIDDEN', timezone: 'Asia/Ulaanbaatar', faceSearchEnabled: true });
     expect(parsed.startsAt.toISOString()).toBe('2026-06-13T23:00:00.000Z');
   });
 
@@ -41,6 +41,7 @@ describe('createEventSchema', () => {
     expect(createEventSchema.safeParse({ ...valid, pricePerPhoto: 99.5 }).success).toBe(false);
     expect(createEventSchema.safeParse({ ...valid, bibPattern: '([0-9' }).success).toBe(false);
     expect(createEventSchema.safeParse({ ...valid, timezone: 'Mars/Olympus' }).success).toBe(false);
+    expect(createEventSchema.safeParse({ ...valid, category: 'PARTY' }).success).toBe(false);
   });
 
   it('requires an explicit UTC offset so event times are never ambiguous', () => {

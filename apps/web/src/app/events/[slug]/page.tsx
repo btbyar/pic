@@ -28,6 +28,7 @@ export default async function EventPage({
         ← {t('events.title')}
       </Link>
       <header className="flex flex-col gap-2">
+        <p className="text-sm font-medium uppercase tracking-wide text-slate-500">{t(`categories.${event.category}`)}</p>
         <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{event.title}</h1>
         <p className="text-slate-600">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
         {event.location ? <p className="text-slate-600">{event.location}</p> : null}

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EVENT_VISIBILITIES } from './enums.js';
+import { EVENT_CATEGORIES, EVENT_VISIBILITIES } from './enums.js';
 
 // ---------------------------------------------------------------- slug
 
@@ -78,6 +78,7 @@ const eventFields = {
   startsAt: isoDateTime,
   endsAt: isoDateTime,
   timezone,
+  category: z.enum(EVENT_CATEGORIES),
   visibility: z.enum(EVENT_VISIBILITIES),
   pricePerPhoto: price,
   bundlePrice: price.nullable(),
@@ -91,6 +92,7 @@ export const createEventSchema = z
     description: eventFields.description.optional(),
     location: eventFields.location.optional(),
     timezone: eventFields.timezone.default('Asia/Ulaanbaatar'),
+    category: eventFields.category.default('OTHER'),
     visibility: eventFields.visibility.default('HIDDEN'),
     bundlePrice: eventFields.bundlePrice.optional(),
     bibPattern: eventFields.bibPattern.optional(),

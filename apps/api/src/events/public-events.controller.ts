@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { EVENT_CATEGORIES } from '@pic/shared';
 import { z } from 'zod';
 import { type AuthedRequest, Public } from '../auth/decorators';
 import { ZodPipe } from '../common/zod.pipe';
@@ -7,6 +8,7 @@ import { EventsService } from './events.service';
 const listQuerySchema = z.object({
   cursor: z.uuid().optional(),
   q: z.string().trim().min(1).max(100).optional(),
+  category: z.enum(EVENT_CATEGORIES).optional(),
 });
 
 const slugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
