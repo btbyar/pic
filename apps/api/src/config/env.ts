@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+const base64Key32 = z
+  .string()
+  .refine((v) => Buffer.from(v, 'base64').length === 32, 'must be 32 bytes, base64-encoded');
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -20,6 +24,11 @@ const envSchema = z.object({
   S3_BUCKET_PUBLIC: z.string().min(1),
 
   ML_BASE_URL: z.url(),
+
+  // TOTP secret, банкны данс шифрлэх AES-256-GCM түлхүүр
+  FIELD_ENCRYPTION_KEY: base64Key32,
+  // IP хаягийг hash-лах HMAC түлхүүр
+  IP_HASH_SECRET: z.string().min(32),
 });
 
 export type Env = z.output<typeof envSchema>;

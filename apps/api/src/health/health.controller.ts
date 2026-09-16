@@ -1,7 +1,9 @@
 import { Controller, Get, HttpStatus, Inject, type OnModuleDestroy, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
-import { Redis } from 'ioredis';
+import type { Redis } from 'ioredis';
+import { Public } from '../auth/decorators';
+import { REDIS } from '../redis/redis.module';
 import type { Response } from 'express';
 import type { PrismaClient } from '@pic/db';
 import { PRISMA } from '../prisma/prisma.module';
@@ -18,21 +20,16 @@ async function check(fn: () => Promise<unknown>): Promise<CheckResult> {
   }
 }
 
+@Public()
 @Controller('health')
 export class HealthController implements OnModuleDestroy {
-  private readonly redis: Redis;
   private readonly s3: S3Client;
 
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaClient,
+    @Inject(REDIS) private readonly redis: Redis,
     private readonly config: ConfigService<Env, true>,
   ) {
-    this.redis = new Redis(config.get('REDIS_URL', { infer: true }), {
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-    });
-    // Холболтын алдааг ping() хариунд тусгана; event-ийг барихгүй бол ioredis stderr рүү асгана
-    this.redis.on('error', () => {});
     this.s3 = new S3Client({
       endpoint: config.get('S3_ENDPOINT', { infer: true }),
       region: config.get('S3_REGION', { infer: true }),
@@ -67,7 +64,6 @@ export class HealthController implements OnModuleDestroy {
   }
 
   onModuleDestroy() {
-    this.redis.disconnect();
     this.s3.destroy();
   }
 }

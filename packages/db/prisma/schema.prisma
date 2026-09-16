@@ -108,20 +108,22 @@ enum RemovalStatus {
 // =====================================================================
 
 model User {
-  id                 String     @id @default(uuid(7)) @db.Uuid
-  email              String     @unique // app давхаргад lowercase болгоно
-  passwordHash       String     @map("password_hash")
-  role               Role
-  status             UserStatus @default(PENDING)
-  displayName        String     @map("display_name")
-  phone              String?
-  totpSecretEnc      String?    @map("totp_secret_enc")
-  totpEnabledAt      DateTime?  @map("totp_enabled_at") @db.Timestamptz(3)
-  recoveryCodeHashes String[]   @map("recovery_code_hashes")
-  lastLoginAt        DateTime?  @map("last_login_at") @db.Timestamptz(3)
-  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  id                   String     @id @default(uuid(7)) @db.Uuid
+  email                String     @unique // app давхаргад lowercase болгоно
+  passwordHash         String     @map("password_hash")
+  role                 Role
+  status               UserStatus @default(PENDING)
+  displayName          String     @map("display_name")
+  phone                String?
+  totpSecretEnc        String?    @map("totp_secret_enc")
+  totpPendingSecretEnc String?    @map("totp_pending_secret_enc") // баталгаажаагүй setup
+  totpEnabledAt        DateTime?  @map("totp_enabled_at") @db.Timestamptz(3)
+  totpLastStep         Int?       @map("totp_last_step") // нэг кодыг дахин ашиглахаас сэргийлнэ
+  recoveryCodeHashes   String[]   @map("recovery_code_hashes")
+  lastLoginAt          DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt            DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt            DateTime?  @map("deleted_at") @db.Timestamptz(3)
 
   photographerProfile PhotographerProfile?  @relation("ProfileUser")
   approvedProfiles    PhotographerProfile[] @relation("ProfileApprovedBy")

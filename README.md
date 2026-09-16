@@ -40,7 +40,7 @@ pnpm install
 cp .env.example .env            # PowerShell: Copy-Item .env.example .env
 ```
 
-`.env` доторх `change-me` утгуудыг бүгдийг соль. `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `IP_HASH_SECRET` үүсгэх:
+`.env` доторх `change-me` утгуудыг бүгдийг соль. `FIELD_ENCRYPTION_KEY`, `IP_HASH_SECRET` үүсгэх:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
@@ -97,7 +97,8 @@ docker compose --profile app up -d --build
 ## Тест
 
 ```bash
-pnpm test                          # бүх TypeScript багц
+pnpm test                          # бүх TypeScript багц (Docker шаардлагагүй)
+pnpm --filter @pic/api test:e2e    # API-г жинхэнэ Postgres/Redis дээр (docker compose up -d && pnpm db:deploy шаардана)
 cd services/ml && uv run pytest    # Python
 ```
 
