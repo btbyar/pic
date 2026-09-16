@@ -45,7 +45,14 @@ export function evaluateAccess(route: RouteAccess, principal: Principal | null):
   return { allow: true };
 }
 
-/** Админд 2FA үргэлж заавал; бусад нь идэвхжүүлсэн бол заавал. */
-export function isMfaRequired(role: Role, totpEnabled: boolean): boolean {
-  return role === 'ADMIN' || totpEnabled;
+/**
+ * Админд 2FA заавал (`ADMIN_MFA_REQUIRED=false` үед хөгжүүлэлтэд түр унтарна); бусад нь идэвхжүүлсэн бол заавал.
+ */
+export function isMfaRequired(role: Role, totpEnabled: boolean, adminMfaRequired = true): boolean {
+  return role === 'ADMIN' ? adminMfaRequired : totpEnabled;
+}
+
+/** Админ эрхээр ажиллаж буй эсэх (2FA шаардлагатай бол баталгаажуулсан байх) */
+export function isActingAdmin(principal: Principal | null | undefined): boolean {
+  return principal?.role === 'ADMIN' && (!principal.mfaRequired || principal.mfaPassed);
 }

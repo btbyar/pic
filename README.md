@@ -114,6 +114,7 @@ cd services/ml && uv run pytest    # Python
 ## Анхааруулга
 
 - **Нүүр таних модель:** InsightFace-ийн бэлэн моделиуд (`buffalo_l` г.м.) арилжааны бус лицензтэй тул **YuNet (MIT) + SFace (Apache 2.0)** ашиглана. Нарийвчлалыг бодит эвэнтийн зураг дээр хэмжиж, хангалтгүй бол `FaceEngine` interface-ээр AWS Rekognition эсвэл InsightFace-ийн арилжааны лиценз руу шилжинэ. Моделийн сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна.
+- **Админы 2FA:** хөгжүүлэлтэд `.env`-д `ADMIN_MFA_REQUIRED=false` гэж түр унтрааж болно. Production-д (`NODE_ENV=production`) унтраавал API асахгүй.
 - **Cloudflare R2 CORS:** зурагчны браузер зургийг шууд R2 руу илгээдэг тул production bucket-д `WEB_ORIGIN`-оос `PUT` (`content-type` header) зөвшөөрөх CORS дүрэм заавал тохируулна.
 - **MinIO:** community Docker image 2025-09-өөс хойш шинэчлэгдээгүй; зөвхөн dev-д, хувилбарыг түгжиж ашиглана. Production нь Cloudflare R2.
 - **Хувийн мэдээлэл:** зөвшөөрлийн текстийг хуульчаар хянуулна.

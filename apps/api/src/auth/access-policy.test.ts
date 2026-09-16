@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateAccess, isMfaRequired, type Principal, type RouteAccess } from './access-policy';
+import { evaluateAccess, isActingAdmin, isMfaRequired, type Principal, type RouteAccess } from './access-policy';
 
 const route = (over: Partial<RouteAccess> = {}): RouteAccess => ({
   isPublic: false,
@@ -76,5 +76,22 @@ describe('isMfaRequired', () => {
     expect(isMfaRequired('ADMIN', false)).toBe(true);
     expect(isMfaRequired('PHOTOGRAPHER', false)).toBe(false);
     expect(isMfaRequired('PHOTOGRAPHER', true)).toBe(true);
+  });
+
+  it('lets development switch off mandatory admin 2FA only', () => {
+    expect(isMfaRequired('ADMIN', false, false)).toBe(false);
+    expect(isMfaRequired('ADMIN', true, false)).toBe(false);
+    // Зурагчны сайн дурын 2FA-д нөлөөлөхгүй
+    expect(isMfaRequired('PHOTOGRAPHER', true, false)).toBe(true);
+  });
+});
+
+describe('isActingAdmin', () => {
+  it('requires a passed 2FA only when it is required', () => {
+    expect(isActingAdmin(admin({ mfaRequired: true, mfaPassed: false }))).toBe(false);
+    expect(isActingAdmin(admin({ mfaRequired: true, mfaPassed: true }))).toBe(true);
+    expect(isActingAdmin(admin({ mfaRequired: false, mfaPassed: false }))).toBe(true);
+    expect(isActingAdmin(photographer())).toBe(false);
+    expect(isActingAdmin(null)).toBe(false);
   });
 });

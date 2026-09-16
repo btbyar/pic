@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { type Event, Prisma, type PrismaClient } from '@pic/db';
 import { computeEventExpiresAt, type CreateEventInput, type EventCategory, slugify, type UpdateEventInput } from '@pic/shared';
 import { AuditService } from '../audit/audit.service';
+import { isActingAdmin } from '../auth/access-policy';
 import type { AuthContext } from '../auth/decorators';
 import { randomToken, sha256Hex } from '../common/crypto';
 import type { Env } from '../config/env';
@@ -235,7 +236,7 @@ export class EventsService {
     const allowed = canViewEvent(event, {
       accessToken: viewer.accessToken,
       isMember: viewer.auth ? event.photographers.some((p) => p.userId === viewer.auth!.userId) : false,
-      isAdmin: viewer.auth?.role === 'ADMIN' && viewer.auth.mfaPassed,
+      isAdmin: isActingAdmin(viewer.auth),
     });
     if (!allowed) throw this.notFound();
 

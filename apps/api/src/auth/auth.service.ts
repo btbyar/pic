@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, type PrismaClient, type User } from '@pic/db';
 import { AuditService } from '../audit/audit.service';
@@ -39,6 +39,8 @@ export interface IssuedSession {
 export class AuthService {
   private readonly cipher: FieldCipher;
   private readonly ipSecret: string;
+  private readonly adminMfaRequired: boolean;
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaClient,
@@ -48,6 +50,8 @@ export class AuthService {
   ) {
     this.cipher = new FieldCipher(config.get('FIELD_ENCRYPTION_KEY', { infer: true }));
     this.ipSecret = config.get('IP_HASH_SECRET', { infer: true });
+    this.adminMfaRequired = config.get('ADMIN_MFA_REQUIRED', { infer: true });
+    if (!this.adminMfaRequired) this.logger.warn('ADMIN_MFA_REQUIRED=false — админы 2FA унтарсан (зөвхөн хөгжүүлэлтэд)');
   }
 
   // ---------------------------------------------------------------- бүртгэл, нэвтрэлт
@@ -139,7 +143,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       status: user.status,
-      mfaRequired: isMfaRequired(user.role, user.totpEnabledAt !== null),
+      mfaRequired: isMfaRequired(user.role, user.totpEnabledAt !== null, this.adminMfaRequired),
       mfaPassed: session.mfaPassedAt !== null,
     };
   }
@@ -260,7 +264,7 @@ export class AuthService {
       },
     });
     let mfa: MfaState = 'none';
-    if (isMfaRequired(user.role, user.totpEnabledAt !== null)) {
+    if (isMfaRequired(user.role, user.totpEnabledAt !== null, this.adminMfaRequired)) {
       mfa = user.totpEnabledAt ? 'required' : 'setup_required';
     }
     return { token, expiresAt, mfa };

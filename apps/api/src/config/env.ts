@@ -31,6 +31,15 @@ const envSchema = z.object({
   FIELD_ENCRYPTION_KEY: base64Key32,
   // IP хаягийг hash-лах HMAC түлхүүр
   IP_HASH_SECRET: z.string().min(32),
+
+  // Админы 2FA. Зөвхөн хөгжүүлэлтэд түр унтрааж болно — production-д унтраавал API асахгүй.
+  ADMIN_MFA_REQUIRED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+}).refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED, {
+  path: ['ADMIN_MFA_REQUIRED'],
+  message: 'admin 2FA cannot be disabled in production',
 });
 
 export type Env = z.output<typeof envSchema>;

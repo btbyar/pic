@@ -9,5 +9,7 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 60_000,
     fileParallelism: false,
+    // Локал .env-д 2FA унтраасан байсан ч тест production-ийн дүрмийг шалгана
+    env: { ADMIN_MFA_REQUIRED: 'true' },
   },
 });

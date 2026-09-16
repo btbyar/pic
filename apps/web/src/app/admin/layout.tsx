@@ -9,8 +9,8 @@ import { homeFor } from '@/lib/routes';
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const me = await getMe();
   if (!me) redirect('/login');
-  // Админд 2FA заавал: тохируулаагүй эсвэл энэ session-д баталгаажуулаагүй бол чиглүүлнэ
-  if (me.role !== 'ADMIN' || !me.mfa.passed) redirect(homeFor(me));
+  // 2FA шаардлагатай бөгөөд энэ session-д баталгаажуулаагүй бол /mfa руу чиглүүлнэ
+  if (me.role !== 'ADMIN' || (me.mfa.required && !me.mfa.passed)) redirect(homeFor(me));
 
   const t = await getTranslations('admin');
   return (
