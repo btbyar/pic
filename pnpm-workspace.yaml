@@ -1,0 +1,23 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Install script ажиллуулахыг зөвшөөрсөн багцууд (pnpm 12 default-аар хаадаг)
+allowBuilds:
+  '@parcel/watcher': true
+  '@prisma/engines': true
+  '@swc/core': true
+  esbuild: true
+  prisma: true
+
+# Бүх workspace ижил хувилбар ашиглана
+catalog:
+  typescript: 6.0.3
+  "@types/node": ^24.0.0
+  vitest: 5.0.1
+  zod: 4.6.5
+
+minimumReleaseAgeExclude:
+  - '@vitest/mocker@5.0.1'
+  - '@vitest/spy@5.0.1'
+  - vitest@5.0.1

@@ -1,0 +1,8 @@
+{
+  "extends": "@pic/config/tsconfig.lib.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src", "prisma", "test", "prisma.config.ts"]
+}

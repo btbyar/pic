@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/*.tsbuildinfo
+**/.venv
+**/__pycache__
+services/ml/models/*.onnx
+packages/db/src/generated
+.git
+.env
+.env.*
+!.env.example

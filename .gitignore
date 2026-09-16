@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Prisma generated client
+packages/db/src/generated/
+
+# Env — зөвхөн .env.example commit хийнэ
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+services/ml/models/*.onnx
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Next.js автоматаар үүсгэдэг
+next-env.d.ts

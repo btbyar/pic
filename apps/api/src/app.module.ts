@@ -1,0 +1,19 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { validateEnv } from './config/env';
+import { PrismaModule } from './prisma/prisma.module';
+import { HealthModule } from './health/health.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // apps/api-аас ажиллуулахад монорепогийн root .env-ийг уншина
+      envFilePath: ['.env', '../../.env'],
+      validate: validateEnv,
+    }),
+    PrismaModule,
+    HealthModule,
+  ],
+})
+export class AppModule {}

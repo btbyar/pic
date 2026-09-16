@@ -1,0 +1,21 @@
+{
+  "name": "pic",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:packages": "pnpm --filter \"./packages/*\" build",
+    "dev": "pnpm build:packages && pnpm --parallel --filter \"./apps/*\" dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @pic/db generate",
+    "db:migrate": "pnpm --filter @pic/db migrate:dev",
+    "db:deploy": "pnpm --filter @pic/db migrate:deploy",
+    "db:seed": "pnpm --filter @pic/db seed",
+    "infra:up": "docker compose up -d postgres redis minio minio-init mailpit",
+    "infra:down": "docker compose down"
+  }
+}

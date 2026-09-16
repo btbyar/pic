@@ -1,0 +1,140 @@
+name: pic
+
+# Dev дээр:  docker compose up -d                 → зөвхөн infra (postgres, redis, minio)
+#           docker compose --profile app up -d   → бүх сервис контейнерт
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg16-trixie
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env дотор POSTGRES_PASSWORD тохируулна уу}
+      POSTGRES_DB: ${POSTGRES_DB:-pic}
+      PIC_APP_DB_PASSWORD: ${PIC_APP_DB_PASSWORD:?.env дотор PIC_APP_DB_PASSWORD тохируулна уу}
+      PIC_ADMIN_DB_PASSWORD: ${PIC_ADMIN_DB_PASSWORD:?.env дотор PIC_ADMIN_DB_PASSWORD тохируулна уу}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8.8-alpine
+    # BullMQ noeviction шаарддаг
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # MinIO community image-ийг 2025-09-өөс хойш шинэчлэхээ больсон — зөвхөн dev-д, хувилбарыг түгжсэн.
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?.env дотор MINIO_ROOT_USER тохируулна уу}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?.env дотор MINIO_ROOT_PASSWORD тохируулна уу}
+      # Browser → presigned PUT (prod дээр R2 bucket-ийн CORS тохиргоогоор)
+      MINIO_API_CORS_ALLOW_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_BUCKET_ORIGINALS: ${S3_BUCKET_ORIGINALS:-pic-originals}
+      S3_BUCKET_PUBLIC: ${S3_BUCKET_PUBLIC:-pic-public}
+    entrypoint: ["/bin/sh", "/init.sh"]
+    volumes:
+      - ./infra/minio/init.sh:/init.sh:ro
+    restart: "no"
+
+  # ---------------- app profile ----------------
+
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: infra/docker/node.Dockerfile
+      target: migrate
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pic}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pic}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: infra/docker/node.Dockerfile
+      target: api
+    env_file: .env
+    environment:
+      APP_DATABASE_URL: postgresql://pic_app:${PIC_APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-pic}
+      ADMIN_DATABASE_URL: postgresql://pic_admin:${PIC_ADMIN_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-pic}
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      ML_BASE_URL: http://ml:8000
+    ports:
+      - "4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+  ml:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: infra/docker/ml.Dockerfile
+    env_file: .env
+    ports:
+      - "8000:8000"
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: infra/docker/node.Dockerfile
+      target: web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    env_file: .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

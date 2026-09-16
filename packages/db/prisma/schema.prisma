@@ -1,0 +1,555 @@
+// Pic — өгөгдлийн сангийн схем
+// Нүүр царайтай холбоотой хүснэгтүүд "biometric" schema-д байна; админ DB role тэнд хандах эрхгүй.
+// Migration-ы гараар нэмсэн хэсэг (extension, CHECK, role, trigger): migrations/*/migration.sql
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "biometric"]
+}
+
+// =====================================================================
+// Enums
+// =====================================================================
+
+enum Role {
+  PHOTOGRAPHER
+  ADMIN
+
+  @@schema("public")
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@schema("public")
+}
+
+enum EventVisibility {
+  PUBLIC
+  UNLISTED
+  HIDDEN
+
+  @@schema("public")
+}
+
+enum ProcessingStatus {
+  UPLOADING
+  UPLOADED
+  DERIVED
+  INDEXED
+  FAILED
+
+  @@schema("public")
+}
+
+enum BibSource {
+  OCR
+  MANUAL
+
+  @@schema("public")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+  PARTIALLY_REFUNDED
+
+  @@schema("public")
+}
+
+enum PricingKind {
+  SINGLE
+  BUNDLE
+
+  @@schema("public")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+
+  @@schema("public")
+}
+
+enum RemovalStatus {
+  NEW
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+
+  @@schema("public")
+}
+
+// =====================================================================
+// Хэрэглэгч, эрх
+// =====================================================================
+
+model User {
+  id                 String     @id @default(uuid(7)) @db.Uuid
+  email              String     @unique // app давхаргад lowercase болгоно
+  passwordHash       String     @map("password_hash")
+  role               Role
+  status             UserStatus @default(PENDING)
+  displayName        String     @map("display_name")
+  phone              String?
+  totpSecretEnc      String?    @map("totp_secret_enc")
+  totpEnabledAt      DateTime?  @map("totp_enabled_at") @db.Timestamptz(3)
+  recoveryCodeHashes String[]   @map("recovery_code_hashes")
+  lastLoginAt        DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(3)
+
+  photographerProfile PhotographerProfile?  @relation("ProfileUser")
+  approvedProfiles    PhotographerProfile[] @relation("ProfileApprovedBy")
+  sessions            AuthSession[]
+  ownedEvents         Event[]               @relation("EventOwner")
+  eventPhotographers  EventPhotographer[]
+  uploadBatches       UploadBatch[]
+  photos              Photo[]
+  soldItems           OrderItem[]
+  refundsCreated      Refund[]
+  payouts             Payout[]
+  removalsHandled     RemovalRequest[]
+
+  @@map("user")
+  @@schema("public")
+}
+
+model PhotographerProfile {
+  userId          String    @id @map("user_id") @db.Uuid
+  revenueSharePct Int       @default(70) @map("revenue_share_pct")
+  bankName        String?   @map("bank_name")
+  bankAccountEnc  String?   @map("bank_account_enc")
+  approvedById    String?   @map("approved_by_id") @db.Uuid
+  approvedAt      DateTime? @map("approved_at") @db.Timestamptz(3)
+  rejectionReason String?   @map("rejection_reason")
+  suspendedAt     DateTime? @map("suspended_at") @db.Timestamptz(3)
+  suspendReason   String?   @map("suspend_reason")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user       User  @relation("ProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy User? @relation("ProfileApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@map("photographer_profile")
+  @@schema("public")
+}
+
+model AuthSession {
+  id          String    @id // cookie токены SHA-256 hash; түүхий токен DB-д байхгүй
+  userId      String    @map("user_id") @db.Uuid
+  mfaPassedAt DateTime? @map("mfa_passed_at") @db.Timestamptz(3)
+  ipHash      String?   @map("ip_hash")
+  userAgent   String?   @map("user_agent")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("auth_session")
+  @@schema("public")
+}
+
+// =====================================================================
+// Эвэнт, зураг
+// =====================================================================
+
+model Event {
+  id                String          @id @default(uuid(7)) @db.Uuid
+  slug              String          @unique
+  title             String
+  description       String?
+  location          String?
+  startsAt          DateTime        @map("starts_at") @db.Timestamptz(3)
+  endsAt            DateTime        @map("ends_at") @db.Timestamptz(3)
+  timezone          String          @default("Asia/Ulaanbaatar")
+  ownerId           String          @map("owner_id") @db.Uuid
+  visibility        EventVisibility @default(HIDDEN)
+  accessTokenHash   String?         @map("access_token_hash") // UNLISTED холбоосны токены hash
+  featured          Boolean         @default(false)
+  pricePerPhoto     Int             @map("price_per_photo") // ₮
+  bundlePrice       Int?            @map("bundle_price") // "Миний бүх зураг" багц, ₮
+  retentionDays     Int             @default(180) @map("retention_days")
+  expiresAt         DateTime        @map("expires_at") @db.Timestamptz(3)
+  bibPattern        String?         @map("bib_pattern") // жишээ: ^\d{3,5}$
+  faceSearchEnabled Boolean         @default(true) @map("face_search_enabled")
+  coverPhotoId      String?         @map("cover_photo_id") @db.Uuid
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?       @map("deleted_at") @db.Timestamptz(3)
+
+  owner          User                @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  photographers  EventPhotographer[]
+  uploadBatches  UploadBatch[]
+  photos         Photo[]
+  bibDetections  BibDetection[]
+  faceEmbeddings FaceEmbedding[]
+  searchSessions SearchSession[]
+  orders         Order[]
+  dailyStats     EventDailyStat[]
+
+  @@index([visibility, startsAt])
+  @@index([expiresAt])
+  @@index([ownerId])
+  @@map("event")
+  @@schema("public")
+}
+
+model EventPhotographer {
+  eventId        String   @map("event_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  clockOffsetSec Int      @default(0) @map("clock_offset_sec") // камерын цагийн засвар
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([eventId, userId])
+  @@index([userId])
+  @@map("event_photographer")
+  @@schema("public")
+}
+
+model UploadBatch {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  eventId        String   @map("event_id") @db.Uuid
+  photographerId String   @map("photographer_id") @db.Uuid
+  totalFiles     Int      @map("total_files")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  event        Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  photographer User    @relation(fields: [photographerId], references: [id], onDelete: Restrict)
+  photos       Photo[]
+
+  @@index([eventId])
+  @@map("upload_batch")
+  @@schema("public")
+}
+
+model Photo {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  eventId          String           @map("event_id") @db.Uuid
+  photographerId   String           @map("photographer_id") @db.Uuid
+  uploadBatchId    String?          @map("upload_batch_id") @db.Uuid
+  originalFilename String           @map("original_filename")
+  storageKeys      Json             @map("storage_keys") // { original, preview, thumb }
+  width            Int?
+  height           Int?
+  bytes            BigInt
+  sha256           String?
+  capturedAtRaw    DateTime?        @map("captured_at_raw") @db.Timestamptz(3) // EXIF, засваргүй
+  capturedAt       DateTime?        @map("captured_at") @db.Timestamptz(3) // tz + clockOffset засагдсан
+  processingStatus ProcessingStatus @default(UPLOADING) @map("processing_status")
+  failureReason    String?          @map("failure_reason")
+  faceCount        Int              @default(0) @map("face_count")
+  hiddenAt         DateTime?        @map("hidden_at") @db.Timestamptz(3)
+  hiddenReason     String?          @map("hidden_reason")
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(3)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  event           Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  photographer    User             @relation(fields: [photographerId], references: [id], onDelete: Restrict)
+  uploadBatch     UploadBatch?     @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
+  faces           FaceEmbedding[]
+  bibs            BibDetection[]
+  orderItems      OrderItem[]
+  downloads       Download[]
+  removalRequests RemovalRequest[]
+
+  @@unique([eventId, sha256])
+  @@index([eventId, capturedAt])
+  @@index([eventId, processingStatus])
+  @@index([photographerId])
+  @@map("photo")
+  @@schema("public")
+}
+
+model BibDetection {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  photoId      String    @map("photo_id") @db.Uuid
+  eventId      String    @map("event_id") @db.Uuid
+  bibNumber    String    @map("bib_number")
+  confidence   Float
+  bbox         Json
+  source       BibSource @default(OCR)
+  modelVersion String    @map("model_version")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, bibNumber])
+  @@index([photoId])
+  @@map("bib_detection")
+  @@schema("public")
+}
+
+// =====================================================================
+// Биометр — зөвхөн pic_app_role хандана
+// =====================================================================
+
+model FaceEmbedding {
+  id           String                     @id @default(uuid(7)) @db.Uuid
+  photoId      String                     @map("photo_id") @db.Uuid
+  eventId      String                     @map("event_id") @db.Uuid
+  embedding    Unsupported("vector(512)") // L2-normalized ArcFace; raw SQL-ээр бичиж/уншина
+  bbox         Json
+  detScore     Float                      @map("det_score")
+  faceSizePx   Int                        @map("face_size_px") // bbox-ийн богино тал
+  quality      Float
+  modelVersion String                     @map("model_version")
+  createdAt    DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // HNSW биш: хайлт үргэлж нэг эвэнт дотор тул event_id-аар шүүгээд exact scan (docs/ARCHITECTURE.md §4)
+  @@index([eventId, modelVersion])
+  @@index([photoId])
+  @@map("face_embedding")
+  @@schema("biometric")
+}
+
+model SearchSession {
+  id             String                      @id @default(uuid(4)) @db.Uuid // v4: цаг задруулахгүй
+  eventId        String                      @map("event_id") @db.Uuid
+  queryEmbedding Unsupported("vector(512)")? @map("query_embedding") // ≤24 цагт NULL болно
+  resultCount    Int                         @default(0) @map("result_count")
+  createdAt      DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt      DateTime                    @map("expires_at") @db.Timestamptz(3)
+  // IP, нэр, имэйл, утас — зориуд байхгүй
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("search_session")
+  @@schema("biometric")
+}
+
+// =====================================================================
+// Захиалга, төлбөр
+// =====================================================================
+
+model Order {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  eventId         String?     @map("event_id") @db.Uuid // retention устгасны дараа null
+  eventTitleSnap  String      @map("event_title_snap")
+  status          OrderStatus @default(PENDING)
+  totalAmount     Int         @map("total_amount") // ₮
+  accessTokenHash String      @map("access_token_hash")
+  contactEmail    String?     @map("contact_email")
+  paidAt          DateTime?   @map("paid_at") @db.Timestamptz(3)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // SearchSession-тэй зориуд холбоогүй
+
+  event    Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+  payments Payment[]
+  refunds  Refund[]
+
+  @@index([status, createdAt])
+  @@index([eventId])
+  @@map("order")
+  @@schema("public")
+}
+
+model OrderItem {
+  id                   String      @id @default(uuid(7)) @db.Uuid
+  orderId              String      @map("order_id") @db.Uuid
+  photoId              String?     @map("photo_id") @db.Uuid
+  photoFilenameSnap    String      @map("photo_filename_snap")
+  photographerId       String      @map("photographer_id") @db.Uuid
+  pricing              PricingKind @default(SINGLE)
+  price                Int // ₮, багцын үед хуваарилсан хэсэг
+  photographerSharePct Int         @map("photographer_share_pct") // худалдан авах мөчийн snapshot
+  photographerAmount   Int         @map("photographer_amount")
+  platformAmount       Int         @map("platform_amount")
+  refundId             String?     @map("refund_id") @db.Uuid
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  photo        Photo?     @relation(fields: [photoId], references: [id], onDelete: SetNull)
+  photographer User       @relation(fields: [photographerId], references: [id], onDelete: Restrict)
+  refund       Refund?    @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  downloads    Download[]
+
+  @@unique([orderId, photoId])
+  @@index([photographerId, createdAt])
+  @@map("order_item")
+  @@schema("public")
+}
+
+model Payment {
+  id                String        @id @default(uuid(7)) @db.Uuid
+  orderId           String        @map("order_id") @db.Uuid
+  provider          String // QPAY | MOCK
+  providerInvoiceId String        @unique @map("provider_invoice_id")
+  providerPaymentId String?       @map("provider_payment_id")
+  status            PaymentStatus @default(PENDING)
+  amount            Int
+  rawPayload        Json          @map("raw_payload")
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([status, createdAt])
+  @@map("payment")
+  @@schema("public")
+}
+
+model Refund {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  orderId     String   @map("order_id") @db.Uuid
+  amount      Int
+  reason      String // заавал
+  providerRef String?  @map("provider_ref")
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  createdBy User        @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  items     OrderItem[]
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("refund")
+  @@schema("public")
+}
+
+model Download {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  orderItemId String   @map("order_item_id") @db.Uuid
+  photoId     String?  @map("photo_id") @db.Uuid
+  ipHash      String   @map("ip_hash") // HMAC(ip)
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  photo     Photo?    @relation(fields: [photoId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
+  @@index([createdAt])
+  @@map("download")
+  @@schema("public")
+}
+
+model Payout {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  photographerId String       @map("photographer_id") @db.Uuid
+  period         String // "2026-09"
+  grossAmount    Int          @map("gross_amount")
+  refundAdjust   Int          @map("refund_adjust")
+  netAmount      Int          @map("net_amount")
+  status         PayoutStatus @default(PENDING)
+  paidAt         DateTime?    @map("paid_at") @db.Timestamptz(3)
+  paidById       String?      @map("paid_by_id") @db.Uuid
+  reference      String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  photographer User @relation(fields: [photographerId], references: [id], onDelete: Restrict)
+
+  @@unique([photographerId, period])
+  @@map("payout")
+  @@schema("public")
+}
+
+// =====================================================================
+// Контент, аудит, тохиргоо, статистик
+// =====================================================================
+
+model RemovalRequest {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  photoId     String?       @map("photo_id") @db.Uuid // зураг устсаны дараа ч хүсэлтийн бүртгэл үлдэнэ
+  reason      String
+  contact     String?
+  status      RemovalStatus @default(NEW)
+  handledById String?       @map("handled_by_id") @db.Uuid
+  resolution  String?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  resolvedAt  DateTime?     @map("resolved_at") @db.Timestamptz(3)
+
+  photo     Photo? @relation(fields: [photoId], references: [id], onDelete: SetNull)
+  handledBy User?  @relation(fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@map("removal_request")
+  @@schema("public")
+}
+
+// Зөвхөн INSERT — UPDATE/DELETE-ийг trigger хориглоно. actorId FK биш: лог хэзээ ч блоклогдохгүй.
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  actorId    String   @map("actor_id") @db.Uuid
+  actorRole  Role     @map("actor_role")
+  action     String // "photo.hide", "refund.create" ...
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  before     Json?
+  after      Json?
+  reason     String?
+  ipHash     String?  @map("ip_hash")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+  @@map("audit_log")
+  @@schema("public")
+}
+
+model SystemSetting {
+  key         String   @id // packages/shared settings.ts дахь түлхүүрүүд
+  value       Json
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("system_setting")
+  @@schema("public")
+}
+
+model EventDailyStat {
+  eventId  String   @map("event_id") @db.Uuid
+  date     DateTime @db.Date
+  views    Int      @default(0)
+  searches Int      @default(0)
+  orders   Int      @default(0)
+  revenue  Int      @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, date])
+  @@map("event_daily_stat")
+  @@schema("public")
+}
