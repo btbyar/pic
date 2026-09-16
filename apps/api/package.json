@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",
+    "@aws-sdk/s3-request-presigner": "3.1131.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",
@@ -20,6 +21,7 @@
     "@node-rs/argon2": "2.2.1",
     "@pic/db": "workspace:*",
     "@pic/shared": "workspace:*",
+    "bullmq": "6.3.6",
     "cookie-parser": "1.4.7",
     "ioredis": "^6.0.0",
     "otplib": "13.5.0",

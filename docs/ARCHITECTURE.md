@@ -15,7 +15,7 @@
 | 7 | Prod | Нэг VPS (~8 vCPU) гэж тооцно, concurrency env-ээр тохируулна |
 | 8 | Face модель | ⚠️ **YuNet (MIT) + SFace (Apache 2.0)** — InsightFace-ийн моделийг лицензгүйгээр арилжаанд ашиглах боломжгүй тул (2026-09-16). Бодит эвэнтийн 200–300 зураг дээр recall хэмжинэ; хангалтгүй бол `FaceEngine`-ээр AWS Rekognition эсвэл InsightFace лиценз руу шилжинэ. SFace 128-dim → Phase 3-т `vector(128)` migration. Сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна |
 | 9 | Вектор хайлт | `event_id` btree + exact scan (HNSW биш) |
-| 10 | Upload | Browser → R2 шууд presigned (Uppy, multipart) |
+| 10 | Upload | Browser → R2 шууд presigned **PUT (файл бүр нэг хүсэлт)**, өөрсдийн жижиг uploader (Uppy биш). Зураг ≤50MB тул multipart шаардлагагүй; тасалдвал SHA-256 давхардлаар файлын түвшинд үргэлжилнэ (2026-09-16) |
 | 11 | OCR | RapidOCR (PaddleOCR загвар, ONNX Runtime) |
 | 12 | Derivative | thumb 400px WebP, preview 1000px WebP + watermark |
 | 13 | Rate limit | IP + анонимаар өгсөн cookie, хэтэрвэл Turnstile |
@@ -403,6 +403,15 @@ model EventDailyStat {                                 // Redis counter → 5 м
 - BullMQ `FlowProducer`: `finalize` (parent) ← `faces`, `bib` (children) ← `ingest` дууссаны дараа.
 - Retry: 3 оролдлого, exponential backoff → дараа нь `FAILED`, админ "дахин ажиллуулах".
 - Sweeper job: 24 цагаас дээш `UPLOADING` байгаа мөрийг цэвэрлэх.
+
+**Phase 2c-ийн бодит хэрэгжилт:**
+- `POST /photographer/events/:id/upload-batches` → `POST /photographer/upload-batches/:id/files` (≤100 файл: нэр, хэмжээ, төрөл, SHA-256) → браузер PUT → `POST /photographer/upload-batches/:id/complete` (≤100).
+- Presigned URL-д `Content-Type` ба `Content-Length` гарын үсэгт орно — өөр хэмжээтэй файлыг storage өөрөө 403-аар татгалзана. Complete нь HEAD-ээр дахин шалгана.
+- Давхардал: `(event_id, sha256)` unique + `INSERT … ON CONFLICT DO NOTHING` — зэрэг хүсэлтэд аюулгүй. Өөрийн тасалдсан (`UPLOADING`) файлд шинэ URL олгож, шинэ batch руу шилжүүлнэ.
+- Storage түлхүүр: `events/{eventId}/originals/{photoId}.{ext}` — файлын нэр орохгүй.
+- Browser: 50 файлаар hash → бүртгэл → 4 зэрэг PUT (3 оролдлого, алдаа гарвал шинэ URL) → complete. Явцыг 250ms тутам render хийнэ.
+- `photo-ingest` BullMQ job (`jobId = photoId`) үүсгэнэ; worker нь Phase 2d.
+- **Production R2:** bucket-д CORS тохируулна — `AllowedOrigins: [WEB_ORIGIN]`, `AllowedMethods: [PUT]`, `AllowedHeaders: [content-type]`. MinIO dev-д default-аар зөвшөөрдөг.
 - Дахин индексжүүлэх: шинэ `modelVersion`-оор faces/bib job → бүгд дуусахад хуучин embedding устгах (хайлт тасалдахгүй).
 - Том batch жижиг эвэнтүүдийг хаахгүйн тулд batch-ийн хэмжээгээр BullMQ priority тавина.
 

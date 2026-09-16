@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
 import { EventForm } from '@/components/event-form';
-import { Alert, Button, Card, Field, Input } from '@/components/ui';
+import { Alert, Button, ButtonLink, Card, Field, Input } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { takeAccessLink } from '@/lib/access-link';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
@@ -47,7 +47,13 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
         ) : null}
       </div>
 
-      <Alert kind="info">{t('photographer.uploadSoon')}</Alert>
+      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">{t('photographer.photos')}</h2>
+          <p className="text-sm text-slate-600">{t('common.photos', { count: event.photoCount })}</p>
+        </div>
+        <ButtonLink href={`/photographer/events/${event.id}/upload`}>{t('photographer.uploadPhotos')}</ButtonLink>
+      </Card>
 
       <Card className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">{t('eventEditor.details')}</h2>

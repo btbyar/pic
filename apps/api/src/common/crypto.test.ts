@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { FieldCipher, hashIp, randomToken, safeEqualHex, sha256Hex } from './crypto';
+import { FieldCipher, hashIp, randomToken, safeEqualHex, sha256Hex, uuidv7 } from './crypto';
 
 const key = randomBytes(32).toString('base64');
 
@@ -49,5 +49,15 @@ describe('hashing helpers', () => {
     expect(safeEqualHex(sha256Hex('a'), sha256Hex('a'))).toBe(true);
     expect(safeEqualHex(sha256Hex('a'), sha256Hex('b'))).toBe(false);
     expect(safeEqualHex('ab', 'abcd')).toBe(false);
+  });
+});
+
+describe('uuidv7', () => {
+  it('is a valid v7 UUID that sorts by time', () => {
+    const a = uuidv7(1_700_000_000_000);
+    const b = uuidv7(1_700_000_000_001);
+    expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(a < b).toBe(true);
+    expect(uuidv7()).not.toBe(uuidv7());
   });
 });

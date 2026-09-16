@@ -1,4 +1,4 @@
-import type { EventCategory, EventVisibility, Role, UserStatus } from '@pic/shared';
+import type { EventCategory, EventVisibility, ProcessingStatus, Role, UserStatus } from '@pic/shared';
 
 // API хариуны хэлбэр (apps/api/src/**/*.service.ts-тэй тохирно)
 
@@ -64,4 +64,9 @@ export interface AdminPhotographer {
   revenueSharePct: number | null;
   rejectionReason: string | null;
   suspendReason: string | null;
+}
+
+export interface PhotoStats {
+  total: number;
+  byStatus: Record<ProcessingStatus, number>;
 }
