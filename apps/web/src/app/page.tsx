@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { ButtonLink } from '@/components/ui';
 
 export default async function HomePage() {
   const t = await getTranslations('home');
@@ -8,12 +8,10 @@ export default async function HomePage() {
       <h1 className="text-3xl font-bold leading-tight">{t('title')}</h1>
       <p className="text-lg text-slate-600">{t('subtitle')}</p>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Link href="/events" className="rounded-xl bg-slate-900 px-5 py-3 text-center font-medium text-white">
-          {t('browseEvents')}
-        </Link>
-        <Link href="/login" className="rounded-xl border border-slate-300 px-5 py-3 text-center font-medium">
+        <ButtonLink href="/events">{t('browseEvents')}</ButtonLink>
+        <ButtonLink href="/login" variant="secondary">
           {t('photographerLogin')}
-        </Link>
+        </ButtonLink>
       </div>
     </main>
   );
