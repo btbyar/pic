@@ -47,6 +47,14 @@ export interface PublicPhotoPage {
   nextCursor: string | null;
 }
 
+export interface SearchResults {
+  sessionId: string;
+  expiresAt: string;
+  multipleFaces: boolean;
+  mine: PublicPhoto[];
+  maybe: PublicPhoto[];
+}
+
 export interface PublicEventPage {
   items: PublicEvent[];
   nextCursor: string | null;

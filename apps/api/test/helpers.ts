@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { PrismaClient } from '@pic/db';
 import type { Role, UserStatus } from '@pic/shared';
@@ -23,8 +23,11 @@ export interface TestContext {
   close(): Promise<void>;
 }
 
-export async function createTestContext(): Promise<TestContext> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+/** `override` — provider-ийг орлуулах (жишээ нь ML client-ийг хуурамч сервер рүү) */
+export async function createTestContext(
+  override: (builder: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,
+): Promise<TestContext> {
+  const moduleRef = await override(Test.createTestingModule({ imports: [AppModule] })).compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>();
   configureApp(app);
   await app.init();

@@ -113,8 +113,8 @@ describe('guards', () => {
   it('rejects search sessions that would live longer than 24h', async () => {
     const insertSession = (ttl: string) =>
       db.query(
-        `INSERT INTO biometric.search_session (id, event_id, expires_at)
-         VALUES (gen_random_uuid(), $1, now() + $2::interval)`,
+        `INSERT INTO biometric.search_session (id, event_id, consent_version, model_version, expires_at)
+         VALUES (gen_random_uuid(), $1, 'test', 'test', now() + $2::interval)`,
         [eventId, ttl],
       );
     await expect(insertSession('25 hours')).rejects.toThrow(/search_session_ttl_max_24h/);

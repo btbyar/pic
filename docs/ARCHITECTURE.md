@@ -27,6 +27,8 @@
 | 19 | Эвэнтийн ангилал | Prisma enum `EventCategory` (гүйлт, дугуй, спорт, төгсөлт, фестиваль, концерт, баяр ёслол, байгууллага, бусад). Шинэ ангилалд migration шаардлагатай |
 | 20 | Web ↔ API | Browser `/api/*` → Next.js rewrite → NestJS. Session cookie first-party хэвээр, CORS шаардлагагүй |
 | 21 | Нууц үг сэргээх | Phase 5-д имэйл илгээх системтэй хамт. Тэр хүртэл админ гараар тусална |
+| 23 | Цагаар шүүх | ❌ **Хасагдсан (2026-09-17, хэрэглэгчийн шийдвэр).** Галерей ба хайлтын үр дүнд цагийн шүүлтүүр байхгүй. Зургууд авсан цагаар эрэмбэлэгдсэн хэвээр |
+| 24 | Хайлт | Зөвхөн селфигээр. "Таны зургууд" = шууд төсөө ≥ tHigh; "Магадгүй" = шууд ≥ tLow **эсвэл** өргөтгөлөөр ≥ tHigh (өргөтгөл хэзээ ч "Таны зургууд"-д оруулахгүй — андуурлын гинжин алдаанаас хамгаална) |
 | 22 | Хайлтын босго | SFace-д LFW хэмжилтээр: "Таны зургууд" ≥ **0.45**, "Магадгүй" ≥ **0.40**, хайлтад орох нүүр ≥ **24px** (ArcFace-ийн 0.50/0.35/32 биш). 0.35 бол селфи тутамд ~22 буруу зураг. Админ тохиргоогоор өөрчилнө (2026-09-17) |
 
 ---
@@ -462,6 +464,16 @@ model EventDailyStat {                                 // Redis counter → 5 м
 - Анхны утга (SFace, LFW хэмжилт — шийдвэр #22): `tLow = 0.40`, `tHigh = 0.45`, `minFace = 24px`. LFW нь бодит эвэнтээс хялбар тул launch-аас өмнө бодит зургаар дахин калибровка хийнэ (`services/ml/benchmark/lfw.py`-г загвар болгоно).
 - ⚠️ **HNSW биш exact scan:** HNSW нь эхлээд ойрын `ef_search` (default 40) нүүрийг олоод *дараа нь* `event_id`-аар шүүдэг → олон эвэнттэй DB дээр үр дүн бараг хоосон буцна. Хайлт үргэлж нэг эвэнт доторх тул `event_id` btree + бүрэн тооцоолол: 40,000 нүүр (10k зураг) ≈ 50–150ms. Нэг эвэнт ~300,000 нүүрээс хэтэрвэл event-ээр partition + HNSW руу шилжинэ.
 - Rate limit: Redis sliding window, түлхүүр = IP + анонимаар өгсөн cookie, хэтэрвэл Cloudflare Turnstile.
+
+**Phase 4-ийн бодит хэрэгжилт:**
+- `POST /events/:slug/search` (multipart `selfie`, `consent=true`, `t`): Nest FileInterceptor memoryStorage (≤8MB, jpeg/png/webp) → sharp 1024px → ML `/v1/faces` → хамгийн том нүүр → `search_session`-д embedding + `consent_version` + `model_version` → хайлт → `{ sessionId, expiresAt, multipleFaces, mine[], maybe[] }`. Браузер селфиг урьдчилан ≤800px JPEG болгоно.
+- Бүх векторын харьцуулалт DB дотор: query embedding-ийг `search_session`-ээс, өргөтгөлийн embedding-ийг `face_embedding.id`-гаар subquery-ээр авна — вектор API руу буцаж ирэхгүй.
+- `GET /events/:slug/search/:sessionId` — хуудас refresh (селфи дахин шаардахгүй); хугацаа дууссан бол 410. `DELETE /search-sessions/:id` — хэрэглэгч өөрөө embedding-ээ шууд устгана.
+- ≤24 цаг: `expires_at = now() + min(TTL, 23ц55м)` + worker 5 минут тутам хугацаа дууссан embedding-ийг NULL болгоно; embedding-гүй мөр 30 хоногийн дараа устна (зөвхөн тоо: result_count). Session-д IP/cookie/хэрэглэгч байхгүй (e2e тест баганын жагсаалтыг шалгана).
+- Rate limit: `search.rateLimitPerMinute` (default 10) hash-лагдсан IP-гаар; үр дүн дахин авах 120/мин.
+- `POST /photos/:id/removal-requests` — нэвтрэлтгүй, шалтгаан (ME_IN_PHOTO/INAPPROPRIATE/COPYRIGHT/OTHER) + тайлбар + холбоо барих (заавал биш), 10/цаг IP. Шийдвэрлэх нь Phase 6-ийн админ самбар.
+- Зөвшөөрлийн текст `apps/web/messages/mn.json → search.consent`, хувилбар `CONSENT_VERSION`. ⚠️ Хуульчаар хянуулаагүй (ялангуяа насны босго, биометрийн мэдээллийн нэр томьёо).
+- Web: `/events/[slug]/find` — зөвшөөрөл → камер (getUserMedia, урд камер) эсвэл файл → үр дүн (`?s=sessionId` URL-д). Grid-д `content-visibility: auto` (бүрэн virtualized grid биш — 1000+ зурагтай үр дүнд хэрэгтэй бол нэмнэ).
 
 ---
 

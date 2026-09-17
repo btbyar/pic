@@ -361,6 +361,8 @@ model SearchSession {
   eventId        String                      @map("event_id") @db.Uuid
   queryEmbedding Unsupported("vector(128)")? @map("query_embedding") // ≤24 цагт NULL болно
   resultCount    Int                         @default(0) @map("result_count")
+  consentVersion String                      @map("consent_version") // зөвшөөрлийн текстийн хувилбар
+  modelVersion   String                      @map("model_version") // query embedding-ийн модель
   createdAt      DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   expiresAt      DateTime                    @map("expires_at") @db.Timestamptz(3)
   // IP, нэр, имэйл, утас — зориуд байхгүй

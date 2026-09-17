@@ -1,14 +1,12 @@
 import { createHash } from 'node:crypto';
-import { createServer, type IncomingHttpHeaders, type Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
-import type { ConfigService } from '@nestjs/config';
 import type { RegisteredUpload } from '@pic/shared';
 import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { Env } from '../src/config/env';
 import { StorageService } from '../src/storage/storage.module';
-import { IndexService, type MlFace } from '../src/worker/index.service';
+import type { MlFace } from '../src/ml/ml-client';
+import { IndexService } from '../src/worker/index.service';
 import { IngestService, PermanentIngestError } from '../src/worker/ingest.service';
+import { FakeMl } from './fake-ml';
 import { type Agent, createTestContext, photographerAgent, type TestContext } from './helpers';
 
 let ctx: TestContext;
@@ -16,34 +14,6 @@ let owner: { agent: Agent; userId: string; email: string };
 let ingest: IngestService;
 let index: IndexService;
 let ml: FakeMl;
-
-/** ML сервисийг орлох сервер: хүлээн авсан хүсэлтийг бүртгэж, тохируулсан хариу буцаана */
-class FakeMl {
-  server: Server;
-  requests: { headers: IncomingHttpHeaders; body: Buffer }[] = [];
-  status = 200;
-  faces: MlFace[] = [];
-  width = 0;
-  height = 0;
-
-  constructor() {
-    this.server = createServer((req, res) => {
-      const chunks: Buffer[] = [];
-      req.on('data', (c: Buffer) => chunks.push(c));
-      req.on('end', () => {
-        this.requests.push({ headers: req.headers, body: Buffer.concat(chunks) });
-        res.writeHead(this.status, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ width: this.width, height: this.height, modelVersion: 'fake-sface', faces: this.faces }));
-      });
-    });
-  }
-
-  listen() {
-    return new Promise<string>((resolve) =>
-      this.server.listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${(this.server.address() as AddressInfo).port}`)),
-    );
-  }
-}
 
 const unit = (axis: number): number[] => Array.from({ length: 128 }, (_, i) => (i === axis ? 1 : 0));
 const face = (axis: number, bbox: [number, number, number, number]): MlFace => ({
@@ -96,16 +66,14 @@ async function storedFaces(photoId: string) {
 beforeAll(async () => {
   ctx = await createTestContext();
   owner = await photographerAgent(ctx, 'indexer');
-  ml = new FakeMl();
-  const url = await ml.listen();
+  ml = await new FakeMl().listen();
   const storage = ctx.app.get(StorageService);
   ingest = new IngestService(ctx.prisma, storage);
-  const config = { get: (key: keyof Env) => ({ ML_BASE_URL: url, ML_SERVICE_TOKEN: 'ml-token' })[key as 'ML_BASE_URL'] };
-  index = new IndexService(ctx.prisma, storage, config as unknown as ConfigService<Env, true>);
+  index = new IndexService(ctx.prisma, storage, ml.client());
 });
 
 afterAll(async () => {
-  ml?.server.close();
+  ml?.close();
   await ctx?.close();
 });
 

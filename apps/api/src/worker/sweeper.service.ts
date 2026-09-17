@@ -5,6 +5,8 @@ import { PRISMA } from '../prisma/prisma.module';
 import { StorageService } from '../storage/storage.module';
 
 export const STALE_UPLOAD_HOURS = 24;
+/** Embedding-гүй session-ийг (зөвхөн тоо: result_count, consent_version) статистикт хадгалах хугацаа */
+export const SEARCH_SESSION_RETENTION_DAYS = 30;
 const SWEEP_LIMIT = 500;
 
 /**
@@ -39,5 +41,20 @@ export class SweeperService {
     await Promise.all(deleted.map((p) => this.storage.delete('originals', p.storage_keys.original)));
     this.logger.log(`removed ${deleted.length} stale uploads`);
     return deleted.length;
+  }
+
+  /**
+   * Хугацаа нь дууссан хайлтын embedding-ийг NULL болгоно (хувийн мэдээллийн шаардлага: ≤24 цаг).
+   * Хайлтын API хугацаа дууссан session-ийг аль хэдийн ашиглахгүй; энэ нь DB-ээс бодитоор арилгах алхам.
+   */
+  async purgeSearchSessions(): Promise<{ cleared: number; deleted: number }> {
+    const cleared = await this.prisma.$executeRaw`
+      UPDATE "biometric"."search_session" SET query_embedding = NULL
+      WHERE query_embedding IS NOT NULL AND expires_at <= now()`;
+    const deleted = await this.prisma.$executeRaw`
+      DELETE FROM "biometric"."search_session"
+      WHERE created_at < now() - make_interval(days => ${SEARCH_SESSION_RETENTION_DAYS})`;
+    if (cleared || deleted) this.logger.log(`search sessions: cleared ${cleared} embeddings, deleted ${deleted}`);
+    return { cleared, deleted };
   }
 }

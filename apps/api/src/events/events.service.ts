@@ -26,7 +26,7 @@ import { StorageService } from '../storage/storage.module';
 import { canViewEvent } from './event-visibility';
 
 /** Галерейд харагдах зураг: боловсруулсан, нуугаагүй, устгаагүй */
-const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
+export const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
   processingStatus: { in: ['DERIVED', 'INDEXED'] },
   hiddenAt: null,
   deletedAt: null,
@@ -35,7 +35,10 @@ const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
 const PUBLIC_PAGE_SIZE = 24;
 const PHOTO_PAGE_SIZE = 60;
 
-type Viewer = { accessToken?: string | undefined; auth?: AuthContext | undefined };
+export type Viewer = { accessToken?: string | undefined; auth?: AuthContext | undefined };
+
+export const PUBLIC_PHOTO_SELECT = { id: true, width: true, height: true, capturedAt: true, storageKeys: true } as const;
+type PublicPhotoRow = Prisma.PhotoGetPayload<{ select: typeof PUBLIC_PHOTO_SELECT }>;
 
 @Injectable()
 export class EventsService {
@@ -260,33 +263,40 @@ export class EventsService {
 
   /** Галерей: авсан цагаар эрэмбэлсэн, watermark-тай зургууд. Цаггүй зургууд төгсгөлд. */
   async listPublicPhotos(slug: string, viewer: Viewer, cursor?: string) {
-    const event = await this.prisma.event.findUnique({
-      where: { slug },
-      include: { photographers: { select: { userId: true } } },
-    });
-    if (!event || !this.canView(event, viewer)) throw this.notFound();
-
+    const event = await this.findViewableEvent(slug, viewer);
     const photos = await this.prisma.photo.findMany({
       where: { eventId: event.id, ...VISIBLE_PHOTO },
-      select: { id: true, width: true, height: true, capturedAt: true, storageKeys: true },
+      select: PUBLIC_PHOTO_SELECT,
       orderBy: [{ capturedAt: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }],
       take: PHOTO_PAGE_SIZE + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
     const page = photos.slice(0, PHOTO_PAGE_SIZE);
     return {
-      items: page.map((p) => {
-        const keys = p.storageKeys as unknown as PhotoStorageKeys;
-        return {
-          id: p.id,
-          width: p.width,
-          height: p.height,
-          capturedAt: p.capturedAt,
-          thumbUrl: this.storage.publicUrl(keys.thumb!),
-          previewUrl: this.storage.publicUrl(keys.preview!),
-        };
-      }),
+      items: page.map((p) => this.toPublicPhoto(p)),
       nextCursor: photos.length > PHOTO_PAGE_SIZE ? page[page.length - 1]!.id : null,
+    };
+  }
+
+  /** Нийтийн (эсвэл нууц холбоос/гишүүн/админ) харж болох эвэнт, үгүй бол 404 — байгаа эсэхийг задруулахгүй */
+  async findViewableEvent(slug: string, viewer: Viewer): Promise<Event> {
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: { photographers: { select: { userId: true } } },
+    });
+    if (!event || !this.canView(event, viewer)) throw this.notFound();
+    return event;
+  }
+
+  toPublicPhoto(p: PublicPhotoRow) {
+    const keys = p.storageKeys as unknown as PhotoStorageKeys;
+    return {
+      id: p.id,
+      width: p.width,
+      height: p.height,
+      capturedAt: p.capturedAt,
+      thumbUrl: this.storage.publicUrl(keys.thumb!),
+      previewUrl: this.storage.publicUrl(keys.preview!),
     };
   }
 

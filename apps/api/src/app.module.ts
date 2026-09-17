@@ -4,9 +4,11 @@ import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/config.module';
 import { EventsModule } from './events/events.module';
 import { HealthModule } from './health/health.module';
+import { MlModule } from './ml/ml-client';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
 import { RedisModule } from './redis/redis.module';
+import { SearchModule } from './search/search.module';
 import { SettingsModule } from './settings/settings.service';
 import { StorageModule } from './storage/storage.module';
 import { UploadsModule } from './uploads/uploads.module';
@@ -19,11 +21,13 @@ import { UploadsModule } from './uploads/uploads.module';
     StorageModule,
     QueueModule,
     SettingsModule,
+    MlModule,
     AuthModule,
     HealthModule,
     AdminModule,
     EventsModule,
     UploadsModule,
+    SearchModule,
   ],
 })
 export class AppModule {}

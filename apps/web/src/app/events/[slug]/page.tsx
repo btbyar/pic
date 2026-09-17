@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Gallery } from '@/components/gallery';
-import { Alert, Card } from '@/components/ui';
+import { ButtonLink, Card } from '@/components/ui';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange, formatMnt } from '@/lib/datetime';
 import type { PublicEvent, PublicPhotoPage } from '@/lib/types';
@@ -51,7 +51,15 @@ export default async function EventPage({
         ) : null}
       </Card>
 
-      <Alert kind="info">{t('events.searchSoon')}</Alert>
+      {event.faceSearchEnabled ? (
+        <Card className="flex flex-col gap-3 border-slate-900 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">{t('search.ctaTitle')}</h2>
+            <p className="text-sm text-slate-600">{t('search.ctaBody')}</p>
+          </div>
+          <ButtonLink href={`/events/${slug}/find${query}`}>{t('search.cta')}</ButtonLink>
+        </Card>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('gallery.title')}</h2>

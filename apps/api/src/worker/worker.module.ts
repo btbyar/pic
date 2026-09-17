@@ -4,6 +4,7 @@ import { type PhotoIndexJob, type PhotoIngestJob, QUEUES } from '@pic/shared';
 import { type Job, Queue, UnrecoverableError, Worker } from 'bullmq';
 import { AppConfigModule } from '../config/config.module';
 import type { Env } from '../config/env';
+import { MlModule } from '../ml/ml-client';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
 import { IndexService } from './index.service';
@@ -11,6 +12,8 @@ import { IngestService, PermanentIngestError } from './ingest.service';
 import { SweeperService } from './sweeper.service';
 
 const SWEEP_EVERY_MS = 60 * 60 * 1000;
+/** search.service нь 24ц-аас энэ хугацааг хасаж expires_at тавьдаг — нийтдээ ≤24 цаг */
+export const SEARCH_PURGE_EVERY_MS = 5 * 60 * 1000;
 
 /** BullMQ worker-уудыг асааж, унтраана. API-гаас тусдаа процесс (`node dist/worker.js`). */
 @Injectable()
@@ -83,10 +86,12 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
 
     const maintenanceQueue = new Queue(QUEUES.maintenance, { connection, prefix });
     await maintenanceQueue.upsertJobScheduler('sweep-stale-uploads', { every: SWEEP_EVERY_MS }, { name: 'sweep-stale-uploads' });
+    await maintenanceQueue.upsertJobScheduler('purge-search-sessions', { every: SEARCH_PURGE_EVERY_MS }, { name: 'purge-search-sessions' });
     const maintenanceWorker = new Worker(
       QUEUES.maintenance,
       async (job) => {
         if (job.name === 'sweep-stale-uploads') return this.sweeper.sweepStaleUploads();
+        if (job.name === 'purge-search-sessions') return this.sweeper.purgeSearchSessions();
         throw new UnrecoverableError(`unknown maintenance job ${job.name}`);
       },
       { connection, concurrency: 1, prefix },
@@ -117,7 +122,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
 }
 
 @Module({
-  imports: [AppConfigModule, PrismaModule, StorageModule],
+  imports: [AppConfigModule, PrismaModule, StorageModule, MlModule],
   providers: [IngestService, IndexService, SweeperService, WorkerRunner],
 })
 export class WorkerModule {}
