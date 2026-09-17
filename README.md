@@ -1,16 +1,16 @@
 # Pic — Эвэнтийн зураг хайх платформ
 
-Марафон, гүйлт, төгсөлт, фестивалийн зургаас оролцогчид **өөрийн царай эсвэл цээжний дугаараар** зургаа олж, худалдаж авах вэб платформ.
+Марафон, гүйлт, төгсөлт, фестивалийн зургаас оролцогчид **өөрийн царайгаар** (дараа нь цээжний дугаараар) зургаа олж, худалдаж авах вэб платформ.
 
 - Архитектур, өгөгдлийн схем, pipeline: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Одоогийн үе шат: **Phase 2** — нэвтрэлт ✅, эвэнт ✅, зураг байршуулах ✅, зураг боловсруулах ✅ → дараагийнх **Phase 3** (царай, цээжний дугаар)
+- Одоогийн үе шат: **Phase 3** — царай индексжүүлэх ✅ (цээжний дугаар хойшлуулсан) → дараагийнх **Phase 4** (селфигээр хайх UI)
 
 ## Бүтэц
 
 ```
 apps/web          Next.js 16 (App Router) + Tailwind 4 + next-intl — оролцогч, зурагчин, /admin
 apps/api          NestJS 12 — REST API + BullMQ worker (зураг боловсруулах)
-services/ml       Python 3.11 + FastAPI — царай, bib OCR (Phase 3)
+services/ml       Python 3.11 + FastAPI — нүүр илрүүлэх (YuNet) + embedding (SFace)
 packages/db       Prisma 7 схем, migration, seed, client
 packages/shared   Zod schema, enum, мөнгө/retention-ийн цэвэр функц
 packages/config   tsconfig preset
@@ -87,6 +87,15 @@ uv sync
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
+Анх асахдаа моделийг (~39MB) татаж SHA-256-аар шалгана. `ML_SERVICE_TOKEN` нь API-тай ижил байх ёстой (root `.env`-ээс уншина). ML асаагүй үед зургууд галерейд харагдсаар, нүүрээр хайх индекс ML асахад автоматаар нөхөгдөнө.
+
+Царай танихын нарийвчлалыг хэмжих (LFW ~180MB татна, ~10 минут):
+
+```bash
+cd services/ml
+uv run python -m benchmark.lfw      # → benchmark/RESULTS.md
+```
+
 ### Бүгдийг контейнерт ажиллуулах
 
 ```bash
@@ -114,6 +123,7 @@ cd services/ml && uv run pytest    # Python
 
 ## Анхааруулга
 
+- **Цээжний дугаар:** OCR одоогоор хойшлогдсон (docs/ARCHITECTURE.md шийдвэр #11). Хайлт зөвхөн царайгаар.
 - **Нүүр таних модель:** InsightFace-ийн бэлэн моделиуд (`buffalo_l` г.м.) арилжааны бус лицензтэй тул **YuNet (MIT) + SFace (Apache 2.0)** ашиглана. Нарийвчлалыг бодит эвэнтийн зураг дээр хэмжиж, хангалтгүй бол `FaceEngine` interface-ээр AWS Rekognition эсвэл InsightFace-ийн арилжааны лиценз руу шилжинэ. Моделийн сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна.
 - **Админы 2FA:** хөгжүүлэлтэд `.env`-д `ADMIN_MFA_REQUIRED=false` гэж түр унтрааж болно. Production-д (`NODE_ENV=production`) унтраавал API асахгүй.
 - **Зургийн нийтийн файлууд:** thumb/preview нь `pic-public` bucket-д нийтэд нээлттэй (URL нь таамаглахад хэцүү UUID). Нуусан эвэнтийн preview ч URL мэдэгдвэл нээгдэнэ — watermark-тай тул зөвшөөрөгдөх эрсдэл. Эх зураг хэзээ ч нийтэд гарахгүй.

@@ -7,7 +7,7 @@ import { vector } from '@electric-sql/pglite-pgvector';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const migrationsDir = join(import.meta.dirname, '..', 'prisma', 'migrations');
-const DIM = 512;
+const DIM = 128; // SFace
 
 /** i-р тэнхлэг дээрх нэгж вектор (pgvector текст формат) */
 const unitVector = (i: number) => `[${Array.from({ length: DIM }, (_, k) => (k === i ? 1 : 0)).join(',')}]`;
@@ -158,6 +158,20 @@ describe('guards', () => {
 });
 
 describe('face embeddings', () => {
+  it('stores SFace-sized (128-dim) vectors only', async () => {
+    const photo = await insertPhoto();
+    const wrongSize = `[${Array.from({ length: 512 }, () => 0.01).join(',')}]`;
+    await expect(
+      db.query(
+        `INSERT INTO biometric.face_embedding
+           (id, photo_id, event_id, embedding, bbox, det_score, face_size_px, quality, model_version)
+         VALUES (gen_random_uuid(), $1, $2, $3::vector, '{}', 0.9, 80, 0.8, 'test')`,
+        [photo, eventId, wrongSize],
+      ),
+    ).rejects.toThrow(/dimensions/);
+    await db.query(`DELETE FROM photo WHERE id = $1`, [photo]);
+  });
+
   it('ranks by cosine similarity within an event and cascades on photo delete', async () => {
     const photoA = await insertPhoto();
     const photoB = await insertPhoto();

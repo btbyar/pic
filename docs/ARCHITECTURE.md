@@ -13,10 +13,10 @@
 | 5 | Зурагчны нэвтрэлт | Имэйл + нууц үг |
 | 6 | Frontend | Next.js 16 (App Router) |
 | 7 | Prod | Нэг VPS (~8 vCPU) гэж тооцно, concurrency env-ээр тохируулна |
-| 8 | Face модель | ⚠️ **YuNet (MIT) + SFace (Apache 2.0)** — InsightFace-ийн моделийг лицензгүйгээр арилжаанд ашиглах боломжгүй тул (2026-09-16). Бодит эвэнтийн 200–300 зураг дээр recall хэмжинэ; хангалтгүй бол `FaceEngine`-ээр AWS Rekognition эсвэл InsightFace лиценз руу шилжинэ. SFace 128-dim → Phase 3-т `vector(128)` migration. Сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна |
+| 8 | Face модель | ⚠️ **YuNet (MIT) + SFace (Apache 2.0)** — InsightFace-ийн моделийг лицензгүйгээр арилжаанд ашиглах боломжгүй тул (2026-09-16). LFW дээр 99.42% (`services/ml/benchmark/RESULTS.md`); launch-аас өмнө бодит эвэнтийн зураг дээр дахин хэмжинэ, хангалтгүй бол `FaceEngine`-ээр AWS Rekognition эсвэл InsightFace лиценз руу шилжинэ. `vector(128)` migration хийгдсэн (2026-09-17). Сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна |
 | 9 | Вектор хайлт | `event_id` btree + exact scan (HNSW биш) |
 | 10 | Upload | Browser → R2 шууд presigned **PUT (файл бүр нэг хүсэлт)**, өөрсдийн жижиг uploader (Uppy биш). Зураг ≤50MB тул multipart шаардлагагүй; тасалдвал SHA-256 давхардлаар файлын түвшинд үргэлжилнэ (2026-09-16) |
-| 11 | OCR | RapidOCR (PaddleOCR загвар, ONNX Runtime) |
+| 11 | OCR | ⏸ **Хойшлуулсан (2026-09-17, хэрэглэгчийн шийдвэр).** RapidOCR туршсан: бүтэн зурагт жижиг дугаар олдохгүй, tile-аар хуваавал 3–20с/зураг. Дараа нь нүүрний доорх цээжийг тайрч уншуулах аргаар эргэж ирнэ. `bib_detection` хүснэгт, `bibPattern` талбар хэвээр |
 | 12 | Derivative | thumb 400px WebP, preview 1000px WebP + watermark |
 | 13 | Rate limit | IP + анонимаар өгсөн cookie, хэтэрвэл Turnstile |
 | 14 | Жижиг нүүр | Хадгална, default-аар хайлтаас хасна (`face.minSizePx`) |
@@ -27,6 +27,7 @@
 | 19 | Эвэнтийн ангилал | Prisma enum `EventCategory` (гүйлт, дугуй, спорт, төгсөлт, фестиваль, концерт, баяр ёслол, байгууллага, бусад). Шинэ ангилалд migration шаардлагатай |
 | 20 | Web ↔ API | Browser `/api/*` → Next.js rewrite → NestJS. Session cookie first-party хэвээр, CORS шаардлагагүй |
 | 21 | Нууц үг сэргээх | Phase 5-д имэйл илгээх системтэй хамт. Тэр хүртэл админ гараар тусална |
+| 22 | Хайлтын босго | SFace-д LFW хэмжилтээр: "Таны зургууд" ≥ **0.45**, "Магадгүй" ≥ **0.40**, хайлтад орох нүүр ≥ **24px** (ArcFace-ийн 0.50/0.35/32 биш). 0.35 бол селфи тутамд ~22 буруу зураг. Админ тохиргоогоор өөрчилнө (2026-09-17) |
 
 ---
 
@@ -426,6 +427,14 @@ model EventDailyStat {                                 // Redis counter → 5 м
 
 **Хурдны тооцоо (баталгаажаагүй, Phase 3-т benchmark хийнэ):** зураг тутамд ~1.5 CPU-секунд (decode+derivative 0.4, detection 0.3–0.5, ~6 нүүрний embedding 0.25, OCR 0.5). 10,000 зураг ≈ 4 CPU-цаг → 8 vCPU дээр ~40–60 минут. 8 цагийн зорилт хангалттай зайтай.
 
+**Phase 3-ын бодит хэрэгжилт (OCR-гүй):**
+- ML сервис: `POST /v1/faces` (multipart зураг, `Authorization: Bearer ML_SERVICE_TOKEN`) → нүүр бүрийн bbox, 5 цэг, detScore, sizePx, quality (Laplacian хурц байдал), 128-dim L2-normalized embedding. Зураг/embedding хадгалахгүй. OpenCV модель thread-safe биш тул lock + `ML_WORKERS` процесс.
+- Модель: opencv_zoo-ийн тогтсон commit + SHA-256, Docker build үед татна (`python -m app.models`).
+- Worker: `photo-ingest` DERIVED болмогц `photo-index` job (5 оролдлого, 30с-ээс exponential — ML дахин асах хүртэл). Эх зургийг EXIF-ээр эргүүлж 2560px JPEG болгон илгээнэ; bbox-ийг эх зургийн координатаар, `face_size_px`-ийг ML-д илгээсэн нягтралаар хадгална (таних чанарт нөлөөлөх нь тэр).
+- Transaction: тухайн зураг + model_version-ийн хуучин embedding устгаад шинээр INSERT → `INDEXED`, `face_count`. `faceSearchEnabled=false` эвэнтэд ML дуудахгүй, биометр өгөгдөл үүсгэхгүй.
+- Индексжүүлэлт бүтэлгүйтвэл зураг DERIVED хэвээр (галерейд харагдана), `failure_reason = "index: …"`.
+- Хэмжилт (dev laptop): 1920×1280 бүлэг зураг ≈ 0.2с; 6 зураг upload → INDEXED ≈ 4с. LFW 250×250: 33мс.
+
 ---
 
 ## 4. Хайлтын урсгал
@@ -450,7 +459,7 @@ model EventDailyStat {                                 // Redis counter → 5 м
 8. Хариу: { sessionId, mine: score ≥ tHigh, maybe: tLow ≤ score < tHigh }, cursor pagination sessionId-аар
 ```
 
-- Анхны утга: `tLow = 0.35`, `tHigh = 0.50` — **хоёулаа таамаг**. Бодит эвэнтийн 200–300 гараар тэмдэглэсэн зургаар калибровка хийх скрипт Phase 3-т бичнэ.
+- Анхны утга (SFace, LFW хэмжилт — шийдвэр #22): `tLow = 0.40`, `tHigh = 0.45`, `minFace = 24px`. LFW нь бодит эвэнтээс хялбар тул launch-аас өмнө бодит зургаар дахин калибровка хийнэ (`services/ml/benchmark/lfw.py`-г загвар болгоно).
 - ⚠️ **HNSW биш exact scan:** HNSW нь эхлээд ойрын `ef_search` (default 40) нүүрийг олоод *дараа нь* `event_id`-аар шүүдэг → олон эвэнттэй DB дээр үр дүн бараг хоосон буцна. Хайлт үргэлж нэг эвэнт доторх тул `event_id` btree + бүрэн тооцоолол: 40,000 нүүр (10k зураг) ≈ 50–150ms. Нэг эвэнт ~300,000 нүүрээс хэтэрвэл event-ээр partition + HNSW руу шилжинэ.
 - Rate limit: Redis sliding window, түлхүүр = IP + анонимаар өгсөн cookie, хэтэрвэл Cloudflare Turnstile.
 

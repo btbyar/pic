@@ -338,7 +338,7 @@ model FaceEmbedding {
   id           String                     @id @default(uuid(7)) @db.Uuid
   photoId      String                     @map("photo_id") @db.Uuid
   eventId      String                     @map("event_id") @db.Uuid
-  embedding    Unsupported("vector(512)") // L2-normalized ArcFace; raw SQL-ээр бичиж/уншина
+  embedding    Unsupported("vector(128)") // L2-normalized SFace; raw SQL-ээр бичиж/уншина
   bbox         Json
   detScore     Float                      @map("det_score")
   faceSizePx   Int                        @map("face_size_px") // bbox-ийн богино тал
@@ -359,7 +359,7 @@ model FaceEmbedding {
 model SearchSession {
   id             String                      @id @default(uuid(4)) @db.Uuid // v4: цаг задруулахгүй
   eventId        String                      @map("event_id") @db.Uuid
-  queryEmbedding Unsupported("vector(512)")? @map("query_embedding") // ≤24 цагт NULL болно
+  queryEmbedding Unsupported("vector(128)")? @map("query_embedding") // ≤24 цагт NULL болно
   resultCount    Int                         @default(0) @map("result_count")
   createdAt      DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   expiresAt      DateTime                    @map("expires_at") @db.Timestamptz(3)

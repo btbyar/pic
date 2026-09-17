@@ -31,3 +31,4 @@ Thumbs.db
 
 # Next.js автоматаар үүсгэдэг
 next-env.d.ts
+services/ml/benchmark/data/

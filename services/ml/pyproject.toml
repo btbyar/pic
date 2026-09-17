@@ -1,12 +1,15 @@
 [project]
 name = "pic-ml"
 version = "0.0.0"
-description = "Царай илрүүлэх, embedding, bib OCR сервис"
+description = "Царай илрүүлэх, embedding сервис"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "pydantic-settings>=2.4",
+    "opencv-python-headless>=5.0.0.93",
+    "numpy>=2.4.6",
+    "python-multipart>=0.0.32",
 ]
 
 [dependency-groups]
@@ -23,3 +26,4 @@ target-version = "py311"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+

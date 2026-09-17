@@ -68,11 +68,17 @@ export interface PhotoStorageKeys {
 export const QUEUES = {
   /** Phase 2d: EXIF, thumb/preview, watermark */
   photoIngest: 'photo-ingest',
+  /** Phase 3: нүүр илрүүлж embedding хадгалах (ML сервис) */
+  photoIndex: 'photo-index',
   /** Давтагддаг цэвэрлэгээ (тасалдсан upload г.м.) */
   maintenance: 'maintenance',
 } as const;
 
 export interface PhotoIngestJob {
+  photoId: string;
+}
+
+export interface PhotoIndexJob {
   photoId: string;
 }
 

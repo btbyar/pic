@@ -27,12 +27,14 @@ const envSchema = z.object({
   // pic-public-ийн нийтийн хаяг (prod: R2 custom domain / CDN)
   PUBLIC_MEDIA_BASE_URL: z.url(),
 
-  // Нэг worker процесс зэрэг боловсруулах зургийн тоо (CPU-ийн цөмийн тоотой ойролцоо)
   // BullMQ түлхүүрийн угтвар. E2E тест тусдаа угтвар ашиглаж, ажиллаж буй dev worker-тэй мөргөлдөхгүй.
   QUEUE_PREFIX: z.string().regex(/^[a-z0-9-]+$/).default('pic'),
+  // Нэг worker процесс зэрэг боловсруулах зургийн тоо (CPU-ийн цөмийн тоотой ойролцоо)
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(64).default(2),
 
   ML_BASE_URL: z.url(),
+  // API/worker → ML сервисийн дотоод токен (ML талд ижил нэртэй хувьсагч)
+  ML_SERVICE_TOKEN: z.string().default(''),
 
   // TOTP secret, банкны данс шифрлэх AES-256-GCM түлхүүр
   FIELD_ENCRYPTION_KEY: base64Key32,
@@ -44,10 +46,15 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
-}).refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED, {
-  path: ['ADMIN_MFA_REQUIRED'],
-  message: 'admin 2FA cannot be disabled in production',
-});
+})
+  .refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED, {
+    path: ['ADMIN_MFA_REQUIRED'],
+    message: 'admin 2FA cannot be disabled in production',
+  })
+  .refine((env) => env.NODE_ENV !== 'production' || env.ML_SERVICE_TOKEN.length >= 32, {
+    path: ['ML_SERVICE_TOKEN'],
+    message: 'must be at least 32 characters in production',
+  });
 
 export type Env = z.output<typeof envSchema>;
 
