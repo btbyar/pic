@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { PhotoGrid } from '@/components/photo-grid';
+import { CartButton } from '@/components/cart-button';
+import { type GridCart, PhotoGrid } from '@/components/photo-grid';
 import { Alert, Button, Card } from '@/components/ui';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
-import { formatEventRange } from '@/lib/datetime';
+import { addToCart, forgetSearchSession, useCart } from '@/lib/cart';
+import { formatEventRange, formatMnt } from '@/lib/datetime';
 import { captureVideoFrame, shrinkImageFile } from '@/lib/selfie';
 import type { PublicEvent, SearchResults } from '@/lib/types';
 
@@ -27,6 +29,8 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchResults | null>(null);
   const [deleted, setDeleted] = useState(false);
+  const tc = useTranslations('cart');
+  const cartState = useCart();
 
   const eventHref = `/events/${event.slug}${accessToken ? `?t=${encodeURIComponent(accessToken)}` : ''}`;
 
@@ -106,6 +110,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
   async function deleteSearchData() {
     if (!results) return;
     await api(`/search-sessions/${results.sessionId}`, { method: 'DELETE' });
+    forgetSearchSession(results.sessionId);
     setDeleted(true);
     setResults(null);
     setSessionInUrl(null);
@@ -113,8 +118,26 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
     setConsent(false);
   }
 
+  const gridCart: GridCart | undefined = results
+    ? {
+        event: {
+          slug: event.slug,
+          title: event.title,
+          pricePerPhoto: event.pricePerPhoto,
+          bundlePrice: event.bundlePrice,
+          accessToken,
+        },
+        searchSessionId: results.sessionId,
+      }
+    : undefined;
+  const inCart = new Set(cartState[event.slug]?.photos.map((p) => p.id));
+  const mineNotInCart = results?.mine.filter((p) => !inCart.has(p.id)) ?? [];
+  // Багц нь зөвхөн хайлтаар олдсон зургуудад, хямд үед л утгатай
+  const bundleWorthIt =
+    results && event.bundlePrice !== null && results.mine.length * event.pricePerPhoto > event.bundlePrice;
+
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-8">
+    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pt-8 pb-24">
       <Link href={eventHref} className="text-sm text-slate-600 underline-offset-4 hover:underline">
         ← {event.title}
       </Link>
@@ -160,10 +183,34 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
         <>
           {results.multipleFaces ? <Alert kind="info">{t('multipleFaces')}</Alert> : null}
 
+          {results.mine.length ? (
+            <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-1">
+                <p className="font-medium">
+                  {bundleWorthIt
+                    ? tc('bundleOffer', { count: results.mine.length, price: formatMnt(event.bundlePrice!) })
+                    : tc('allPrice', { count: results.mine.length, price: formatMnt(results.mine.length * event.pricePerPhoto) })}
+                </p>
+                {bundleWorthIt ? (
+                  <p className="text-sm text-slate-600">
+                    {tc('bundleSaves', { price: formatMnt(results.mine.length * event.pricePerPhoto - event.bundlePrice!) })}
+                  </p>
+                ) : null}
+              </div>
+              <Button
+                className="shrink-0"
+                disabled={mineNotInCart.length === 0}
+                onClick={() => addToCart(gridCart!.event, mineNotInCart, results.sessionId)}
+              >
+                {mineNotInCart.length === 0 ? tc('allInCart') : tc('addAll', { count: mineNotInCart.length })}
+              </Button>
+            </Card>
+          ) : null}
+
           <section className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{t('mine', { count: results.mine.length })}</h2>
             {results.mine.length ? (
-              <PhotoGrid photos={results.mine} timezone={event.timezone} />
+              <PhotoGrid photos={results.mine} timezone={event.timezone} cart={gridCart} />
             ) : (
               <Card className="flex flex-col gap-2 text-sm text-slate-700">
                 <p className="font-medium">{t('noneFound')}</p>
@@ -182,7 +229,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
                 <h2 className="text-lg font-semibold">{t('maybe', { count: results.maybe.length })}</h2>
                 <p className="text-sm text-slate-600">{t('maybeHint')}</p>
               </div>
-              <PhotoGrid photos={results.maybe} timezone={event.timezone} />
+              <PhotoGrid photos={results.maybe} timezone={event.timezone} cart={gridCart} />
             </section>
           ) : null}
 
@@ -206,6 +253,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
           </Card>
         </>
       ) : null}
+      <CartButton />
     </main>
   );
 }

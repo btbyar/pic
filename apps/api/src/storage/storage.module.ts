@@ -15,6 +15,13 @@ import type { Env } from '../config/env';
 
 export type BucketName = 'originals' | 'public';
 
+/** RFC 6266: ASCII fallback + UTF-8 (кирилл файлын нэр) */
+export function contentDisposition(filename: string): string {
+  const ascii = filename.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_');
+  const encoded = encodeURIComponent(filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
 /**
  * S3-тэй нийцтэй хадгалалт (dev: MinIO, prod: Cloudflare R2).
  * Хоёр client: `internal` нь API/worker-ээс хандах хаяг, `presigner` нь браузерт өгөх URL-ийн хаяг
@@ -69,6 +76,19 @@ export class StorageService implements OnModuleDestroy {
     );
     // Content-Length-ийг браузер өөрөө тавина (forbidden header)
     return { url, headers: { 'Content-Type': opts.contentType } };
+  }
+
+  /** Худалдан авсан эх зургийг татах богино хугацааны URL. Браузер файлыг хадгална (attachment). */
+  async presignGet(bucket: BucketName, key: string, opts: { expiresInSec: number; filename: string }): Promise<string> {
+    return getSignedUrl(
+      this.presigner,
+      new GetObjectCommand({
+        Bucket: this.buckets[bucket],
+        Key: key,
+        ResponseContentDisposition: contentDisposition(opts.filename),
+      }),
+      { expiresIn: opts.expiresInSec },
+    );
   }
 
   /** Объект байхгүй бол null */

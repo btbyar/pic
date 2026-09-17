@@ -15,7 +15,7 @@
     "db:migrate": "pnpm --filter @pic/db migrate:dev",
     "db:deploy": "pnpm --filter @pic/db migrate:deploy",
     "db:seed": "pnpm --filter @pic/db seed",
-    "infra:up": "docker compose up -d postgres redis minio minio-init",
+    "infra:up": "docker compose up -d postgres redis minio minio-init mailpit",
     "infra:down": "docker compose down"
   }
 }

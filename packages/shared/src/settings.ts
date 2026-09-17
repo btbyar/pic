@@ -13,6 +13,8 @@ export const systemSettingSchemas = {
   'face.minQuality': z.number().min(0).max(1).default(0),
   'upload.maxFileSizeMb': z.number().int().min(1).max(200).default(50),
   'download.urlTtlSeconds': z.number().int().min(30).max(3600).default(300),
+  // QPay нэхэмжлэхийг төлөх хугацаа; дууссаны дараа захиалга EXPIRED (хожуу төлөгдвөл PAID болно)
+  'order.paymentTtlMinutes': z.number().int().min(5).max(24 * 60).default(30),
 } as const;
 
 export type SystemSettingKey = keyof typeof systemSettingSchemas;

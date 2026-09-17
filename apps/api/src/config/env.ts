@@ -46,6 +46,19 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+
+  // Төлбөр: "mock" нь зөвхөн хөгжүүлэлтэд (жинхэнэ мөнгө шилжихгүй)
+  PAYMENT_PROVIDER: z.enum(['mock', 'qpay']).default('mock'),
+  QPAY_BASE_URL: z.url().default('https://merchant-sandbox.qpay.mn/v2'),
+  QPAY_USERNAME: z.string().default(''),
+  QPAY_PASSWORD: z.string().default(''),
+  QPAY_INVOICE_CODE: z.string().default(''),
+  // QPay төлбөр орсны дараа дуудах манай хаяг (интернэтээс хүрэх ёстой)
+  QPAY_CALLBACK_URL: z.url().default('http://localhost:4000/payments/qpay/callback'),
+
+  // Имэйл: smtp://user:pass@host:port эсвэл smtps://… (dev: Mailpit smtp://localhost:1025)
+  SMTP_URL: z.string().regex(/^smtps?:\/\//, 'must start with smtp:// or smtps://').default('smtp://localhost:1025'),
+  MAIL_FROM: z.string().min(3).default('Pic <no-reply@pic.local>'),
 })
   .refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED, {
     path: ['ADMIN_MFA_REQUIRED'],
@@ -54,7 +67,15 @@ const envSchema = z.object({
   .refine((env) => env.NODE_ENV !== 'production' || env.ML_SERVICE_TOKEN.length >= 32, {
     path: ['ML_SERVICE_TOKEN'],
     message: 'must be at least 32 characters in production',
-  });
+  })
+  .refine((env) => env.NODE_ENV !== 'production' || env.PAYMENT_PROVIDER === 'qpay', {
+    path: ['PAYMENT_PROVIDER'],
+    message: 'mock payments are not allowed in production',
+  })
+  .refine(
+    (env) => env.PAYMENT_PROVIDER !== 'qpay' || (env.QPAY_USERNAME && env.QPAY_PASSWORD && env.QPAY_INVOICE_CODE),
+    { path: ['QPAY_USERNAME'], message: 'QPAY_USERNAME, QPAY_PASSWORD and QPAY_INVOICE_CODE are required for qpay' },
+  );
 
 export type Env = z.output<typeof envSchema>;
 

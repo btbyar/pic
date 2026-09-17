@@ -1,4 +1,12 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, type PrismaClient, type User } from '@pic/db';
 import { AuditService } from '../audit/audit.service';
@@ -6,8 +14,15 @@ import type { Env } from '../config/env';
 import { FieldCipher, hashIp, randomToken, sha256Hex } from '../common/crypto';
 import { RateLimiter, type RateLimitRule } from '../common/rate-limiter';
 import { PRISMA } from '../prisma/prisma.module';
+import { EMAIL_QUEUE, type EmailQueue } from '../queue/queue.module';
 import { isMfaRequired } from './access-policy';
-import type { LoginInput, MfaVerifyInput, RegisterInput } from './auth.schemas';
+import type {
+  LoginInput,
+  MfaVerifyInput,
+  PasswordResetConfirmInput,
+  PasswordResetRequestInput,
+  RegisterInput,
+} from './auth.schemas';
 import type { AuthContext } from './decorators';
 import { hashPassword, verifyPassword } from './password';
 import { generateRecoveryCodes, hashRecoveryCode } from './recovery-codes';
@@ -21,6 +36,10 @@ const LOGIN_BY_EMAIL: RateLimitRule = { name: 'login:email', limit: 5, windowSec
 const LOGIN_BY_IP: RateLimitRule = { name: 'login:ip', limit: 30, windowSec: 15 * 60 };
 const REGISTER_BY_IP: RateLimitRule = { name: 'register:ip', limit: 5, windowSec: 60 * 60 };
 const MFA_BY_USER: RateLimitRule = { name: 'mfa:user', limit: 5, windowSec: 15 * 60 };
+const RESET_BY_IP: RateLimitRule = { name: 'reset:ip', limit: 10, windowSec: 60 * 60 };
+const RESET_BY_EMAIL: RateLimitRule = { name: 'reset:email', limit: 3, windowSec: 60 * 60 };
+const RESET_CONFIRM_BY_IP: RateLimitRule = { name: 'reset-confirm:ip', limit: 20, windowSec: 15 * 60 };
+export const PASSWORD_RESET_TTL_MIN = 30;
 
 export interface RequestMeta {
   ip: string;
@@ -46,6 +65,7 @@ export class AuthService {
     @Inject(PRISMA) private readonly prisma: PrismaClient,
     private readonly audit: AuditService,
     private readonly rateLimiter: RateLimiter,
+    @Inject(EMAIL_QUEUE) private readonly emailQueue: EmailQueue,
     config: ConfigService<Env, true>,
   ) {
     this.cipher = new FieldCipher(config.get('FIELD_ENCRYPTION_KEY', { infer: true }));
@@ -162,6 +182,80 @@ export class AuthService {
         passed: auth.mfaPassed,
       },
     };
+  }
+
+  // ---------------------------------------------------------------- нууц үг сэргээх
+
+  /**
+   * Имэйл бүртгэлтэй эсэхээс үл хамааран ижил хариу (204). Имэйлийг worker илгээнэ — API-ийн хариуны хугацаа
+   * SMTP-ээс хамаарахгүй. Токен нэг удаагийн, 30 минут, DB-д зөвхөн SHA-256.
+   */
+  async requestPasswordReset(input: PasswordResetRequestInput, meta: RequestMeta): Promise<void> {
+    const ipHash = hashIp(meta.ip, this.ipSecret);
+    await this.rateLimiter.consume(RESET_BY_IP, ipHash);
+    await this.rateLimiter.consume(RESET_BY_EMAIL, sha256Hex(input.email));
+
+    const user = await this.prisma.user.findFirst({ where: { email: input.email, deletedAt: null } });
+    if (!user || user.status === 'SUSPENDED' || user.status === 'REJECTED') return;
+
+    const token = randomToken();
+    const reset = await this.prisma.$transaction(async (tx) => {
+      // Шинэ холбоос илгээхэд өмнөх ашиглаагүй холбоосууд хүчингүй
+      await tx.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } });
+      return tx.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: sha256Hex(token),
+          ipHash,
+          expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MIN * 60_000),
+        },
+      });
+    });
+    await this.emailQueue.add(
+      'password_reset',
+      { kind: 'password_reset', resetId: reset.id, tokenEnc: this.cipher.encrypt(token) },
+      { jobId: `password-reset-${reset.id}` },
+    );
+  }
+
+  /** Шинэ нууц үг тохируулж, бүх төхөөрөмж дээрх session-ийг хаана. Админы 2FA хэвээр (нууц үг дангаараа хүрэхгүй). */
+  async confirmPasswordReset(input: PasswordResetConfirmInput, meta: RequestMeta): Promise<void> {
+    const ipHash = hashIp(meta.ip, this.ipSecret);
+    await this.rateLimiter.consume(RESET_CONFIRM_BY_IP, ipHash);
+
+    const invalid = () => new BadRequestException({ statusCode: 400, code: 'reset_token_invalid' });
+    const reset = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash: sha256Hex(input.token) },
+      include: { user: true },
+    });
+    if (!reset || reset.usedAt || reset.expiresAt <= new Date() || reset.user.deletedAt) throw invalid();
+    const { user } = reset;
+    if (user.status === 'SUSPENDED' || user.status === 'REJECTED') throw invalid();
+
+    const passwordHash = await hashPassword(input.password);
+    await this.prisma.$transaction(async (tx) => {
+      // Зэрэг ирсэн хоёр хүсэлтийн зөвхөн нэг нь токеныг ашиглана
+      const { count } = await tx.passwordResetToken.updateMany({
+        where: { id: reset.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      if (count !== 1) throw invalid();
+      await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+      await tx.authSession.deleteMany({ where: { userId: user.id } });
+      await tx.passwordResetToken.deleteMany({ where: { userId: user.id, id: { not: reset.id } } });
+      await this.audit.log(
+        {
+          actorId: user.id,
+          actorRole: user.role,
+          action: 'auth.password.reset',
+          entityType: 'user',
+          entityId: user.id,
+          ipHash,
+        },
+        tx,
+      );
+    });
+    await this.rateLimiter.reset(LOGIN_BY_EMAIL, sha256Hex(user.email));
   }
 
   // ---------------------------------------------------------------- 2FA (TOTP)

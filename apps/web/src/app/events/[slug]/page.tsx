@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { CartButton } from '@/components/cart-button';
 import { Gallery } from '@/components/gallery';
 import { ButtonLink, Card } from '@/components/ui';
 import { serverApi } from '@/lib/api-server';
@@ -25,7 +26,7 @@ export default async function EventPage({
 
   const t = await getTranslations();
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-8">
+    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pt-8 pb-24">
       <Link href="/events" className="text-sm text-slate-600 underline-offset-4 hover:underline">
         ← {t('events.title')}
       </Link>
@@ -68,8 +69,16 @@ export default async function EventPage({
           accessToken={token}
           timezone={event.timezone}
           initial={photos ?? { items: [], nextCursor: null }}
+          cartEvent={{
+            slug,
+            title: event.title,
+            pricePerPhoto: event.pricePerPhoto,
+            bundlePrice: event.bundlePrice,
+            accessToken: token,
+          }}
         />
       </section>
+      <CartButton />
     </main>
   );
 }

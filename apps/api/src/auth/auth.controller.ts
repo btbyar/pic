@@ -10,6 +10,10 @@ import {
   mfaCodeSchema,
   type MfaVerifyInput,
   mfaVerifySchema,
+  type PasswordResetConfirmInput,
+  passwordResetConfirmSchema,
+  type PasswordResetRequestInput,
+  passwordResetRequestSchema,
   type RegisterInput,
   registerSchema,
 } from './auth.schemas';
@@ -49,6 +53,20 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.withCookie(res, await this.auth.login(body, meta(req)));
+  }
+
+  @Public()
+  @Post('password-reset')
+  @HttpCode(204)
+  async requestPasswordReset(@Body(new ZodPipe(passwordResetRequestSchema)) body: PasswordResetRequestInput, @Req() req: Request) {
+    await this.auth.requestPasswordReset(body, meta(req));
+  }
+
+  @Public()
+  @Post('password-reset/confirm')
+  @HttpCode(204)
+  async confirmPasswordReset(@Body(new ZodPipe(passwordResetConfirmSchema)) body: PasswordResetConfirmInput, @Req() req: Request) {
+    await this.auth.confirmPasswordReset(body, meta(req));
   }
 
   @AllowPendingMfa()

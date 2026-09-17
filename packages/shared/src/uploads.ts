@@ -72,7 +72,17 @@ export const QUEUES = {
   photoIndex: 'photo-index',
   /** Давтагддаг цэвэрлэгээ (тасалдсан upload г.м.) */
   maintenance: 'maintenance',
+  /** Phase 5: имэйл (нууц үг сэргээх, захиалгын холбоос). API нэмнэ, worker илгээнэ. */
+  email: 'email',
 } as const;
+
+/**
+ * Имэйлийн job. Хүлээн авагчийн хаяг, нууц холбоос job-д орохгүй — worker DB-ээс уншина
+ * (Redis-д эмзэг мэдээлэл үлдээхгүй). Нууц үг сэргээх токен зөвхөн шифрлэгдсэн хэлбэрээр.
+ */
+export type EmailJob =
+  | { kind: 'password_reset'; resetId: string; tokenEnc: string }
+  | { kind: 'order_paid'; orderId: string };
 
 export interface PhotoIngestJob {
   photoId: string;

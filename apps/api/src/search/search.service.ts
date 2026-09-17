@@ -138,9 +138,31 @@ export class SearchService {
       WHERE id = ${sessionId}::uuid`;
   }
 
+  /**
+   * Багц үнийн шалгалт: хайлтын үр дүнгийн (Таны зургууд + Магадгүй) зургийн ID-ууд.
+   * Хугацаа дууссан/устгасан/өөр эвэнтийн session бол null. Захиалга session ID-г ХАДГАЛАХГҮЙ.
+   */
+  async matchedPhotoIds(sessionId: string, eventId: string): Promise<Set<string> | null> {
+    const [session] = await this.prisma.$queryRaw<{ model_version: string }[]>`
+      SELECT model_version FROM "biometric"."search_session"
+      WHERE id = ${sessionId}::uuid AND event_id = ${eventId}::uuid
+        AND query_embedding IS NOT NULL AND expires_at > now()`;
+    if (!session) return null;
+    const { mine, maybe } = await this.classify(sessionId, eventId, session.model_version);
+    return new Set([...mine, ...maybe]);
+  }
+
   // ================================================================ дотоод
 
   private async runSearch(sessionId: string, eventId: string, modelVersion: string) {
+    const { mine, maybe } = await this.classify(sessionId, eventId, modelVersion);
+    return {
+      mine: await this.photos(mine.slice(0, MAX_RESULTS), 'time'),
+      maybe: await this.photos(maybe.slice(0, MAX_RESULTS), 'given'),
+    };
+  }
+
+  private async classify(sessionId: string, eventId: string, modelVersion: string) {
     const settings = await this.settings.all();
     const thresholds = { high: settings['search.thresholdHigh'], low: settings['search.thresholdLow'] };
 
@@ -166,15 +188,11 @@ export class SearchService {
         )
       : [];
 
-    const { mine, maybe } = classifyMatches(
+    return classifyMatches(
       new Map(direct.map((m) => [m.photo_id, m.score])),
       new Map(expansion.map((m) => [m.photo_id, m.score])),
       thresholds,
     );
-    return {
-      mine: await this.photos(mine.slice(0, MAX_RESULTS), 'time'),
-      maybe: await this.photos(maybe.slice(0, MAX_RESULTS), 'given'),
-    };
   }
 
   /** Эвэнт доторх бүх нүүртэй exact cosine (HNSW биш — §4). Зураг тус бүрт хамгийн сайн таарсан нүүр. */

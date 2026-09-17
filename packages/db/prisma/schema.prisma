@@ -142,6 +142,7 @@ model User {
   photographerProfile PhotographerProfile?  @relation("ProfileUser")
   approvedProfiles    PhotographerProfile[] @relation("ProfileApprovedBy")
   sessions            AuthSession[]
+  passwordResetTokens PasswordResetToken[]
   ownedEvents         Event[]               @relation("EventOwner")
   eventPhotographers  EventPhotographer[]
   uploadBatches       UploadBatch[]
@@ -172,6 +173,24 @@ model PhotographerProfile {
   approvedBy User? @relation("ProfileApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   @@map("photographer_profile")
+  @@schema("public")
+}
+
+/// Нууц үг сэргээх нэг удаагийн токен (30 минут). Түүхий токен DB-д байхгүй.
+model PasswordResetToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  ipHash    String?   @map("ip_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_token")
   @@schema("public")
 }
 
@@ -386,6 +405,10 @@ model Order {
   totalAmount     Int         @map("total_amount") // ₮
   accessTokenHash String      @map("access_token_hash")
   contactEmail    String?     @map("contact_email")
+  // Имэйлээр холбоос илгээх хүртэл л шифрлэж хадгална (FieldCipher), илгээсний дараа NULL
+  accessTokenEnc  String?     @map("access_token_enc")
+  emailSentAt     DateTime?   @map("email_sent_at") @db.Timestamptz(3)
+  paymentDueAt    DateTime?   @map("payment_due_at") @db.Timestamptz(3)
   paidAt          DateTime?   @map("paid_at") @db.Timestamptz(3)
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -397,6 +420,7 @@ model Order {
   refunds  Refund[]
 
   @@index([status, createdAt])
+  @@index([status, paymentDueAt])
   @@index([eventId])
   @@map("order")
   @@schema("public")

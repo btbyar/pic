@@ -32,3 +32,12 @@ export const mfaVerifySchema = z.union([
   z.object({ recoveryCode: z.string().trim().min(10).max(20) }),
 ]);
 export type MfaVerifyInput = z.output<typeof mfaVerifySchema>;
+
+export const passwordResetRequestSchema = z.object({ email });
+export type PasswordResetRequestInput = z.output<typeof passwordResetRequestSchema>;
+
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{20,100}$/),
+  password: registerSchema.shape.password,
+});
+export type PasswordResetConfirmInput = z.output<typeof passwordResetConfirmSchema>;

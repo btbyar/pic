@@ -157,6 +157,39 @@ describe('guards', () => {
   });
 });
 
+describe('orders and password reset (Phase 5)', () => {
+  it('stores an encrypted order link only for orders with a contact email', async () => {
+    const insertOrder = (email: string | null) =>
+      db.query(
+        `INSERT INTO "order" (id, event_title_snap, total_amount, access_token_hash, contact_email, access_token_enc, updated_at)
+         VALUES (gen_random_uuid(), 'E', 1000, 'h', $1, 'v1.enc', now())`,
+        [email],
+      );
+    await expect(insertOrder(null)).rejects.toThrow(/order_token_enc_requires_email/);
+    await expect(insertOrder('buyer@pic.local')).resolves.toBeDefined();
+  });
+
+  it('keeps password reset tokens short-lived', async () => {
+    const insertToken = (ttl: string) =>
+      db.query(
+        `INSERT INTO password_reset_token (id, user_id, token_hash, expires_at)
+         VALUES (gen_random_uuid(), $1, gen_random_uuid()::text, now() + $2::interval)`,
+        [userId, ttl],
+      );
+    await expect(insertToken('2 hours')).rejects.toThrow(/password_reset_token_short_lived/);
+    await expect(insertToken('30 minutes')).resolves.toBeDefined();
+  });
+
+  it('hides password reset tokens from the admin role', async () => {
+    const { rows } = await db.query<Record<string, boolean>>(`
+      SELECT
+        has_table_privilege('pic_admin_role', 'public.password_reset_token', 'SELECT') AS admin_select,
+        has_table_privilege('pic_app_role', 'public.password_reset_token', 'SELECT,INSERT,UPDATE,DELETE') AS app_all
+    `);
+    expect(rows[0]).toEqual({ admin_select: false, app_all: true });
+  });
+});
+
 describe('face embeddings', () => {
   it('stores SFace-sized (128-dim) vectors only', async () => {
     const photo = await insertPhoto();

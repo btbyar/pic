@@ -11,6 +11,6 @@ export default defineConfig({
     fileParallelism: false,
     // Локал .env-д 2FA унтраасан байсан ч тест production-ийн дүрмийг шалгана.
     // Тусдаа queue угтвар: асаалттай dev worker тестийн job-ыг булааж авахгүй.
-    env: { ADMIN_MFA_REQUIRED: 'true', QUEUE_PREFIX: 'pic-e2e' },
+    env: { ADMIN_MFA_REQUIRED: 'true', QUEUE_PREFIX: 'pic-e2e', PAYMENT_PROVIDER: 'mock' },
   },
 });

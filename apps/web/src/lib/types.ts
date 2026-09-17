@@ -1,4 +1,12 @@
-import type { EventCategory, EventVisibility, ProcessingStatus, Role, UserStatus } from '@pic/shared';
+import type {
+  BundleBlocker,
+  EventCategory,
+  EventVisibility,
+  OrderStatus,
+  ProcessingStatus,
+  Role,
+  UserStatus,
+} from '@pic/shared';
 
 // API хариуны хэлбэр (apps/api/src/**/*.service.ts-тэй тохирно)
 
@@ -91,4 +99,52 @@ export interface AdminPhotographer {
 export interface PhotoStats {
   total: number;
   byStatus: Record<ProcessingStatus, number>;
+}
+
+export interface OrderQuote {
+  photoIds: string[];
+  unavailable: string[];
+  pricePerPhoto: number;
+  bundlePrice: number | null;
+  price: {
+    subtotal: number;
+    total: number;
+    bundleApplied: boolean;
+    bundleBlocker: BundleBlocker | null;
+  } | null;
+}
+
+export interface CreatedOrder {
+  id: string;
+  accessToken: string;
+  total: number;
+}
+
+export interface OrderView {
+  id: string;
+  status: OrderStatus;
+  eventTitle: string;
+  totalAmount: number;
+  bundleApplied: boolean;
+  emailOnFile: boolean;
+  createdAt: string;
+  paidAt: string | null;
+  paymentDueAt: string | null;
+  downloadableUntil: string | null;
+  mockPayment: boolean;
+  payment: {
+    provider: 'QPAY' | 'MOCK';
+    qrText: string;
+    shortUrl: string | null;
+    deeplinks: { name: string; description: string; logo: string; link: string }[];
+  } | null;
+  items: {
+    id: string;
+    photoId: string | null;
+    available: boolean;
+    refunded: boolean;
+    width: number | null;
+    height: number | null;
+    thumbUrl: string | null;
+  }[];
 }

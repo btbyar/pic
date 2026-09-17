@@ -3,7 +3,7 @@
 Марафон, гүйлт, төгсөлт, фестивалийн зургаас оролцогчид **өөрийн царайгаар** (дараа нь цээжний дугаараар) зургаа олж, худалдаж авах вэб платформ.
 
 - Архитектур, өгөгдлийн схем, pipeline: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Одоогийн үе шат: **Phase 4** — селфигээр хайх ✅, устгуулах хүсэлт ✅ → дараагийнх **Phase 5** (сагс, QPay, татах)
+- Одоогийн үе шат: **Phase 5** — сагс, QPay төлбөр, эх зураг татах, имэйл, нууц үг сэргээх ✅ → дараагийнх **Phase 6** (админ самбар, payout, retention)
 
 ## Бүтэц
 
@@ -48,7 +48,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 `PIC_APP_DB_PASSWORD`, `PIC_ADMIN_DB_PASSWORD` нь `APP_DATABASE_URL`, `ADMIN_DATABASE_URL` доторх нууц үгтэй таарах ёстой.
 
-### 3. Infra асаах (Postgres + pgvector, Redis, MinIO)
+### 3. Infra асаах (Postgres + pgvector, Redis, MinIO, Mailpit)
 
 ```bash
 docker compose up -d
@@ -57,6 +57,7 @@ docker compose up -d
 - Postgres: `localhost:5432` — анх үүсэхэд `infra/postgres/init/01-roles.sh` нь `pic_app`, `pic_admin` login хэрэглэгч үүсгэнэ
 - Redis: `localhost:6379`
 - MinIO API: `localhost:9000`, console: `localhost:9001` — `pic-originals`, `pic-public` bucket автоматаар үүснэ
+- Mailpit: SMTP `localhost:1025`, илгээсэн имэйлүүд http://localhost:8025 (гадагш хэзээ ч илгээхгүй)
 
 > Postgres volume аль хэдийн үүссэн бол init скрипт дахин ажиллахгүй. Нууц үг сольсон бол `docker compose down -v` (бүх dev өгөгдөл устна).
 
@@ -96,6 +97,17 @@ cd services/ml
 uv run python -m benchmark.lfw      # → benchmark/RESULTS.md
 ```
 
+### Төлбөр (QPay)
+
+Хөгжүүлэлтэд `PAYMENT_PROVIDER=mock`: захиалгын хуудсанд "Туршилтын төлбөр төлөх" товч гарна, мөнгө шилжихгүй.
+
+Жинхэнэ QPay-д:
+1. QPay-тэй merchant гэрээ байгуулж `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE` авна (эхлээд sandbox).
+2. `.env`: `PAYMENT_PROVIDER=qpay`, `QPAY_BASE_URL` (sandbox эсвэл `https://merchant.qpay.mn/v2`).
+3. `QPAY_CALLBACK_URL` — интернэтээс хүрэх хаяг (`https://<домэйн>/api/payments/qpay/callback`). Callback ирэхгүй байсан ч захиалгын хуудас болон worker төлбөрийг шалгадаг.
+
+> Production-д (`NODE_ENV=production`) `PAYMENT_PROVIDER=mock` бол API асахгүй.
+
 ### Бүгдийг контейнерт ажиллуулах
 
 ```bash
@@ -112,14 +124,14 @@ pnpm --filter @pic/api test:e2e    # API-г жинхэнэ Postgres/Redis дээ
 cd services/ml && uv run pytest    # Python
 ```
 
-`packages/db` тест нь migration SQL-ийг **PGlite (WASM Postgres + pgvector)** дээр ажиллуулдаг — Docker шаардлагагүй. Шалгадаг зүйлс: админ role biometric өгөгдөлд хандах эрхгүй, audit log өөрчлөгдөхгүй, хайлтын session 24 цагаас удаан амьдрахгүй, орлогын хуваарилалтын нийлбэр зөв, cosine хайлт, cascade устгалт.
+`packages/db` тест нь migration SQL-ийг **PGlite (WASM Postgres + pgvector)** дээр ажиллуулдаг — Docker шаардлагагүй. Шалгадаг зүйлс: админ role biometric өгөгдөлд хандах эрхгүй, audit log өөрчлөгдөхгүй, хайлтын session 24 цагаас удаан амьдрахгүй, нууц үг сэргээх токен богино хугацаатай, орлогын хуваарилалтын нийлбэр зөв, cosine хайлт, cascade устгалт.
 
 ## Өгөгдлийн сангийн дүрэм
 
 - **Migration бүтэц:** `prisma migrate diff`-ийн гаргасан SQL + гараар нэмсэн prelude (pgvector) ба postlude (CHECK, trigger, role/grant). Шинэ migration-д гараар хэсэг нэмбэл мөн `[гараар]` гэж тэмдэглэ.
 - **Биометр:** `face_embedding`, `search_session` нь `biometric` schema-д. `pic_admin_role` энэ schema-д огт эрхгүй — админ модуль `ADMIN_DATABASE_URL`-ээр холбогдоно.
-- **Вектор:** Prisma `vector(512)`-г дэмждэггүй тул эдгээр багана raw SQL-ээр бичигдэж/уншигдана.
-- **Мөнгө:** бүхэл төгрөг (`Int`), бутархайгүй.
+- **Вектор:** Prisma `vector(128)`-г дэмждэггүй тул эдгээр багана raw SQL-ээр бичигдэж/уншигдана.
+- **Мөнгө:** бүхэл төгрөг (`Int`), бутархайгүй. Захиалгын нийт дүн ба зураг бүрийн зурагчин/платформын хэсэг үргэлж яг таарна (`order_item_amounts_valid` CHECK).
 
 ## Анхааруулга
 
@@ -129,4 +141,7 @@ cd services/ml && uv run pytest    # Python
 - **Зургийн нийтийн файлууд:** thumb/preview нь `pic-public` bucket-д нийтэд нээлттэй (URL нь таамаглахад хэцүү UUID). Нуусан эвэнтийн preview ч URL мэдэгдвэл нээгдэнэ — watermark-тай тул зөвшөөрөгдөх эрсдэл. Эх зураг хэзээ ч нийтэд гарахгүй.
 - **Cloudflare R2 CORS:** зурагчны браузер зургийг шууд R2 руу илгээдэг тул production bucket-д `WEB_ORIGIN`-оос `PUT` (`content-type` header) зөвшөөрөх CORS дүрэм заавал тохируулна.
 - **MinIO:** community Docker image 2025-09-өөс хойш шинэчлэгдээгүй; зөвхөн dev-д, хувилбарыг түгжиж ашиглана. Production нь Cloudflare R2.
+- **Имэйл (production):** SPF/DKIM тохируулсан домэйнээс SMTP relay-ээр (`SMTP_URL`, `MAIL_FROM`) илгээнэ, үгүй бол нууц үг сэргээх/захиалгын имэйл spam-д орно.
+- **Худалдан авагчийн холбоос:** бүртгэлгүй худалдан авагч захиалгаа зөвхөн нууц холбоосоор (имэйл эсвэл тухайн төхөөрөмж) нээнэ. Холбоос алдвал сэргээх арга одоогоор байхгүй — имэйл үлдээхийг зөвлөнө.
+- **e-barimt:** MVP-д байхгүй (шийдвэр #3). Татварын шаардлагыг launch-аас өмнө нягтална.
 - **Хувийн мэдээлэл:** зөвшөөрлийн текстийг (`apps/web/messages/mn.json` → `search.consent`) хуульчаар хянуулна. Текст өөрчлөгдвөл `packages/shared/src/search.ts`-ийн `CONSENT_VERSION`-ийг шинэчил.

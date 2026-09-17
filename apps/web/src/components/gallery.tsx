@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
+import type { CartEventInfo } from '@/lib/cart';
 import type { PublicPhotoPage } from '@/lib/types';
 import { PhotoGrid } from './photo-grid';
 import { Button } from './ui';
@@ -13,11 +14,13 @@ export function Gallery({
   accessToken,
   timezone,
   initial,
+  cartEvent,
 }: {
   slug: string;
   accessToken: string | undefined;
   timezone: string;
   initial: PublicPhotoPage;
+  cartEvent: CartEventInfo;
 }) {
   const t = useTranslations('gallery');
   const [photos, setPhotos] = useState(initial.items);
@@ -40,7 +43,7 @@ export function Gallery({
 
   return (
     <>
-      <PhotoGrid photos={photos} timezone={timezone} />
+      <PhotoGrid photos={photos} timezone={timezone} cart={{ event: cartEvent }} />
       {cursor ? (
         <Button variant="secondary" onClick={() => void loadMore()} disabled={loading} className="self-center">
           {loading ? t('loading') : t('loadMore')}

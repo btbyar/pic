@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ButtonLink } from '@/components/ui';
 
@@ -9,10 +10,13 @@ export default async function HomePage() {
       <p className="text-lg text-slate-600">{t('subtitle')}</p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <ButtonLink href="/events">{t('browseEvents')}</ButtonLink>
-        <ButtonLink href="/login" variant="secondary">
-          {t('photographerLogin')}
+        <ButtonLink href="/my/orders" variant="secondary">
+          {t('myOrders')}
         </ButtonLink>
       </div>
+      <Link href="/login" className="self-start text-sm text-slate-600 underline underline-offset-4">
+        {t('photographerLogin')}
+      </Link>
     </main>
   );
 }

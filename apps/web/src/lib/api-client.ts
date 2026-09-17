@@ -8,6 +8,8 @@ export interface ApiError {
   code: string;
   retryAfterSec?: number;
   issues?: { path: string; message: string }[];
+  /** photos_unavailable: сагснаас хасах зургууд */
+  photoIds?: string[];
 }
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
@@ -15,13 +17,13 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError 
 /** Browser-оос API дуудах: /api/* нь Next.js-ээр дамжиж NestJS руу очно (next.config.ts). */
 export async function api<T = unknown>(
   path: string,
-  init: { method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'; body?: unknown } = {},
+  init: { method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'; body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<ApiResult<T>> {
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
       method: init.method ?? 'GET',
-      headers: init.body !== undefined ? { 'content-type': 'application/json' } : {},
+      headers: { ...(init.body !== undefined ? { 'content-type': 'application/json' } : {}), ...init.headers },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
       credentials: 'same-origin',
       cache: 'no-store',
@@ -42,6 +44,7 @@ export async function api<T = unknown>(
       code: typeof err.code === 'string' ? err.code : 'unknown',
       ...(err.retryAfterSec !== undefined ? { retryAfterSec: err.retryAfterSec } : {}),
       ...(err.issues ? { issues: err.issues } : {}),
+      ...(err.photoIds ? { photoIds: err.photoIds } : {}),
     },
   };
 }

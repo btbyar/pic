@@ -2,46 +2,82 @@
 
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
-import { formatTime } from '@/lib/datetime';
+import { addToCart, type CartEventInfo, removeFromCart, useCart } from '@/lib/cart';
+import { formatMnt, formatTime } from '@/lib/datetime';
 import type { PublicPhoto } from '@/lib/types';
 import { RemovalDialog } from './removal-dialog';
+
+export interface GridCart {
+  event: CartEventInfo;
+  /** Селфи хайлтын үр дүнгээс нэмэхэд — багц үнийн шалгалтад */
+  searchSessionId?: string | undefined;
+}
 
 /**
  * Зургийн grid + томоор харах цонх. Thumb-ууд lazy load, `content-visibility`-ээр дэлгэцэн гадуурх мөрүүдийг
  * browser render хийхгүй (олон зурагтай үед утсан дээр гүйлгэхэд хөнгөн).
+ * `cart` өгвөл зураг бүр дээр сагсанд нэмэх/хасах товч гарна.
  */
-export function PhotoGrid({ photos, timezone }: { photos: PublicPhoto[]; timezone: string }) {
+export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; timezone: string; cart?: GridCart | undefined }) {
   const t = useTranslations('gallery');
+  const tc = useTranslations('cart');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const cartState = useCart();
+  const inCart = new Set(cart ? cartState[cart.event.slug]?.photos.map((p) => p.id) : []);
+
+  const toggle = (photo: PublicPhoto) => {
+    if (!cart) return;
+    if (inCart.has(photo.id)) removeFromCart(cart.event.slug, [photo.id]);
+    else addToCart(cart.event, [photo], cart.searchSessionId);
+  };
 
   return (
     <>
       <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-        {photos.map((photo, i) => (
-          <li key={photo.id} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 180px' }}>
-            <button
-              type="button"
-              onClick={() => setOpenIndex(i)}
-              className="block aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-200"
-              aria-label={t('open', { index: i + 1 })}
-            >
-              <img
-                src={photo.thumbUrl}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                width={photo.width ?? undefined}
-                height={photo.height ?? undefined}
-                className="h-full w-full object-cover"
-              />
-            </button>
-          </li>
-        ))}
+        {photos.map((photo, i) => {
+          const selected = inCart.has(photo.id);
+          return (
+            <li key={photo.id} className="relative" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 180px' }}>
+              <button
+                type="button"
+                onClick={() => setOpenIndex(i)}
+                className={`block aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-200 ${selected ? 'ring-4 ring-emerald-500 ring-inset' : ''}`}
+                aria-label={t('open', { index: i + 1 })}
+              >
+                <img
+                  src={photo.thumbUrl}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width={photo.width ?? undefined}
+                  height={photo.height ?? undefined}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+              {cart ? (
+                <button
+                  type="button"
+                  onClick={() => toggle(photo)}
+                  aria-pressed={selected}
+                  aria-label={selected ? tc('removeOne', { index: i + 1 }) : tc('addOne', { index: i + 1 })}
+                  className={`absolute right-1.5 top-1.5 flex h-11 w-11 items-center justify-center rounded-full text-xl font-bold shadow ${
+                    selected ? 'bg-emerald-500 text-white' : 'bg-white/90 text-slate-900'
+                  }`}
+                >
+                  {selected ? '✓' : '+'}
+                </button>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
       {openIndex !== null && photos[openIndex] ? (
         <Lightbox
           photo={photos[openIndex]}
           timezone={timezone}
+          cart={cart}
+          selected={inCart.has(photos[openIndex].id)}
+          onToggleCart={() => toggle(photos[openIndex]!)}
           onClose={() => setOpenIndex(null)}
           onPrev={openIndex > 0 ? () => setOpenIndex(openIndex - 1) : undefined}
           onNext={openIndex < photos.length - 1 ? () => setOpenIndex(openIndex + 1) : undefined}
@@ -54,17 +90,24 @@ export function PhotoGrid({ photos, timezone }: { photos: PublicPhoto[]; timezon
 function Lightbox({
   photo,
   timezone,
+  cart,
+  selected,
+  onToggleCart,
   onClose,
   onPrev,
   onNext,
 }: {
   photo: PublicPhoto;
   timezone: string;
+  cart: GridCart | undefined;
+  selected: boolean;
+  onToggleCart: () => void;
   onClose: () => void;
   onPrev: (() => void) | undefined;
   onNext: (() => void) | undefined;
 }) {
   const t = useTranslations('gallery');
+  const tc = useTranslations('cart');
   const [reporting, setReporting] = useState(false);
 
   const onKey = useCallback(
@@ -97,7 +140,7 @@ function Lightbox({
           </button>
         </div>
       </div>
-      <div className="relative flex flex-1 items-center justify-center px-2 pb-4" onClick={(e) => e.stopPropagation()}>
+      <div className="relative flex flex-1 items-center justify-center px-2" onClick={(e) => e.stopPropagation()}>
         <img src={photo.previewUrl} alt="" className="max-h-full max-w-full object-contain" />
         <button type="button" className={`${nav} left-2`} onClick={onPrev} disabled={!onPrev} aria-label={t('prev')}>
           ‹
@@ -105,6 +148,17 @@ function Lightbox({
         <button type="button" className={`${nav} right-2`} onClick={onNext} disabled={!onNext} aria-label={t('next')}>
           ›
         </button>
+      </div>
+      <div className="flex min-h-16 items-center justify-center px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        {cart ? (
+          <button
+            type="button"
+            onClick={onToggleCart}
+            className={`min-h-11 rounded-xl px-5 text-sm font-medium ${selected ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900'}`}
+          >
+            {selected ? tc('inCart') : tc('add', { price: formatMnt(cart.event.pricePerPhoto) })}
+          </button>
+        ) : null}
       </div>
       {reporting ? <RemovalDialog photoId={photo.id} onClose={() => setReporting(false)} /> : null}
     </div>
