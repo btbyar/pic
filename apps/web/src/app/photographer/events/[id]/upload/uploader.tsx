@@ -32,6 +32,14 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
     void refreshStats();
   }, [refreshStats]);
 
+  // Worker боловсруулж дуустал тоог шинэчилнэ
+  const processing = stats?.byStatus.UPLOADED ?? 0;
+  useEffect(() => {
+    if (processing === 0) return;
+    const timer = setInterval(() => void refreshStats(), 3000);
+    return () => clearInterval(timer);
+  }, [processing, refreshStats]);
+
   // Байршуулж байхад хуудас хаахаас сэрэмжлүүлнэ
   useEffect(() => {
     if (!running) return;
@@ -96,7 +104,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
       {stats ? (
         <p className="text-sm text-slate-600">
-          {t('eventStats', { total: stats.total, processing: stats.byStatus.UPLOADED, ready: stats.byStatus.DERIVED + stats.byStatus.INDEXED })}
+          {t('eventStats', { total: stats.total, processing: stats.byStatus.UPLOADED, ready: stats.byStatus.DERIVED + stats.byStatus.INDEXED, failed: stats.byStatus.FAILED })}
         </p>
       ) : null}
 

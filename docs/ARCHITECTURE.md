@@ -411,6 +411,15 @@ model EventDailyStat {                                 // Redis counter → 5 м
 - Storage түлхүүр: `events/{eventId}/originals/{photoId}.{ext}` — файлын нэр орохгүй.
 - Browser: 50 файлаар hash → бүртгэл → 4 зэрэг PUT (3 оролдлого, алдаа гарвал шинэ URL) → complete. Явцыг 250ms тутам render хийнэ.
 - `photo-ingest` BullMQ job (`jobId = photoId`) үүсгэнэ; worker нь Phase 2d.
+**Phase 2d-ийн бодит хэрэгжилт:**
+- Worker нь тусдаа процесс (`apps/api/dist/worker.js`, Docker `worker` target), API-тай ижил Prisma/Storage модуль ашиглана. `WORKER_CONCURRENCY` (default 2).
+- Ingest: эх зургийн SHA-256-г дахин тооцож browser-ийн мэдэгдсэнтэй тулгана (`sha256_mismatch` → FAILED) → sharp: auto-rotate, thumb 400px WebP q72, preview 1000px WebP q75 + хөндлөн давтагдсан "PIC · PREVIEW" watermark → `pic-public/events/{eventId}/{thumb|preview}/{photoId}.webp` (`Cache-Control: immutable`). sharp metadata хуулдаггүй тул EXIF/GPS үлдэхгүй (тестээр баталгаажсан).
+- Цаг: EXIF `DateTimeOriginal` + `OffsetTimeOriginal`, offset байхгүй бол эвэнтийн цагийн бүс → `captured_at_raw`. `captured_at` = raw + зурагчны `clock_offset_sec` — UPDATE дотор subquery-ээр тооцдог тул засвар зэрэг өөрчлөгдсөн ч зөв. Засвар өөрчлөхөд тухайн зурагчны бүх зургийг SQL-ээр дахин тооцно.
+- Алдаа: эвдэрсэн/дэмжигдээгүй файл нь `UnrecoverableError` → шууд FAILED; сүлжээ/storage алдаа 3 удаа exponential backoff.
+- Эвэнтийн анхны боловсруулагдсан зураг cover болно (thumb URL).
+- `maintenance` queue: цаг тутам 24 цагаас дээш `UPLOADING` мөрийг устгана (эхлээд `DELETE … RETURNING`, дараа нь объект — дуусгасан зургийн эх файлыг устгахгүй).
+- Галерей: `GET /events/:slug/photos?cursor&t` — 60-аар, `captured_at ASC NULLS LAST`. Virtualized grid ба цагаар шүүх нь Phase 4.
+- Хурд (dev laptop, 2400×1600 JPEG, concurrency 2): 30 зураг ≈ 3 секунд (зураг тутамд ~0.2с). Бодит 24MP зураг дээр Phase 3-т дахин хэмжинэ.
 - **Production R2:** bucket-д CORS тохируулна — `AllowedOrigins: [WEB_ORIGIN]`, `AllowedMethods: [PUT]`, `AllowedHeaders: [content-type]`. MinIO dev-д default-аар зөвшөөрдөг.
 - Дахин индексжүүлэх: шинэ `modelVersion`-оор faces/bib job → бүгд дуусахад хуучин embedding устгах (хайлт тасалдахгүй).
 - Том batch жижиг эвэнтүүдийг хаахгүйн тулд batch-ийн хэмжээгээр BullMQ priority тавина.

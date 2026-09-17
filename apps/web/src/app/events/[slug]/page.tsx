@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { Gallery } from '@/components/gallery';
 import { Alert, Card } from '@/components/ui';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange, formatMnt } from '@/lib/datetime';
-import type { PublicEvent } from '@/lib/types';
+import type { PublicEvent, PublicPhotoPage } from '@/lib/types';
 
 export default async function EventPage({
   params,
@@ -20,10 +21,11 @@ export default async function EventPage({
   const query = token ? `?t=${encodeURIComponent(token)}` : '';
   const { status, data: event } = await serverApi<PublicEvent>(`/events/${slug}${query}`);
   if (status === 404 || !event) notFound();
+  const { data: photos } = await serverApi<PublicPhotoPage>(`/events/${slug}/photos${query}`);
 
   const t = await getTranslations();
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
+    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-8">
       <Link href="/events" className="text-sm text-slate-600 underline-offset-4 hover:underline">
         ← {t('events.title')}
       </Link>
@@ -50,6 +52,16 @@ export default async function EventPage({
       </Card>
 
       <Alert kind="info">{t('events.searchSoon')}</Alert>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t('gallery.title')}</h2>
+        <Gallery
+          slug={slug}
+          accessToken={token}
+          timezone={event.timezone}
+          initial={photos ?? { items: [], nextCursor: null }}
+        />
+      </section>
     </main>
   );
 }

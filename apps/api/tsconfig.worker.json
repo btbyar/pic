@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // `pnpm dev`-д API-ийн watch-той зэрэг ажиллахад dist-ийг нэг нэгнээ устгахгүйн тулд тусдаа хавтас
+    "outDir": "dist-worker"
+  }
+}

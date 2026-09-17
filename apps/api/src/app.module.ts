@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
-import { validateEnv } from './config/env';
+import { AppConfigModule } from './config/config.module';
 import { EventsModule } from './events/events.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,12 +13,7 @@ import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      // apps/api-аас ажиллуулахад монорепогийн root .env-ийг уншина
-      envFilePath: ['.env', '../../.env'],
-      validate: validateEnv,
-    }),
+    AppConfigModule,
     PrismaModule,
     RedisModule,
     StorageModule,

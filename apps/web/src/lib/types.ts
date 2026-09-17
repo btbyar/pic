@@ -33,6 +33,20 @@ export interface PublicEvent extends EventBase {
   photographers?: string[];
 }
 
+export interface PublicPhoto {
+  id: string;
+  width: number | null;
+  height: number | null;
+  capturedAt: string | null;
+  thumbUrl: string;
+  previewUrl: string;
+}
+
+export interface PublicPhotoPage {
+  items: PublicPhoto[];
+  nextCursor: string | null;
+}
+
 export interface PublicEventPage {
   items: PublicEvent[];
   nextCursor: string | null;

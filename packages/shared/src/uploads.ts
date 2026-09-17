@@ -52,11 +52,24 @@ export function originalStorageKey(eventId: string, photoId: string, contentType
   return `events/${eventId}/originals/${photoId}.${EXTENSIONS[contentType]}`;
 }
 
+/** pic-public доторх watermark-тай preview ба жижиг thumb (галерей). URL нь таамаглахад хэцүү photoId-гаас хамаарна. */
+export function derivativeStorageKey(eventId: string, photoId: string, kind: 'thumb' | 'preview'): string {
+  return `events/${eventId}/${kind}/${photoId}.webp`;
+}
+
+export interface PhotoStorageKeys {
+  original: string;
+  thumb?: string;
+  preview?: string;
+}
+
 // ---------------------------------------------------------------- queue
 
 export const QUEUES = {
   /** Phase 2d: EXIF, thumb/preview, watermark */
   photoIngest: 'photo-ingest',
+  /** Давтагддаг цэвэрлэгээ (тасалдсан upload г.м.) */
+  maintenance: 'maintenance',
 } as const;
 
 export interface PhotoIngestJob {

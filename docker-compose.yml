@@ -111,6 +111,26 @@ services:
       minio-init:
         condition: service_completed_successfully
 
+  worker:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: infra/docker/node.Dockerfile
+      target: worker
+    env_file: .env
+    environment:
+      APP_DATABASE_URL: postgresql://pic_app:${PIC_APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-pic}
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      ML_BASE_URL: http://ml:8000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
   ml:
     profiles: ["app"]
     build:

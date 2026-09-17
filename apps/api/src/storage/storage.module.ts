@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   NotFound,
@@ -24,6 +25,7 @@ export class StorageService implements OnModuleDestroy {
   private readonly internal: S3Client;
   private readonly presigner: S3Client;
   private readonly buckets: Record<BucketName, string>;
+  private readonly publicBaseUrl: string;
 
   constructor(config: ConfigService<Env, true>) {
     const common = {
@@ -43,6 +45,7 @@ export class StorageService implements OnModuleDestroy {
       originals: config.get('S3_BUCKET_ORIGINALS', { infer: true }),
       public: config.get('S3_BUCKET_PUBLIC', { infer: true }),
     };
+    this.publicBaseUrl = config.get('PUBLIC_MEDIA_BASE_URL', { infer: true }).replace(/\/+$/, '');
   }
 
   /**
@@ -79,6 +82,29 @@ export class StorageService implements OnModuleDestroy {
       }
       throw err;
     }
+  }
+
+  async get(bucket: BucketName, key: string): Promise<Buffer> {
+    const res = await this.internal.send(new GetObjectCommand({ Bucket: this.buckets[bucket], Key: key }));
+    if (!res.Body) throw new Error(`empty body for ${bucket}/${key}`);
+    return Buffer.from(await res.Body.transformToByteArray());
+  }
+
+  async put(bucket: BucketName, key: string, body: Buffer, opts: { contentType: string; cacheControl?: string }): Promise<void> {
+    await this.internal.send(
+      new PutObjectCommand({
+        Bucket: this.buckets[bucket],
+        Key: key,
+        Body: body,
+        ContentType: opts.contentType,
+        CacheControl: opts.cacheControl,
+      }),
+    );
+  }
+
+  /** pic-public объектын браузерт харагдах URL (dev: MinIO, prod: R2 custom domain/CDN) */
+  publicUrl(key: string): string {
+    return `${this.publicBaseUrl}/${key}`;
   }
 
   async delete(bucket: BucketName, key: string): Promise<void> {

@@ -16,6 +16,7 @@ export type PhotoIngestQueue = Queue<PhotoIngestJob>;
       useFactory: (config: ConfigService<Env, true>): PhotoIngestQueue =>
         new Queue<PhotoIngestJob>(QUEUES.photoIngest, {
           connection: { url: config.get('REDIS_URL', { infer: true }) },
+          prefix: config.get('QUEUE_PREFIX', { infer: true }),
           defaultJobOptions: {
             attempts: 3,
             backoff: { type: 'exponential', delay: 10_000 },

@@ -8,13 +8,21 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Event, Prisma, type PrismaClient } from '@pic/db';
-import { computeEventExpiresAt, type CreateEventInput, type EventCategory, slugify, type UpdateEventInput } from '@pic/shared';
+import {
+  computeEventExpiresAt,
+  type CreateEventInput,
+  type EventCategory,
+  type PhotoStorageKeys,
+  slugify,
+  type UpdateEventInput,
+} from '@pic/shared';
 import { AuditService } from '../audit/audit.service';
 import { isActingAdmin } from '../auth/access-policy';
 import type { AuthContext } from '../auth/decorators';
 import { randomToken, sha256Hex } from '../common/crypto';
 import type { Env } from '../config/env';
 import { PRISMA } from '../prisma/prisma.module';
+import { StorageService } from '../storage/storage.module';
 import { canViewEvent } from './event-visibility';
 
 /** Галерейд харагдах зураг: боловсруулсан, нуугаагүй, устгаагүй */
@@ -25,6 +33,9 @@ const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
 };
 
 const PUBLIC_PAGE_SIZE = 24;
+const PHOTO_PAGE_SIZE = 60;
+
+type Viewer = { accessToken?: string | undefined; auth?: AuthContext | undefined };
 
 @Injectable()
 export class EventsService {
@@ -33,6 +44,7 @@ export class EventsService {
   constructor(
     @Inject(PRISMA) private readonly prisma: PrismaClient,
     private readonly audit: AuditService,
+    private readonly storage: StorageService,
     config: ConfigService<Env, true>,
   ) {
     this.webOrigin = config.get('WEB_ORIGIN', { infer: true });
@@ -78,7 +90,8 @@ export class EventsService {
       },
       orderBy: { startsAt: 'desc' },
     });
-    return events.map((e) => ({ ...this.ownerView(e, user), photoCount: e._count.photos }));
+    const covers = await this.coverUrls(events);
+    return events.map((e) => ({ ...this.ownerView(e, user, covers), photoCount: e._count.photos }));
   }
 
   async getMine(user: AuthContext, eventId: string) {
@@ -92,7 +105,7 @@ export class EventsService {
     if (!event) throw this.notFound();
     const me = event.photographers.find((p) => p.userId === user.userId)!;
     return {
-      ...this.ownerView(event, user),
+      ...this.ownerView(event, user, await this.coverUrls([event])),
       photoCount: event._count.photos,
       myClockOffsetSec: me.clockOffsetSec,
       photographers: event.photographers.map((p) => ({
@@ -194,7 +207,11 @@ export class EventsService {
       data: { clockOffsetSec },
     });
     if (count === 0) throw this.notFound();
-    // TODO(Phase 2d): аль хэдийн байршуулсан зургуудын captured_at-ийг дахин тооцоолох
+    // Аль хэдийн боловсруулсан зургуудын цагийг шинэ засвараар дахин тооцно (EXIF-ийн түүхий цагаас)
+    await this.prisma.$executeRaw`
+      UPDATE "public"."photo"
+      SET captured_at = captured_at_raw + make_interval(secs => ${clockOffsetSec}), updated_at = now()
+      WHERE event_id = ${eventId}::uuid AND photographer_id = ${user.userId}::uuid AND captured_at_raw IS NOT NULL`;
     return this.getMine(user, eventId);
   }
 
@@ -217,13 +234,14 @@ export class EventsService {
       ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     });
     const page = events.slice(0, PUBLIC_PAGE_SIZE);
+    const covers = await this.coverUrls(page);
     return {
-      items: page.map((e) => ({ ...this.publicView(e), photoCount: e._count.photos })),
+      items: page.map((e) => ({ ...this.publicView(e, covers), photoCount: e._count.photos })),
       nextCursor: events.length > PUBLIC_PAGE_SIZE ? page[page.length - 1]!.id : null,
     };
   }
 
-  async getPublic(slug: string, viewer: { accessToken?: string | undefined; auth?: AuthContext | undefined }) {
+  async getPublic(slug: string, viewer: Viewer) {
     const event = await this.prisma.event.findUnique({
       where: { slug },
       include: {
@@ -231,23 +249,72 @@ export class EventsService {
         _count: { select: { photos: { where: VISIBLE_PHOTO } } },
       },
     });
-    if (!event) throw this.notFound();
-
-    const allowed = canViewEvent(event, {
-      accessToken: viewer.accessToken,
-      isMember: viewer.auth ? event.photographers.some((p) => p.userId === viewer.auth!.userId) : false,
-      isAdmin: isActingAdmin(viewer.auth),
-    });
-    if (!allowed) throw this.notFound();
+    if (!event || !this.canView(event, viewer)) throw this.notFound();
 
     return {
-      ...this.publicView(event),
+      ...this.publicView(event, await this.coverUrls([event])),
       photoCount: event._count.photos,
       photographers: event.photographers.map((p) => p.user.displayName),
     };
   }
 
+  /** Галерей: авсан цагаар эрэмбэлсэн, watermark-тай зургууд. Цаггүй зургууд төгсгөлд. */
+  async listPublicPhotos(slug: string, viewer: Viewer, cursor?: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: { photographers: { select: { userId: true } } },
+    });
+    if (!event || !this.canView(event, viewer)) throw this.notFound();
+
+    const photos = await this.prisma.photo.findMany({
+      where: { eventId: event.id, ...VISIBLE_PHOTO },
+      select: { id: true, width: true, height: true, capturedAt: true, storageKeys: true },
+      orderBy: [{ capturedAt: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }],
+      take: PHOTO_PAGE_SIZE + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    const page = photos.slice(0, PHOTO_PAGE_SIZE);
+    return {
+      items: page.map((p) => {
+        const keys = p.storageKeys as unknown as PhotoStorageKeys;
+        return {
+          id: p.id,
+          width: p.width,
+          height: p.height,
+          capturedAt: p.capturedAt,
+          thumbUrl: this.storage.publicUrl(keys.thumb!),
+          previewUrl: this.storage.publicUrl(keys.preview!),
+        };
+      }),
+      nextCursor: photos.length > PHOTO_PAGE_SIZE ? page[page.length - 1]!.id : null,
+    };
+  }
+
   // ================================================================ дотоод
+
+  private canView(event: Event & { photographers: { userId: string }[] }, viewer: Viewer): boolean {
+    return canViewEvent(event, {
+      accessToken: viewer.accessToken,
+      isMember: viewer.auth ? event.photographers.some((p) => p.userId === viewer.auth!.userId) : false,
+      isAdmin: isActingAdmin(viewer.auth),
+    });
+  }
+
+  /** Cover зургийн thumb URL (нуусан/устгасан бол орохгүй) */
+  private async coverUrls(events: { coverPhotoId: string | null }[]): Promise<Map<string, string>> {
+    const ids = events.flatMap((e) => (e.coverPhotoId ? [e.coverPhotoId] : []));
+    if (ids.length === 0) return new Map();
+    const photos = await this.prisma.photo.findMany({
+      where: { id: { in: ids }, ...VISIBLE_PHOTO },
+      select: { id: true, storageKeys: true },
+    });
+    return new Map(
+      photos.flatMap((p) => {
+        const thumb = (p.storageKeys as unknown as PhotoStorageKeys).thumb;
+        return thumb ? [[p.id, this.storage.publicUrl(thumb)] as const] : [];
+      }),
+    );
+  }
 
   private async requireOwned(user: AuthContext, eventId: string): Promise<Event> {
     const event = await this.prisma.event.findFirst({
@@ -281,7 +348,7 @@ export class EventsService {
     return `${this.webOrigin}/events/${slug}?t=${token}`;
   }
 
-  private publicView(e: Event) {
+  private publicView(e: Event, covers: Map<string, string>) {
     return {
       id: e.id,
       slug: e.slug,
@@ -296,14 +363,13 @@ export class EventsService {
       pricePerPhoto: e.pricePerPhoto,
       bundlePrice: e.bundlePrice,
       faceSearchEnabled: e.faceSearchEnabled,
-      // TODO(Phase 2d): cover зургийн preview URL
-      coverUrl: null as string | null,
+      coverUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)) || null,
     };
   }
 
-  private ownerView(e: Event, user: AuthContext) {
+  private ownerView(e: Event, user: AuthContext, covers: Map<string, string>) {
     return {
-      ...this.publicView(e),
+      ...this.publicView(e, covers),
       visibility: e.visibility,
       hasAccessLink: e.accessTokenHash !== null,
       bibPattern: e.bibPattern,

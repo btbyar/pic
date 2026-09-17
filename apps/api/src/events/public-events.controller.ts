@@ -11,6 +11,11 @@ const listQuerySchema = z.object({
   category: z.enum(EVENT_CATEGORIES).optional(),
 });
 
+const photosQuerySchema = z.object({
+  cursor: z.uuid().optional(),
+  t: z.string().max(100).optional(),
+});
+
 const slugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
 
 @Public()
@@ -31,5 +36,14 @@ export class PublicEventsController {
     @Req() req: AuthedRequest,
   ) {
     return this.events.getPublic(slug, { accessToken, auth: req.auth });
+  }
+
+  @Get(':slug/photos')
+  photos(
+    @Param('slug', new ZodPipe(slugSchema)) slug: string,
+    @Query(new ZodPipe(photosQuerySchema)) query: z.output<typeof photosQuerySchema>,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.events.listPublicPhotos(slug, { accessToken: query.t, auth: req.auth }, query.cursor);
   }
 }

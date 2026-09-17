@@ -43,6 +43,12 @@ export function formatDate(iso: string, timeZone = DEFAULT_TIMEZONE): string {
   return `${y}.${m}.${d}`;
 }
 
+/** "09:32" — галерейд зураг авсан цаг */
+export function formatTime(iso: string, timeZone = DEFAULT_TIMEZONE): string {
+  const { hh, mm } = parts(iso, timeZone);
+  return `${hh}:${mm}`;
+}
+
 export function formatMnt(amount: number): string {
   return `${new Intl.NumberFormat('en-US').format(amount).replace(/,/g, ' ')}₮`;
 }

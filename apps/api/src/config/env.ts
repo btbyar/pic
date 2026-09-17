@@ -24,6 +24,13 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
   S3_BUCKET_ORIGINALS: z.string().min(1),
   S3_BUCKET_PUBLIC: z.string().min(1),
+  // pic-public-ийн нийтийн хаяг (prod: R2 custom domain / CDN)
+  PUBLIC_MEDIA_BASE_URL: z.url(),
+
+  // Нэг worker процесс зэрэг боловсруулах зургийн тоо (CPU-ийн цөмийн тоотой ойролцоо)
+  // BullMQ түлхүүрийн угтвар. E2E тест тусдаа угтвар ашиглаж, ажиллаж буй dev worker-тэй мөргөлдөхгүй.
+  QUEUE_PREFIX: z.string().regex(/^[a-z0-9-]+$/).default('pic'),
+  WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(64).default(2),
 
   ML_BASE_URL: z.url(),
 

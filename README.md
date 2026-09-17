@@ -3,13 +3,13 @@
 Марафон, гүйлт, төгсөлт, фестивалийн зургаас оролцогчид **өөрийн царай эсвэл цээжний дугаараар** зургаа олж, худалдаж авах вэб платформ.
 
 - Архитектур, өгөгдлийн схем, pipeline: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Одоогийн үе шат: **Phase 2** — нэвтрэлт ✅, эвэнт ✅, зураг байршуулах ✅, зураг боловсруулах (2d) ⏳
+- Одоогийн үе шат: **Phase 2** — нэвтрэлт ✅, эвэнт ✅, зураг байршуулах ✅, зураг боловсруулах ✅ → дараагийнх **Phase 3** (царай, цээжний дугаар)
 
 ## Бүтэц
 
 ```
 apps/web          Next.js 16 (App Router) + Tailwind 4 + next-intl — оролцогч, зурагчин, /admin
-apps/api          NestJS 12 — REST API (+ дараа нь BullMQ worker)
+apps/api          NestJS 12 — REST API + BullMQ worker (зураг боловсруулах)
 services/ml       Python 3.11 + FastAPI — царай, bib OCR (Phase 3)
 packages/db       Prisma 7 схем, migration, seed, client
 packages/shared   Zod schema, enum, мөнгө/retention-ийн цэвэр функц
@@ -77,6 +77,7 @@ pnpm dev
 
 - Web: http://localhost:3000
 - API: http://localhost:4000/health — database, redis, storage, ml төлөвийг буцаана
+- Worker: байршуулсан зургийг боловсруулна (EXIF цаг, 400px thumb, watermark-тай 1000px preview). `pnpm dev` дотор хамт асна; тусад нь: `pnpm --filter @pic/api dev:worker`
 
 ML сервис (тусдаа терминал):
 
@@ -92,7 +93,7 @@ uv run uvicorn app.main:app --reload --port 8000
 docker compose --profile app up -d --build
 ```
 
-`migrate` контейнер эхлээд migration хэрэглэж, дараа нь `api`, `web`, `ml` асна.
+`migrate` контейнер эхлээд migration хэрэглэж, дараа нь `api`, `worker`, `web`, `ml` асна. Worker-ийг олон хувь болгож (`--scale worker=3`) хурдасгаж болно.
 
 ## Тест
 
@@ -115,6 +116,7 @@ cd services/ml && uv run pytest    # Python
 
 - **Нүүр таних модель:** InsightFace-ийн бэлэн моделиуд (`buffalo_l` г.м.) арилжааны бус лицензтэй тул **YuNet (MIT) + SFace (Apache 2.0)** ашиглана. Нарийвчлалыг бодит эвэнтийн зураг дээр хэмжиж, хангалтгүй бол `FaceEngine` interface-ээр AWS Rekognition эсвэл InsightFace-ийн арилжааны лиценз руу шилжинэ. Моделийн сургалтын өгөгдлийн эрхийг хуульчаар шалгуулна.
 - **Админы 2FA:** хөгжүүлэлтэд `.env`-д `ADMIN_MFA_REQUIRED=false` гэж түр унтрааж болно. Production-д (`NODE_ENV=production`) унтраавал API асахгүй.
+- **Зургийн нийтийн файлууд:** thumb/preview нь `pic-public` bucket-д нийтэд нээлттэй (URL нь таамаглахад хэцүү UUID). Нуусан эвэнтийн preview ч URL мэдэгдвэл нээгдэнэ — watermark-тай тул зөвшөөрөгдөх эрсдэл. Эх зураг хэзээ ч нийтэд гарахгүй.
 - **Cloudflare R2 CORS:** зурагчны браузер зургийг шууд R2 руу илгээдэг тул production bucket-д `WEB_ORIGIN`-оос `PUT` (`content-type` header) зөвшөөрөх CORS дүрэм заавал тохируулна.
 - **MinIO:** community Docker image 2025-09-өөс хойш шинэчлэгдээгүй; зөвхөн dev-д, хувилбарыг түгжиж ашиглана. Production нь Cloudflare R2.
 - **Хувийн мэдээлэл:** зөвшөөрлийн текстийг хуульчаар хянуулна.
