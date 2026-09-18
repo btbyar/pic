@@ -3,12 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
+import { XIcon } from '@/components/icons';
 import { Alert, Button, Input } from '@/components/ui';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
 
 /** Банкаар шилжүүлсний дараа гүйлгээний дугаартай нь "төлсөн" гэж тэмдэглэнэ */
 export function MarkPaidForm({ photographerId, period, askTotp }: { photographerId: string; period: string; askTotp: boolean }) {
   const t = useTranslations('admin.payouts');
+  const tc = useTranslations('common');
   const errorMessage = useErrorMessage();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -42,8 +44,8 @@ export function MarkPaidForm({ photographerId, period, askTotp }: { photographer
         <Button type="submit" disabled={busy}>
           {t('confirmPaid')}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-          ✕
+        <Button type="button" variant="secondary" aria-label={tc('cancel')} onClick={() => setOpen(false)}>
+          <XIcon size={18} />
         </Button>
       </div>
     </form>

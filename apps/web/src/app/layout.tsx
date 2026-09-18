@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Noto_Sans } from 'next/font/google';
+import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 
-// Монгол кирилл (ө, ү) нь cyrillic-ext-д багтана
-const noto = Noto_Sans({ subsets: ['latin', 'cyrillic', 'cyrillic-ext'], variable: '--font-noto', display: 'swap' });
+// Монгол кирилл (ө, ү) нь cyrillic-ext-д багтана. Inter — үндсэн текст, Montserrat — гарчиг, лого.
+const inter = Inter({ subsets: ['latin', 'cyrillic', 'cyrillic-ext'], variable: '--font-inter', display: 'swap' });
+const montserrat = Montserrat({
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
+  weight: ['600', '700', '800'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('meta');
@@ -21,7 +27,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   return (
-    <html lang={locale} className={noto.variable}>
+    <html lang={locale} className={`${inter.variable} ${montserrat.variable}`}>
       <body className="min-h-dvh bg-paper text-stone-900">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

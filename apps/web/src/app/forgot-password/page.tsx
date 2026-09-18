@@ -1,5 +1,6 @@
 'use client';
 
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
@@ -42,9 +43,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
       )}
-      <Link href="/login" className="text-sm font-medium text-stone-900 underline underline-offset-4">
-        {t('backToLogin')}
-      </Link>
+      <BackLink href="/login">{t('backToLogin')}</BackLink>
     </AuthShell>
   );
 }

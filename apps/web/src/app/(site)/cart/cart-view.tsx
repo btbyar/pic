@@ -1,5 +1,6 @@
 'use client';
 
+import { XIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -142,7 +143,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
               aria-label={t('remove')}
               className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-stone-900 shadow"
             >
-              ✕
+              <XIcon size={18} />
             </button>
           </li>
         ))}

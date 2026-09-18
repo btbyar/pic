@@ -98,3 +98,22 @@ export const TagIcon = icon(
     <circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" />
   </>,
 );
+
+export const XIcon = icon(<path d="M18 6 6 18M6 6l12 12" />);
+
+export const CheckIcon = icon(<path d="m5 12 5 5L20 7" />);
+
+export const PlusIcon = icon(<path d="M12 5v14M5 12h14" />);
+
+export const ChevronLeftIcon = icon(<path d="m15 18-6-6 6-6" />);
+
+export const ChevronRightIcon = icon(<path d="m9 18 6-6-6-6" />);
+
+export const ExternalLinkIcon = icon(<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />);
+
+export const UserIcon = icon(
+  <>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </>,
+);

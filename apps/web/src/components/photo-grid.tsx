@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from './icons';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { addToCart, type CartEventInfo, removeFromCart, useCart } from '@/lib/cart';
@@ -64,7 +65,7 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
                     selected ? 'bg-emerald-500 text-white' : 'bg-white/90 text-stone-900'
                   }`}
                 >
-                  {selected ? '✓' : '+'}
+                  {selected ? <CheckIcon size={20} strokeWidth={2.5} /> : <PlusIcon size={20} strokeWidth={2.5} />}
                 </button>
               ) : null}
             </li>
@@ -136,17 +137,20 @@ function Lightbox({
             {t('requestRemoval')}
           </button>
           <button type="button" onClick={onClose} className="min-h-11 px-2 text-base">
-            {t('close')} ✕
+            <span className="inline-flex items-center gap-1.5">
+              {t('close')}
+              <XIcon size={18} />
+            </span>
           </button>
         </div>
       </div>
       <div className="relative flex flex-1 items-center justify-center px-2" onClick={(e) => e.stopPropagation()}>
         <img src={photo.previewUrl} alt="" className="max-h-full max-w-full object-contain" />
         <button type="button" className={`${nav} left-2`} onClick={onPrev} disabled={!onPrev} aria-label={t('prev')}>
-          ‹
+          <ChevronLeftIcon size={28} />
         </button>
         <button type="button" className={`${nav} right-2`} onClick={onNext} disabled={!onNext} aria-label={t('next')}>
-          ›
+          <ChevronRightIcon size={28} />
         </button>
       </div>
       <div className="flex min-h-16 items-center justify-center px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -156,7 +160,14 @@ function Lightbox({
             onClick={onToggleCart}
             className={`min-h-11 rounded-xl px-5 text-sm font-medium ${selected ? 'bg-emerald-500 text-white' : 'bg-white text-stone-900'}`}
           >
-            {selected ? tc('inCart') : tc('add', { price: formatMnt(cart.event.pricePerPhoto) })}
+            {selected ? (
+              <span className="inline-flex items-center gap-1.5">
+                <CheckIcon size={16} />
+                {tc('inCart')}
+              </span>
+            ) : (
+              tc('add', { price: formatMnt(cart.event.pricePerPhoto) })
+            )}
           </button>
         ) : null}
       </div>

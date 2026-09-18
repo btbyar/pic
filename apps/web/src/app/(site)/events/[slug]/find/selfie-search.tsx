@@ -1,5 +1,7 @@
 'use client';
 
+import { CheckIcon, UserIcon } from '@/components/icons';
+import { BackLink } from '@/components/back-link';
 import { CONSENT_VERSION } from '@pic/shared';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -138,9 +140,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-8">
-      <Link href={eventHref} className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {event.title}
-      </Link>
+      <BackLink href={eventHref}>{event.title}</BackLink>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-stone-600">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
@@ -207,7 +207,14 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
                 disabled={mineNotInCart.length === 0}
                 onClick={() => addToCart(gridCart!.event, mineNotInCart, results.sessionId)}
               >
-                {mineNotInCart.length === 0 ? tc('allInCart') : tc('addAll', { count: mineNotInCart.length })}
+                {mineNotInCart.length === 0 ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckIcon size={16} />
+                    {tc('allInCart')}
+                  </span>
+                ) : (
+                  tc('addAll', { count: mineNotInCart.length })
+                )}
               </Button>
             </Card>
           ) : null}
@@ -349,8 +356,8 @@ function CaptureCard({
       ) : preview ? (
         <img src={preview.url} alt={t('previewAlt')} className="aspect-square w-full max-w-sm rounded-2xl object-cover" />
       ) : (
-        <div className="flex aspect-square w-full max-w-sm items-center justify-center rounded-2xl bg-stone-100 text-6xl" aria-hidden>
-          🙂
+        <div className="flex aspect-square w-full max-w-sm items-center justify-center rounded-2xl bg-stone-100 text-stone-300" aria-hidden>
+          <UserIcon size={96} strokeWidth={1.5} />
         </div>
       )}
 

@@ -5,7 +5,8 @@
  * brand-600 цагаан дээр 4.8:1 (WCAG AA). Гол үйлдэл, идэвхтэй төлөвт л ашиглана — зургууд өөрсдөө өнгөтэй.
  */
 @theme {
-  --font-sans: var(--font-noto), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-inter), ui-sans-serif, sans-serif;
   --color-paper: #fdfbf8;
   --color-brand-50: #fdf3ec;
   --color-brand-100: #fbe3d3;
@@ -25,6 +26,16 @@
 
 body {
   -webkit-font-smoothing: antialiased;
+}
+
+/* Гарчиг бүр Montserrat (класс нэмэхгүйгээр) */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 }
 
 /* Гарны навигацид тод фокус (хулганаар дарахад харагдахгүй) */

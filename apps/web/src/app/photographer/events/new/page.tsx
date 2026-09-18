@@ -1,5 +1,6 @@
 'use client';
 
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -15,9 +16,7 @@ export default function NewEventPage() {
 
   return (
     <>
-      <Link href="/photographer/events" className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {t('photographer.myEvents')}
-      </Link>
+      <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
       <h1 className="text-2xl font-bold">{t('photographer.newEvent')}</h1>
       <Card>
         <EventForm

@@ -1,5 +1,6 @@
 'use client';
 
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
@@ -57,9 +58,7 @@ export function OrderDetail({ id }: { id: string }) {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
-      <Link href="/my/orders" className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {t('myOrders')}
-      </Link>
+      <BackLink href="/my/orders">{t('myOrders')}</BackLink>
       {!token ? <Alert>{t('noToken')}</Alert> : null}
       {error ? <Alert>{error}</Alert> : null}
       {order && token ? <OrderBody order={order} token={token} onChange={load} /> : null}

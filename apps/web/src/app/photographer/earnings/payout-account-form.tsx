@@ -3,12 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
+import { XIcon } from '@/components/icons';
 import { Alert, Button, Card, Field, Input } from '@/components/ui';
 import { api, type ApiError, fieldErrors, useErrorMessage } from '@/lib/api-client';
 import type { PayoutAccount } from '@/lib/types';
 
 export function PayoutAccountForm({ account }: { account: PayoutAccount | null }) {
   const t = useTranslations('earnings');
+  const tc = useTranslations('common');
   const errorMessage = useErrorMessage();
   const router = useRouter();
   const [editing, setEditing] = useState(account === null);
@@ -69,8 +71,8 @@ export function PayoutAccountForm({ account }: { account: PayoutAccount | null }
             {t('save')}
           </Button>
           {account ? (
-            <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
-              ✕
+            <Button type="button" variant="secondary" aria-label={tc('cancel')} onClick={() => setEditing(false)}>
+              <XIcon size={18} />
             </Button>
           ) : null}
         </div>

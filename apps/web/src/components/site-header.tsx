@@ -7,7 +7,7 @@ import { cartPhotoCount, useCart } from '@/lib/cart';
 
 export function Logo() {
   return (
-    <span className="flex items-center gap-2 text-lg font-bold tracking-tight">
+    <span className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
       <img src="/icon.svg" alt="" width={28} height={28} />
       Pic
     </span>

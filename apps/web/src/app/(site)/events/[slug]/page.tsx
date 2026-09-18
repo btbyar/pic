@@ -114,7 +114,7 @@ export default async function EventPage({
             <TagIcon size={16} />
             {t('events.priceLabel')}
           </h2>
-          <p className="text-3xl font-bold tabular-nums">{formatMnt(event.pricePerPhoto)}</p>
+          <p className="font-display text-3xl font-bold tabular-nums">{formatMnt(event.pricePerPhoto)}</p>
           {event.bundlePrice !== null ? (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{t('events.bundle', { price: formatMnt(event.bundlePrice) })}</p>
           ) : null}

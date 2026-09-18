@@ -1,5 +1,6 @@
 'use client';
 
+import { ExternalLinkIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
@@ -56,8 +57,9 @@ export function ProfileForm({ initial }: { initial: MyProfile }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         {profile.slugSaved ? (
-          <Link href={`/photographers/${profile.slug}`} className="text-sm underline underline-offset-4">
+          <Link href={`/photographers/${profile.slug}`} className="inline-flex items-center gap-1.5 text-sm underline underline-offset-4">
             {t('view')}
+            <ExternalLinkIcon size={14} />
           </Link>
         ) : null}
       </div>

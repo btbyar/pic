@@ -4,6 +4,7 @@ import type { UserStatus } from '@pic/shared';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
+import { XIcon } from '@/components/icons';
 import { Alert, Button, Input } from '@/components/ui';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
 
@@ -19,6 +20,7 @@ const NEEDS_REASON = new Set<Action>(['reject', 'suspend']);
 
 export function PhotographerActions({ id, status }: { id: string; status: UserStatus }) {
   const t = useTranslations('admin');
+  const tc = useTranslations('common');
   const errorMessage = useErrorMessage();
   const router = useRouter();
   const [pending, setPending] = useState<Action | null>(null);
@@ -53,8 +55,8 @@ export function PhotographerActions({ id, status }: { id: string; status: UserSt
             <Button type="submit" variant="danger" disabled={busy}>
               {t(pending)}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setPending(null)}>
-              ✕
+            <Button type="button" variant="secondary" aria-label={tc('cancel')} onClick={() => setPending(null)}>
+              <XIcon size={18} />
             </Button>
           </div>
         </form>

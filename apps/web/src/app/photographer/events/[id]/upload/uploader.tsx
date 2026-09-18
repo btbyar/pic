@@ -1,5 +1,6 @@
 'use client';
 
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type ChangeEvent, type DragEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -97,9 +98,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
   return (
     <>
-      <Link href={`/photographer/events/${eventId}`} className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {eventTitle}
-      </Link>
+      <BackLink href={`/photographer/events/${eventId}`}>{eventTitle}</BackLink>
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {stats ? (

@@ -138,7 +138,7 @@ export default async function HomePage() {
             {(['events', 'photos', 'photographers'] as const).map((k) => (
               <div key={k} className="flex flex-col gap-1 px-2">
                 <dt className="order-2 text-sm text-stone-500">{t(`stats.${k}`)}</dt>
-                <dd className="text-2xl font-bold tabular-nums text-stone-900 sm:text-4xl">{number(stats[k])}</dd>
+                <dd className="font-display text-2xl font-bold tabular-nums text-stone-900 sm:text-4xl">{number(stats[k])}</dd>
               </div>
             ))}
           </dl>

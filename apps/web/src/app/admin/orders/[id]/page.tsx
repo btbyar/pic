@@ -1,3 +1,4 @@
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -19,9 +20,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <Link href="/admin/orders" className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {t('title')}
-      </Link>
+      <BackLink href="/admin/orders">{t('title')}</BackLink>
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">{order.eventTitle}</h1>
         <Badge tone={ORDER_TONE[order.status]}>{to(`status.${order.status}`)}</Badge>

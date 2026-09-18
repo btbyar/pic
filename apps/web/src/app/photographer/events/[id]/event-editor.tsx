@@ -1,5 +1,7 @@
 'use client';
 
+import { ExternalLinkIcon } from '@/components/icons';
+import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -31,9 +33,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
 
   return (
     <>
-      <Link href="/photographer/events" className="text-sm text-stone-600 underline-offset-4 hover:underline">
-        ← {t('photographer.myEvents')}
-      </Link>
+      <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -41,8 +41,9 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
           <VisibilityBadge visibility={event.visibility} />
         </div>
         {event.visibility !== 'HIDDEN' || event.isOwner ? (
-          <Link href={`/events/${event.slug}`} className="text-sm font-medium underline underline-offset-4" target="_blank">
-            {t('photographer.viewPublic')} ↗
+          <Link href={`/events/${event.slug}`} className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4" target="_blank">
+            {t('photographer.viewPublic')}
+            <ExternalLinkIcon size={14} />
           </Link>
         ) : null}
       </div>

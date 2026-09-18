@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from '@/components/icons';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Alert, ButtonLink } from '@/components/ui';
@@ -24,8 +25,9 @@ export default async function MyEventsPage() {
       {profile && !profile.slugSaved ? (
         <Alert kind="info">
           {t('photographer.publishProfileHint')}{' '}
-          <Link href="/photographer/profile" className="font-medium underline underline-offset-4">
+          <Link href="/photographer/profile" className="inline-flex items-center gap-1 font-medium underline underline-offset-4">
             {t('photographer.publishProfile')}
+            <ArrowRightIcon size={14} />
           </Link>
         </Alert>
       ) : null}
