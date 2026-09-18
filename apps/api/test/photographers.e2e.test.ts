@@ -54,7 +54,7 @@ describe('photographer profiles', () => {
     await event(bat.agent, 'Profile hidden', 'HIDDEN');
 
     const list = await anonymous(ctx).get('/photographers').expect(200);
-    expect(list.body).toContainEqual(expect.objectContaining({ slug, displayName: 'Бат студи', city: 'Улаанбаатар', eventCount: 1 }));
+    expect(list.body).toContainEqual(expect.objectContaining({ slug, displayName: 'Бат студи', city: 'Улаанбаатар', eventCount: 1, bio: 'Спортын зурагчин', coverUrl: null }));
 
     const found = await anonymous(ctx).get('/photographers').query({ q: 'бат студ' }).expect(200);
     expect(found.body.map((p: { slug: string }) => p.slug)).toContain(slug);

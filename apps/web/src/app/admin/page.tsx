@@ -29,7 +29,7 @@ export default async function AdminHome() {
         {tiles.map((tile) => {
           const body = (
             <Card className={`flex h-full flex-col gap-1 ${tile.urgent ? 'border-amber-400 bg-amber-50' : ''}`}>
-              <span className="text-sm text-slate-600">{tile.label}</span>
+              <span className="text-sm text-stone-600">{tile.label}</span>
               <span className="text-2xl font-bold tabular-nums">{tile.value}</span>
             </Card>
           );
@@ -40,16 +40,16 @@ export default async function AdminHome() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('overview.expiring')}</h2>
-        <p className="text-sm text-slate-600">{t('overview.expiringHint')}</p>
+        <p className="text-sm text-stone-600">{t('overview.expiringHint')}</p>
         {data.expiringEvents.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('overview.noneExpiring')}</p>
+          <p className="text-sm text-stone-500">{t('overview.noneExpiring')}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {data.expiringEvents.map((e) => (
               <li key={e.id}>
                 <Card className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-medium">{e.title}</span>
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-stone-600">
                     {t('overview.expiresOn', { date: formatDate(e.expiresAt), count: e.photoCount })}
                   </span>
                 </Card>

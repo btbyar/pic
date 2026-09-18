@@ -53,7 +53,7 @@ export function RefundForm({ orderId, items, askTotp }: { orderId: string; items
       <ul className="flex flex-col gap-1">
         {items.map((i) => (
           <li key={i.id}>
-            <label className={`flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm ${i.refunded ? 'text-slate-400 line-through' : ''}`}>
+            <label className={`flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm ${i.refunded ? 'text-stone-400 line-through' : ''}`}>
               <span className="flex items-center gap-3">
                 <input type="checkbox" className="h-5 w-5" disabled={i.refunded} checked={selected.has(i.id)} onChange={() => toggle(i.id)} />
                 {i.filename} · {i.photographer}
@@ -67,7 +67,7 @@ export function RefundForm({ orderId, items, askTotp }: { orderId: string; items
       {selected.size ? (
         <div className="flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-sm font-medium">{t('refundConfirm', { count: selected.size, amount: formatMnt(amount) })}</p>
-          <p className="text-xs text-slate-600">{t('refundManual')}</p>
+          <p className="text-xs text-stone-600">{t('refundManual')}</p>
           {error ? <Alert>{errorMessage(error)}</Alert> : null}
           <Input name="reason" required minLength={3} maxLength={500} placeholder={t('refundReason')} aria-label={t('refundReason')} />
           <Input name="providerRef" maxLength={100} placeholder={t('providerRef')} aria-label={t('providerRef')} />

@@ -20,7 +20,7 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
     <>
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t('removals.title')}</h1>
-        <p className="text-sm text-slate-600">{t('removals.intro')}</p>
+        <p className="text-sm text-stone-600">{t('removals.intro')}</p>
       </div>
       <nav className="flex flex-wrap gap-2">
         {TABS.map((s) => (
@@ -28,7 +28,7 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
             key={s}
             href={`/admin/removals?status=${s}`}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              s === status ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white text-slate-700'
+              s === status ? 'bg-stone-900 text-white' : 'border border-stone-300 bg-white text-stone-700'
             }`}
           >
             {t(`removals.status_${s}`)}
@@ -37,7 +37,7 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
       </nav>
 
       {items.length === 0 ? (
-        <p className="py-16 text-center text-slate-500">{t('removals.empty')}</p>
+        <p className="py-16 text-center text-stone-500">{t('removals.empty')}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {items.map((r) => (
@@ -46,10 +46,10 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
                 <div className="sm:w-56 sm:shrink-0">
                   {r.photo?.previewUrl ? (
                     <a href={r.photo.previewUrl} target="_blank" rel="noreferrer">
-                      <img src={r.photo.previewUrl} alt="" className="aspect-[4/3] w-full rounded-lg bg-slate-200 object-cover" />
+                      <img src={r.photo.previewUrl} alt="" className="aspect-[4/3] w-full rounded-lg bg-stone-200 object-cover" />
                     </a>
                   ) : (
-                    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-slate-100 text-sm text-slate-500">
+                    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-stone-100 text-sm text-stone-500">
                       {t('removals.photoGone')}
                     </div>
                   )}
@@ -60,12 +60,12 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
                       {t(`removals.reason_${r.reason.split(':')[0]}`)}
                     </Badge>
                     {r.photo?.hidden ? <Badge tone="red">{t('removals.hidden')}</Badge> : null}
-                    <span className="text-sm text-slate-500">{formatDate(r.createdAt)}</span>
+                    <span className="text-sm text-stone-500">{formatDate(r.createdAt)}</span>
                   </div>
                   {r.reason.includes(':') ? <p className="whitespace-pre-line text-sm">{r.reason.slice(r.reason.indexOf(':') + 1).trim()}</p> : null}
-                  {r.photo ? <p className="text-sm text-slate-600">{t('removals.event', { title: r.photo.eventTitle })}</p> : null}
-                  {r.contact ? <p className="text-sm text-slate-600">{t('removals.contact', { contact: r.contact })}</p> : null}
-                  {r.resolution ? <p className="text-sm text-slate-600">{t('removals.resolution', { resolution: r.resolution })}</p> : null}
+                  {r.photo ? <p className="text-sm text-stone-600">{t('removals.event', { title: r.photo.eventTitle })}</p> : null}
+                  {r.contact ? <p className="text-sm text-stone-600">{t('removals.contact', { contact: r.contact })}</p> : null}
+                  {r.resolution ? <p className="text-sm text-stone-600">{t('removals.resolution', { resolution: r.resolution })}</p> : null}
                   {status === 'NEW' ? <RemovalActions id={r.id} hasPhoto={r.photo !== null} askTotp={Boolean(me?.mfa.enabled)} /> : null}
                 </div>
               </Card>

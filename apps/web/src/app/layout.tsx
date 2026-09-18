@@ -15,14 +15,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#4f46e5',
+  themeColor: '#c74716',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   return (
     <html lang={locale} className={noto.variable}>
-      <body className="min-h-dvh bg-white text-slate-900">
+      <body className="min-h-dvh bg-paper text-stone-900">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

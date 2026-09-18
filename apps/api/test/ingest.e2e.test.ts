@@ -100,7 +100,7 @@ describe('photo ingest', () => {
     expect([preview.width, preview.height]).toEqual([1000, 667]);
 
     const page = await anonymous(ctx).get(`/events/${event.slug}`).expect(200);
-    expect(page.body).toMatchObject({ photoCount: 1, coverUrl: storage.publicUrl(keys.thumb!) });
+    expect(page.body).toMatchObject({ photoCount: 1, coverUrl: storage.publicUrl(keys.thumb!), coverPreviewUrl: storage.publicUrl(keys.preview!) });
     const gallery = await anonymous(ctx).get(`/events/${event.slug}/photos`).expect(200);
     expect(gallery.body.items).toEqual([
       {

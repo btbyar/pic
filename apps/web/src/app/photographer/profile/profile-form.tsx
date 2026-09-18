@@ -61,11 +61,11 @@ export function ProfileForm({ initial }: { initial: MyProfile }) {
           </Link>
         ) : null}
       </div>
-      <p className="text-sm text-slate-600">{profile.slugSaved ? t('publicNote') : t('notPublished')}</p>
+      <p className="text-sm text-stone-600">{profile.slugSaved ? t('publicNote') : t('notPublished')}</p>
 
       <Card className="flex items-center gap-4">
         <Avatar url={profile.avatarUrl} name={profile.displayName} size={80} />
-        <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium">
+        <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-stone-300 bg-white px-4 text-sm font-medium">
           {t('avatar')}
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => void upload(e)} />
         </label>

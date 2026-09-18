@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   const t = await getTranslations('admin');
   return (
-    <div className="min-h-dvh bg-slate-50">
+    <div className="min-h-dvh bg-stone-50">
       <AppHeader
         area={t('area')}
         name={me.displayName}

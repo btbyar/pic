@@ -71,9 +71,9 @@ export default function RegisterPage() {
           {busy ? t('registering') : t('register')}
         </Button>
       </form>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-stone-600">
         {t('haveAccount')}{' '}
-        <Link href="/login" className="font-medium text-slate-900 underline underline-offset-4">
+        <Link href="/login" className="font-medium text-stone-900 underline underline-offset-4">
           {t('login')}
         </Link>
       </p>

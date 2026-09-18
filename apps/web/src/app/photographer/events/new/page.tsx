@@ -15,7 +15,7 @@ export default function NewEventPage() {
 
   return (
     <>
-      <Link href="/photographer/events" className="text-sm text-slate-600 underline-offset-4 hover:underline">
+      <Link href="/photographer/events" className="text-sm text-stone-600 underline-offset-4 hover:underline">
         ← {t('photographer.myEvents')}
       </Link>
       <h1 className="text-2xl font-bold">{t('photographer.newEvent')}</h1>

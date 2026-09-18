@@ -28,23 +28,23 @@ export default async function AdminPayoutsPage({ searchParams }: { searchParams:
   return (
     <>
       <h1 className="text-2xl font-bold">{t('title')}</h1>
-      <p className="text-sm text-slate-600">{t('intro')}</p>
+      <p className="text-sm text-stone-600">{t('intro')}</p>
       <nav className="flex items-center gap-3">
-        <Link href={`/admin/payouts?period=${shift(data.period, -1)}`} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm">
+        <Link href={`/admin/payouts?period=${shift(data.period, -1)}`} className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm">
           ‹
         </Link>
         <span className="text-lg font-semibold tabular-nums">{data.period}</span>
         {data.period < data.currentPeriod ? (
-          <Link href={`/admin/payouts?period=${shift(data.period, 1)}`} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm">
+          <Link href={`/admin/payouts?period=${shift(data.period, 1)}`} className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm">
             ›
           </Link>
         ) : null}
-        <span className="text-sm text-slate-600">{t('toPay', { amount: formatMnt(total) })}</span>
+        <span className="text-sm text-stone-600">{t('toPay', { amount: formatMnt(total) })}</span>
       </nav>
       {!data.closed ? <Alert kind="info">{t('notClosed')}</Alert> : null}
 
       {data.rows.length === 0 ? (
-        <p className="py-16 text-center text-slate-500">{t('empty')}</p>
+        <p className="py-16 text-center text-stone-500">{t('empty')}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {data.rows.map((r) => (
@@ -52,7 +52,7 @@ export default async function AdminPayoutsPage({ searchParams }: { searchParams:
               <Card className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                 <div className="flex flex-col gap-1 text-sm">
                   <span className="text-base font-semibold">{r.displayName}</span>
-                  <span className="text-slate-600">
+                  <span className="text-stone-600">
                     {t('breakdown', { gross: formatMnt(r.gross), refunded: formatMnt(r.refunded) })}
                     {r.carriedIn < 0 ? ` · ${t('carried', { amount: formatMnt(-r.carriedIn) })}` : ''}
                   </span>
@@ -69,7 +69,7 @@ export default async function AdminPayoutsPage({ searchParams }: { searchParams:
                   {r.payout?.status === 'PAID' ? (
                     <Badge tone="green">{t('paidOn', { date: formatDate(r.payout.paidAt!), ref: r.payout.reference ?? '' })}</Badge>
                   ) : r.net < 0 ? (
-                    <span className="text-sm text-slate-600">{t('carryForward', { amount: formatMnt(-r.net) })}</span>
+                    <span className="text-sm text-stone-600">{t('carryForward', { amount: formatMnt(-r.net) })}</span>
                   ) : data.closed && r.payable > 0 ? (
                     <MarkPaidForm photographerId={r.photographerId} period={data.period} askTotp={Boolean(me?.mfa.enabled)} />
                   ) : null}

@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const buttonStyles = {
-  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 disabled:bg-slate-300 disabled:shadow-none',
-  dark: 'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400',
-  secondary: 'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 disabled:text-slate-400',
+  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 disabled:bg-stone-300 disabled:shadow-none',
+  dark: 'bg-stone-900 text-white hover:bg-stone-800 disabled:bg-stone-400',
+  secondary: 'border border-stone-300 bg-white text-stone-900 hover:bg-stone-50 disabled:text-stone-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
 } as const;
 
@@ -33,11 +33,11 @@ const fieldBase =
   'w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15';
 
 export function Input({ invalid, className = '', ...props }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
-  return <input className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-slate-300'} ${className}`} {...props} />;
+  return <input className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-stone-300'} ${className}`} {...props} />;
 }
 
 export function Textarea({ invalid, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }) {
-  return <textarea className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-slate-300'}`} {...props} />;
+  return <textarea className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-stone-300'}`} {...props} />;
 }
 
 export function Field({
@@ -55,17 +55,17 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-medium text-slate-700">
+      <label htmlFor={htmlFor} className="text-sm font-medium text-stone-700">
         {label}
       </label>
       {children}
-      {error ? <p className="text-sm text-red-600">{error}</p> : hint ? <p className="text-sm text-slate-500">{hint}</p> : null}
+      {error ? <p className="text-sm text-red-600">{error}</p> : hint ? <p className="text-sm text-stone-500">{hint}</p> : null}
     </div>
   );
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-slate-200 bg-white p-5 ${className}`}>{children}</section>;
+  return <section className={`rounded-2xl border border-stone-200 bg-white p-5 ${className}`}>{children}</section>;
 }
 
 export function Alert({ kind = 'error', children }: { kind?: 'error' | 'info' | 'success'; children: ReactNode }) {
@@ -83,7 +83,7 @@ export function Alert({ kind = 'error', children }: { kind?: 'error' | 'info' | 
 
 export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: 'slate' | 'green' | 'amber' | 'red' }) {
   const styles = {
-    slate: 'bg-slate-100 text-slate-700',
+    slate: 'bg-stone-100 text-stone-700',
     green: 'bg-emerald-100 text-emerald-800',
     amber: 'bg-amber-100 text-amber-800',
     red: 'bg-red-100 text-red-800',

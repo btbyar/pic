@@ -53,7 +53,7 @@ export function RemovalActions({ id, hasPhoto, askTotp }: { id: string; hasPhoto
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-2 rounded-xl border border-slate-200 p-3">
+    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-2 rounded-xl border border-stone-200 p-3">
       <p className="text-sm font-medium">{t(`confirm_${action}`)}</p>
       {error ? <Alert>{errorMessage(error)}</Alert> : null}
       <Input name="note" maxLength={500} required={action === 'reject'} placeholder={t(action === 'reject' ? 'noteRequired' : 'note')} aria-label={t('note')} />

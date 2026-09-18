@@ -9,12 +9,12 @@ export default async function NotFound() {
         🔍
       </span>
       <h1 className="text-2xl font-bold">{t('title')}</h1>
-      <p className="text-slate-600">{t('body')}</p>
+      <p className="text-stone-600">{t('body')}</p>
       <div className="flex flex-wrap justify-center gap-3">
         <Link href="/photographers" className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
           {t('photographers')}
         </Link>
-        <Link href="/" className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-5 text-sm font-medium">
+        <Link href="/" className="inline-flex min-h-11 items-center rounded-xl border border-stone-300 px-5 text-sm font-medium">
           {t('home')}
         </Link>
       </div>

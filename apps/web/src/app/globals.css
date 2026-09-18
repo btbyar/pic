@@ -1,17 +1,22 @@
 @import "tailwindcss";
 
-/* Брэндийн өнгө: индиго. Гол үйлдэл (хайх, төлөх) болон идэвхтэй төлөвт л ашиглана — зургууд өөрсдөө өнгөтэй. */
+/*
+ * Брэнд: бүлээн шаргал улбар (gnb.mn-тэй төстэй мэдрэмж), гэхдээ цагаан текст уншигдахуйц гүн өнгө:
+ * brand-600 цагаан дээр 4.8:1 (WCAG AA). Гол үйлдэл, идэвхтэй төлөвт л ашиглана — зургууд өөрсдөө өнгөтэй.
+ */
 @theme {
   --font-sans: var(--font-noto), ui-sans-serif, system-ui, sans-serif;
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
+  --color-paper: #fdfbf8;
+  --color-brand-50: #fdf3ec;
+  --color-brand-100: #fbe3d3;
+  --color-brand-200: #f6c5a6;
+  --color-brand-300: #f0a172;
+  --color-brand-400: #ea8048;
+  --color-brand-500: #e2672c;
+  --color-brand-600: #c74716;
+  --color-brand-700: #a93b0c;
+  --color-brand-800: #86300e;
+  --color-brand-900: #6c2a10;
 }
 
 :root {

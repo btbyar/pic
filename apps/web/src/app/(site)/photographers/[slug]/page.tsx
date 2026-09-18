@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Avatar } from '@/components/avatar';
 import { EventCard } from '@/components/event-card';
+import { ExpandableText } from '@/components/expandable-text';
+import { CameraIcon, ImagesIcon, PinIcon } from '@/components/icons';
 import { serverApi } from '@/lib/api-server';
 import type { PhotographerPage } from '@/lib/types';
 
@@ -21,28 +22,48 @@ export default async function PhotographerProfilePage({ params }: { params: Prom
   const p = await load((await params).slug);
   if (!p) notFound();
   const t = await getTranslations('photographers');
+  // Баннер: хамгийн сүүлийн cover-тэй эвэнтийн том зураг
+  const banner = p.events.find((e) => e.coverPreviewUrl)?.coverPreviewUrl ?? null;
 
+  const chip = 'inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1 text-sm text-stone-600';
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-      <Link href="/photographers" className="text-sm text-slate-600 underline-offset-4 hover:underline">
-        ← {t('title')}
-      </Link>
-      <header className="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-brand-50 to-white p-5 ring-1 ring-brand-100">
-        <Avatar url={p.avatarUrl} name={p.displayName} size={96} />
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold">{p.displayName}</h1>
-          <p className="text-slate-600">
-            {[p.city, t('events', { count: p.events.length }), t('photos', { count: p.photoCount })].filter(Boolean).join(' · ')}
-          </p>
+    <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-8 pt-4 sm:pt-6">
+      <header className="flex flex-col items-center text-center">
+        <div className="relative h-40 w-full overflow-hidden rounded-3xl bg-linear-to-br from-brand-200 via-brand-50 to-stone-100 sm:h-60">
+          {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" /> : null}
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-stone-900/25 to-transparent" />
         </div>
+        <div className="-mt-14 rounded-full bg-paper p-1.5 shadow-md sm:-mt-16">
+          <Avatar url={p.avatarUrl} name={p.displayName} size={112} />
+        </div>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{p.displayName}</h1>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {p.city ? (
+            <span className={chip}>
+              <PinIcon size={14} />
+              {p.city}
+            </span>
+          ) : null}
+          <span className={chip}>
+            <CameraIcon size={14} />
+            {t('events', { count: p.events.length })}
+          </span>
+          <span className={chip}>
+            <ImagesIcon size={14} />
+            {t('photos', { count: p.photoCount })}
+          </span>
+        </div>
+        {p.bio ? (
+          <ExpandableText text={p.bio} more={t('showMore')} less={t('showLess')} className="mt-4 max-w-2xl text-stone-600" />
+        ) : null}
       </header>
-      {p.bio ? <p className="max-w-2xl whitespace-pre-line text-slate-800">{p.bio}</p> : null}
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('eventsTitle')}</h2>
+
+      <section className="flex flex-col gap-5">
+        <h2 className="text-xl font-bold">{t('eventsTitle')}</h2>
         {p.events.length === 0 ? (
-          <p className="text-slate-500">{t('noEvents')}</p>
+          <p className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-stone-500">{t('noEvents')}</p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {p.events.map((e) => (
               <li key={e.id}>
                 <EventCard event={e} />

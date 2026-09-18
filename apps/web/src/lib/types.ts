@@ -34,7 +34,10 @@ interface EventBase {
   pricePerPhoto: number;
   bundlePrice: number | null;
   faceSearchEnabled: boolean;
+  /** 400px thumb — карт */
   coverUrl: string | null;
+  /** 1000px watermark-тай preview — том hero */
+  coverPreviewUrl: string | null;
   photoCount: number;
 }
 
@@ -249,7 +252,10 @@ export interface PhotographerCard {
   slug: string;
   displayName: string;
   city: string | null;
+  bio: string | null;
   avatarUrl: string | null;
+  /** Хамгийн сүүлийн эвэнтийн cover — картын баннер */
+  coverUrl: string | null;
   eventCount: number;
 }
 

@@ -19,7 +19,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <Link href="/admin/orders" className="text-sm text-slate-600 underline-offset-4 hover:underline">
+      <Link href="/admin/orders" className="text-sm text-stone-600 underline-offset-4 hover:underline">
         ← {t('title')}
       </Link>
       <header className="flex flex-wrap items-center gap-3">
@@ -55,7 +55,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
         {order.payments.map((p) => (
           <Card key={p.id} className="flex flex-wrap justify-between gap-2 text-sm">
             <span>{p.provider} · {p.status} · {formatDate(p.createdAt)}</span>
-            <span className="text-xs text-slate-500">{p.providerPaymentId ?? p.providerInvoiceId}</span>
+            <span className="text-xs text-stone-500">{p.providerPaymentId ?? p.providerInvoiceId}</span>
             <span className="tabular-nums">{formatMnt(p.amount)}</span>
           </Card>
         ))}
@@ -68,7 +68,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             <Card key={r.id} className="flex flex-col gap-1 text-sm">
               <span className="font-medium">−{formatMnt(r.amount)} · {formatDate(r.createdAt)} · {r.createdBy}</span>
               <span>{r.reason}</span>
-              {r.providerRef ? <span className="text-slate-500">{t('providerRef')}: {r.providerRef}</span> : null}
+              {r.providerRef ? <span className="text-stone-500">{t('providerRef')}: {r.providerRef}</span> : null}
             </Card>
           ))}
         </section>

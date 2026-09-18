@@ -12,6 +12,7 @@ import { StorageService } from '../storage/storage.module';
 
 const STATS_KEY = 'cache:home-stats';
 const STATS_TTL_SEC = 600;
+const BIO_PREVIEW_CHARS = 160;
 
 /** Нийтэд харагдах зурагчин: батлагдсан, түр хаагдаагүй, профайлын slug-тай */
 const PUBLIC_PHOTOGRAPHER: Prisma.PhotographerProfileWhereInput = {
@@ -105,22 +106,44 @@ export class PhotographersService {
           : {}),
       },
       select: {
+        userId: true,
         slug: true,
         city: true,
+        bio: true,
         avatarKey: true,
         user: { select: { displayName: true, _count: { select: { eventPhotographers: { where: { event: publicEvent() } } } } } },
       },
       take: 500,
     });
+    const covers = await this.latestCovers(profiles.map((p) => p.userId));
     return profiles
       .map((p) => ({
         slug: p.slug!,
         displayName: p.user.displayName,
         city: p.city,
+        // Картанд 2 мөр л харагдана — бүтэн bio-г жагсаалтаар илгээхгүй
+        bio: p.bio ? p.bio.slice(0, BIO_PREVIEW_CHARS) : null,
         avatarUrl: p.avatarKey ? this.storage.publicUrl(p.avatarKey) : null,
+        coverUrl: covers.get(p.userId) ?? null,
         eventCount: p.user._count.eventPhotographers,
       }))
       .sort((a, b) => b.eventCount - a.eventCount || a.displayName.localeCompare(b.displayName, 'mn'));
+  }
+
+  /** Зурагчин бүрийн хамгийн сүүлийн нийтийн эвэнтийн cover (картын баннер). Нэг query. */
+  private async latestCovers(userIds: string[]): Promise<Map<string, string>> {
+    if (userIds.length === 0) return new Map();
+    const rows = await this.prisma.eventPhotographer.findMany({
+      where: { userId: { in: userIds }, event: { ...publicEvent(), coverPhotoId: { not: null } } },
+      orderBy: [{ event: { startsAt: 'desc' } }],
+      distinct: ['userId'],
+      select: { userId: true, event: { select: { coverPhotoId: true } } },
+    });
+    const urls = await this.events.coverUrls(rows.map((r) => r.event));
+    return new Map(rows.flatMap((r) => {
+      const url = urls.get(r.event.coverPhotoId!)?.thumb;
+      return url ? [[r.userId, url] as const] : [];
+    }));
   }
 
   async get(slug: string) {

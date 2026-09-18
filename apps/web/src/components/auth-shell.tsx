@@ -10,7 +10,7 @@ export function AuthShell({ title, intro, children }: { title: string; intro?: s
       </Link>
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">{title}</h1>
-        {intro ? <p className="text-slate-600">{intro}</p> : null}
+        {intro ? <p className="text-stone-600">{intro}</p> : null}
       </div>
       {children}
     </main>

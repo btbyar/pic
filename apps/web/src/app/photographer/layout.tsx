@@ -14,7 +14,7 @@ export default async function PhotographerLayout({ children }: { children: React
 
   const t = await getTranslations();
   return (
-    <div className="min-h-dvh bg-slate-50">
+    <div className="min-h-dvh bg-stone-50">
       <AppHeader
         area={t('photographer.area')}
         name={me.displayName}

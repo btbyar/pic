@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
       )}
-      <Link href="/login" className="text-sm font-medium text-slate-900 underline underline-offset-4">
+      <Link href="/login" className="text-sm font-medium text-stone-900 underline underline-offset-4">
         {t('backToLogin')}
       </Link>
     </AuthShell>

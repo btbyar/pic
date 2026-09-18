@@ -38,6 +38,7 @@ export type Viewer = { accessToken?: string | undefined; auth?: AuthContext | un
 
 export const PUBLIC_PHOTO_SELECT = { id: true, width: true, height: true, capturedAt: true, storageKeys: true } as const;
 type PublicPhotoRow = Prisma.PhotoGetPayload<{ select: typeof PUBLIC_PHOTO_SELECT }>;
+type CoverUrls = { thumb: string; preview: string };
 
 @Injectable()
 export class EventsService {
@@ -310,8 +311,8 @@ export class EventsService {
     });
   }
 
-  /** Cover зургийн thumb URL (нуусан/устгасан бол орохгүй) */
-  private async coverUrls(events: { coverPhotoId: string | null }[]): Promise<Map<string, string>> {
+  /** Cover зургийн thumb (карт) ба preview (том hero) URL. Нуусан/устгасан бол орохгүй. */
+  async coverUrls(events: { coverPhotoId: string | null }[]): Promise<Map<string, CoverUrls>> {
     const ids = events.flatMap((e) => (e.coverPhotoId ? [e.coverPhotoId] : []));
     if (ids.length === 0) return new Map();
     const photos = await this.prisma.photo.findMany({
@@ -320,8 +321,9 @@ export class EventsService {
     });
     return new Map(
       photos.flatMap((p) => {
-        const thumb = (p.storageKeys as unknown as PhotoStorageKeys).thumb;
-        return thumb ? [[p.id, this.storage.publicUrl(thumb)] as const] : [];
+        const { thumb, preview } = p.storageKeys as unknown as PhotoStorageKeys;
+        if (!thumb || !preview) return [];
+        return [[p.id, { thumb: this.storage.publicUrl(thumb), preview: this.storage.publicUrl(preview) }] as const];
       }),
     );
   }
@@ -358,7 +360,7 @@ export class EventsService {
     return `${this.webOrigin}/events/${slug}?t=${token}`;
   }
 
-  private publicView(e: Event, covers: Map<string, string>) {
+  private publicView(e: Event, covers: Map<string, CoverUrls>) {
     return {
       id: e.id,
       slug: e.slug,
@@ -373,11 +375,12 @@ export class EventsService {
       pricePerPhoto: e.pricePerPhoto,
       bundlePrice: e.bundlePrice,
       faceSearchEnabled: e.faceSearchEnabled,
-      coverUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)) || null,
+      coverUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)?.thumb) || null,
+      coverPreviewUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)?.preview) || null,
     };
   }
 
-  private ownerView(e: Event, user: AuthContext, covers: Map<string, string>) {
+  private ownerView(e: Event, user: AuthContext, covers: Map<string, CoverUrls>) {
     return {
       ...this.publicView(e, covers),
       visibility: e.visibility,
