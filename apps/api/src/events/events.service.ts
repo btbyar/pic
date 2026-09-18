@@ -32,7 +32,6 @@ export const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
   deletedAt: null,
 };
 
-const PUBLIC_PAGE_SIZE = 24;
 const PHOTO_PAGE_SIZE = 60;
 
 export type Viewer = { accessToken?: string | undefined; auth?: AuthContext | undefined };
@@ -219,30 +218,6 @@ export class EventsService {
   }
 
   // ================================================================ нийтийн
-
-  async listPublic(query: { cursor?: string | undefined; q?: string | undefined; category?: EventCategory | undefined }) {
-    const events = await this.prisma.event.findMany({
-      where: {
-        visibility: 'PUBLIC',
-        deletedAt: null,
-        expiresAt: { gt: new Date() },
-        ...(query.q ? { title: { contains: query.q, mode: 'insensitive' } } : {}),
-        ...(query.category ? { category: query.category } : {}),
-      },
-      include: {
-        _count: { select: { photos: { where: VISIBLE_PHOTO } } },
-      },
-      orderBy: [{ featured: 'desc' }, { startsAt: 'desc' }, { id: 'desc' }],
-      take: PUBLIC_PAGE_SIZE + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-    });
-    const page = events.slice(0, PUBLIC_PAGE_SIZE);
-    const covers = await this.coverUrls(page);
-    return {
-      items: page.map((e) => ({ ...this.publicView(e, covers), photoCount: e._count.photos })),
-      nextCursor: events.length > PUBLIC_PAGE_SIZE ? page[page.length - 1]!.id : null,
-    };
-  }
 
   async getPublic(slug: string, viewer: Viewer) {
     const event = await this.prisma.event.findUnique({

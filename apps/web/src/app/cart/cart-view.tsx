@@ -27,7 +27,7 @@ export function CartView() {
       {events.length === 0 ? (
         <Card className="flex flex-col items-start gap-3">
           <p className="text-slate-700">{t('empty')}</p>
-          <ButtonLink href="/events">{t('browse')}</ButtonLink>
+          <ButtonLink href="/photographers">{t('browse')}</ButtonLink>
         </Card>
       ) : (
         <>

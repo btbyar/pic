@@ -56,6 +56,11 @@ describe('photographer profiles', () => {
     const list = await anonymous(ctx).get('/photographers').expect(200);
     expect(list.body).toContainEqual(expect.objectContaining({ slug, displayName: 'Бат студи', city: 'Улаанбаатар', eventCount: 1 }));
 
+    const found = await anonymous(ctx).get('/photographers').query({ q: 'бат студ' }).expect(200);
+    expect(found.body.map((p: { slug: string }) => p.slug)).toContain(slug);
+    const none = await anonymous(ctx).get('/photographers').query({ q: `zzz-${ctx.run}` }).expect(200);
+    expect(none.body).toEqual([]);
+
     const page = await anonymous(ctx).get(`/photographers/${slug}`).expect(200);
     expect(page.body).toMatchObject({ displayName: 'Бат студи', bio: 'Спортын зурагчин', photoCount: 0 });
     expect(page.body.events.map((e: { slug: string }) => e.slug)).toEqual([pub.slug]);

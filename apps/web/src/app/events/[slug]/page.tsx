@@ -25,10 +25,14 @@ export default async function EventPage({
   const { data: photos } = await serverApi<PublicPhotoPage>(`/events/${slug}/photos${query}`);
 
   const t = await getTranslations();
+  // Эвэнтийн нэгдсэн жагсаалт байхгүй: зурагчны профайл руу буцна
+  const owner = event.photographers?.find((p) => p.slug);
+  const backHref = owner ? `/photographers/${owner.slug}` : '/photographers';
+  const backLabel = owner ? owner.name : t('photographers.title');
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pt-8 pb-24">
-      <Link href="/events" className="text-sm text-slate-600 underline-offset-4 hover:underline">
-        ← {t('events.title')}
+      <Link href={backHref} className="text-sm text-slate-600 underline-offset-4 hover:underline">
+        ← {backLabel}
       </Link>
       <header className="flex flex-col gap-2">
         <p className="text-sm font-medium uppercase tracking-wide text-slate-500">{t(`categories.${event.category}`)}</p>

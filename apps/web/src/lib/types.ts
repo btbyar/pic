@@ -64,11 +64,6 @@ export interface SearchResults {
   maybe: PublicPhoto[];
 }
 
-export interface PublicEventPage {
-  items: PublicEvent[];
-  nextCursor: string | null;
-}
-
 export interface MyEvent extends EventBase {
   visibility: EventVisibility;
   hasAccessLink: boolean;

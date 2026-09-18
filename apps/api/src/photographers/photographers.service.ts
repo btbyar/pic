@@ -90,9 +90,20 @@ export class PhotographersService {
 
   // ================================================================ нийтийн
 
-  async list() {
+  /** `q` — нэр эсвэл хотоор хайх (оролцогч эвэнтээ зурагчнаар нь олно) */
+  async list(q?: string) {
     const profiles = await this.prisma.photographerProfile.findMany({
-      where: PUBLIC_PHOTOGRAPHER,
+      where: {
+        ...PUBLIC_PHOTOGRAPHER,
+        ...(q
+          ? {
+              OR: [
+                { user: { displayName: { contains: q, mode: 'insensitive' } } },
+                { city: { contains: q, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
       select: {
         slug: true,
         city: true,

@@ -14,7 +14,7 @@ export default async function HomePage() {
       <h1 className="text-3xl font-bold leading-tight">{t('title')}</h1>
       <p className="text-lg text-slate-600">{t('subtitle')}</p>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href="/events">{t('browseEvents')}</ButtonLink>
+        <ButtonLink href="/photographers">{t('browsePhotographers')}</ButtonLink>
         <ButtonLink href="/my/orders" variant="secondary">
           {t('myOrders')}
         </ButtonLink>
@@ -30,9 +30,6 @@ export default async function HomePage() {
         </dl>
       ) : null}
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
-        <Link href="/photographers" className="underline underline-offset-4">
-          {t('photographers')}
-        </Link>
         <Link href="/login" className="underline underline-offset-4">
           {t('photographerLogin')}
         </Link>

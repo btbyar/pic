@@ -83,7 +83,7 @@ function OrderBody({ order, token, onChange }: { order: OrderView; token: string
       {order.status === 'EXPIRED' ? (
         <Card className="flex flex-col items-start gap-3">
           <p className="font-medium">{t('expired')}</p>
-          <ButtonLink href="/events" variant="secondary">
+          <ButtonLink href="/photographers" variant="secondary">
             {t('backToEvents')}
           </ButtonLink>
         </Card>

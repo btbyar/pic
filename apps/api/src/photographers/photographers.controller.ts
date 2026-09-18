@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UnsupportedMediaTypeException,
   UploadedFile,
   UseInterceptors,
@@ -58,8 +59,8 @@ export class PublicPhotographersController {
   constructor(private readonly photographers: PhotographersService) {}
 
   @Get('photographers')
-  list() {
-    return this.photographers.list();
+  list(@Query(new ZodPipe(z.object({ q: z.string().trim().max(100).optional() }))) query: { q?: string | undefined }) {
+    return this.photographers.list(query.q || undefined);
   }
 
   @Get('photographers/:slug')

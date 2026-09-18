@@ -1,14 +1,17 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ButtonLink } from '@/components/ui';
+import { Alert, ButtonLink } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange } from '@/lib/datetime';
-import type { MyEvent } from '@/lib/types';
+import type { MyEvent, MyProfile } from '@/lib/types';
 
 export default async function MyEventsPage() {
   const t = await getTranslations();
-  const { data } = await serverApi<MyEvent[]>('/photographer/events');
+  const [{ data }, { data: profile }] = await Promise.all([
+    serverApi<MyEvent[]>('/photographer/events'),
+    serverApi<MyProfile>('/photographer/profile'),
+  ]);
   const events = data ?? [];
 
   return (
@@ -17,6 +20,15 @@ export default async function MyEventsPage() {
         <h1 className="text-2xl font-bold">{t('photographer.myEvents')}</h1>
         <ButtonLink href="/photographer/events/new">+ {t('photographer.newEvent')}</ButtonLink>
       </div>
+
+      {profile && !profile.slugSaved ? (
+        <Alert kind="info">
+          {t('photographer.publishProfileHint')}{' '}
+          <Link href="/photographer/profile" className="font-medium underline underline-offset-4">
+            {t('photographer.publishProfile')}
+          </Link>
+        </Alert>
+      ) : null}
 
       {events.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-300 py-16 text-center text-slate-500">

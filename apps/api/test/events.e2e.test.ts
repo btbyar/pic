@@ -64,8 +64,6 @@ describe('events', () => {
     await anonymous(ctx).get(`/events/${slug}`).expect(404);
     await outsider.agent.get(`/events/${slug}`).expect(404);
     await owner.agent.get(`/events/${slug}`).expect(200);
-    const list = await anonymous(ctx).get('/events').query({ q: ctx.run }).expect(200);
-    expect(list.body.items).toHaveLength(0);
   });
 
   it('issues a secret link when made unlisted; only the link opens it', async () => {
@@ -87,9 +85,6 @@ describe('events', () => {
     expect(stored.accessTokenHash).toMatch(/^[0-9a-f]{64}$/);
     expect(stored.accessTokenHash).not.toContain(token);
 
-    // Unlisted нь жагсаалтад гарахгүй
-    const list = await anonymous(ctx).get('/events').query({ q: ctx.run }).expect(200);
-    expect(list.body.items).toHaveLength(0);
   });
 
   it('rotating the link revokes the old one', async () => {
@@ -100,22 +95,15 @@ describe('events', () => {
     await anonymous(ctx).get(`/events/${slug}`).query({ t: newToken }).expect(200);
   });
 
-  it('lists public events and filters by category', async () => {
+  it('opens public events by link but never lists all events', async () => {
     const res = await owner.agent
       .patch(`/photographer/events/${eventId}`)
       .send({ visibility: 'PUBLIC', category: 'RUNNING' })
       .expect(200);
     expect(res.body.category).toBe('RUNNING');
-
-    const list = await anonymous(ctx).get('/events').query({ q: ctx.run }).expect(200);
-    expect(list.body.items.map((e: { id: string }) => e.id)).toContain(eventId);
-    expect(list.body.items.find((e: { id: string }) => e.id === eventId).category).toBe('RUNNING');
-
-    const running = await anonymous(ctx).get('/events').query({ q: ctx.run, category: 'RUNNING' }).expect(200);
-    expect(running.body.items.map((e: { id: string }) => e.id)).toContain(eventId);
-    const concerts = await anonymous(ctx).get('/events').query({ q: ctx.run, category: 'CONCERT' }).expect(200);
-    expect(concerts.body.items).toHaveLength(0);
-    await anonymous(ctx).get('/events').query({ category: 'PARTY' }).expect(400);
+    await anonymous(ctx).get(`/events/${slug}`).expect(200);
+    // Эвэнтийн нэгдсэн жагсаалт байхгүй — зурагчны профайлаар л харагдана
+    await anonymous(ctx).get('/events').expect(404);
   });
 
   it('recomputes expiry when the end date changes and rejects inverted dates', async () => {
