@@ -23,6 +23,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin">{t('nav_overview')}</Link>
             <Link href="/admin/removals">{t('nav_removals')}</Link>
             <Link href="/admin/photographers">{t('photographers')}</Link>
+            <Link href="/admin/orders">{t('nav_orders')}</Link>
+            <Link href="/admin/payouts">{t('nav_payouts')}</Link>
           </nav>
         }
       />

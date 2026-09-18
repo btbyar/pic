@@ -3,6 +3,7 @@ import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/config.module';
 import { EventsModule } from './events/events.module';
+import { FinanceModule } from './finance/photographer-finance.controller';
 import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mailer';
 import { MlModule } from './ml/ml-client';
@@ -36,6 +37,7 @@ import { UploadsModule } from './uploads/uploads.module';
     UploadsModule,
     SearchModule,
     OrdersModule,
+    FinanceModule,
   ],
 })
 export class AppModule {}

@@ -20,9 +20,10 @@ export default async function PhotographerLayout({ children }: { children: React
         name={me.displayName}
         nav={
           me.status === 'APPROVED' ? (
-            <Link href="/photographer/events" className="text-sm font-medium">
-              {t('photographer.myEvents')}
-            </Link>
+            <nav className="flex gap-4 text-sm font-medium">
+              <Link href="/photographer/events">{t('photographer.myEvents')}</Link>
+              <Link href="/photographer/earnings">{t('photographer.earnings')}</Link>
+            </nav>
           ) : null
         }
       />

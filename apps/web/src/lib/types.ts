@@ -173,3 +173,79 @@ export interface AdminRemovalPage {
   items: AdminRemovalRequest[];
   nextCursor: string | null;
 }
+
+export interface AdminOrderRow {
+  id: string;
+  status: OrderStatus;
+  eventTitleSnap: string;
+  totalAmount: number;
+  contactEmail: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  itemCount: number;
+}
+
+export interface AdminOrderDetail {
+  id: string;
+  status: OrderStatus;
+  eventTitle: string;
+  totalAmount: number;
+  contactEmail: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  items: {
+    id: string;
+    photoId: string | null;
+    filename: string;
+    photographer: string;
+    pricing: 'SINGLE' | 'BUNDLE';
+    price: number;
+    photographerAmount: number;
+    platformAmount: number;
+    refunded: boolean;
+  }[];
+  payments: { id: string; provider: string; status: string; amount: number; providerInvoiceId: string; providerPaymentId: string | null; createdAt: string }[];
+  refunds: { id: string; amount: number; reason: string; providerRef: string | null; createdBy: string; createdAt: string }[];
+}
+
+export interface PayoutAccount {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
+export interface LedgerMonth {
+  period: string;
+  gross: number;
+  refunded: number;
+  carriedIn: number;
+  net: number;
+  payable: number;
+}
+
+export interface PayoutInfo {
+  status: 'PENDING' | 'PAID';
+  netAmount: number;
+  paidAt: string | null;
+  reference: string | null;
+}
+
+export interface AdminPayouts {
+  period: string;
+  closed: boolean;
+  currentPeriod: string;
+  rows: (Omit<LedgerMonth, 'period'> & {
+    photographerId: string;
+    displayName: string;
+    email: string | null;
+    account: PayoutAccount | null;
+    payout: PayoutInfo | null;
+  })[];
+}
+
+export interface Earnings {
+  revenueSharePct: number | null;
+  currentPeriod: string;
+  account: PayoutAccount | null;
+  months: (LedgerMonth & { payout: PayoutInfo | null })[];
+}
