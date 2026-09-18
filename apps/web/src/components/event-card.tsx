@@ -9,7 +9,7 @@ export async function EventCard({ event }: { event: PublicEvent }) {
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="flex flex-col gap-2 overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-slate-400"
+      className="flex flex-col gap-2 overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-brand-300 hover:shadow-md"
     >
       <div className="relative aspect-[16/9] shrink-0 bg-slate-100">
         {event.coverUrl ? (

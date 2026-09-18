@@ -27,7 +27,7 @@ export default async function PhotographerProfilePage({ params }: { params: Prom
       <Link href="/photographers" className="text-sm text-slate-600 underline-offset-4 hover:underline">
         ← {t('title')}
       </Link>
-      <header className="flex items-center gap-4">
+      <header className="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-brand-50 to-white p-5 ring-1 ring-brand-100">
         <Avatar url={p.avatarUrl} name={p.displayName} size={96} />
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold">{p.displayName}</h1>

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { CartButton } from '@/components/cart-button';
 import { type GridCart, PhotoGrid } from '@/components/photo-grid';
+import { Stepper } from '@/components/stepper';
 import { Alert, Button, Card } from '@/components/ui';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
 import { addToCart, forgetSearchSession, useCart } from '@/lib/cart';
@@ -137,7 +137,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
     results && event.bundlePrice !== null && results.mine.length * event.pricePerPhoto > event.bundlePrice;
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pt-8 pb-24">
+    <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-8">
       <Link href={eventHref} className="text-sm text-slate-600 underline-offset-4 hover:underline">
         ← {event.title}
       </Link>
@@ -145,6 +145,11 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-slate-600">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
       </header>
+
+      <Stepper
+        steps={[t('steps.consent'), t('steps.selfie'), t('steps.results')]}
+        current={step === 'consent' ? 0 : step === 'results' ? 2 : 1}
+      />
 
       {deleted ? <Alert kind="success">{t('deleted')}</Alert> : null}
       {error ? <Alert>{error}</Alert> : null}
@@ -253,7 +258,6 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
           </Card>
         </>
       ) : null}
-      <CartButton />
     </main>
   );
 }

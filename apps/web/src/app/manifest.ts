@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-// PWA manifest. Icon-ууд Phase 4-т (UI) нэмэгдэнэ.
+// PWA manifest
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Pic — Эвэнтийн зураг',
@@ -9,6 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#0f172a',
+    theme_color: '#4f46e5',
+    icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
   };
 }

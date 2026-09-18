@@ -166,17 +166,8 @@ export function EventForm({
           </Field>
         </div>
 
-        <Field label={optional(t('bibPattern'))} htmlFor="bibPattern" hint={t('bibPatternHint')} error={err('bibPattern')}>
-          <Input
-            id="bibPattern"
-            name="bibPattern"
-            maxLength={50}
-            spellCheck={false}
-            className="font-mono"
-            defaultValue={initial?.bibPattern ?? ''}
-            invalid={invalid.has('bibPattern')}
-          />
-        </Field>
+        {/* Цээжний дугаар таних хойшлогдсон (ARCHITECTURE #11) — талбарыг нуугаад хуучин утгыг хадгална */}
+        <input type="hidden" name="bibPattern" defaultValue={initial?.bibPattern ?? ''} />
 
         <label className="flex items-start gap-3">
           <input

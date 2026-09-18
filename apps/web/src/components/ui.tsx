@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const buttonStyles = {
-  primary: 'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400',
+  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 disabled:bg-slate-300 disabled:shadow-none',
+  dark: 'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400',
   secondary: 'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 disabled:text-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
 } as const;
@@ -29,7 +30,7 @@ export function ButtonLink({ href, variant = 'primary', children }: { href: stri
 }
 
 const fieldBase =
-  'w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10';
+  'w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15';
 
 export function Input({ invalid, className = '', ...props }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
   return <input className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-slate-300'} ${className}`} {...props} />;
