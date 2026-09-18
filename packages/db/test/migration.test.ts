@@ -190,6 +190,16 @@ describe('orders and password reset (Phase 5)', () => {
   });
 });
 
+describe('photographer profile (Phase 6)', () => {
+  it('only accepts URL-safe slugs', async () => {
+    const setSlug = (slug: string) => db.query(`UPDATE photographer_profile SET slug = $1 WHERE user_id = $2`, [slug, userId]);
+    await db.query(`INSERT INTO photographer_profile (user_id, updated_at) VALUES ($1, now()) ON CONFLICT DO NOTHING`, [userId]);
+    await expect(setSlug('Bat Studio')).rejects.toThrow(/photographer_profile_slug_format/);
+    await expect(setSlug('bat--studio')).rejects.toThrow(/photographer_profile_slug_format/);
+    await expect(setSlug('bat-studio-2')).resolves.toBeDefined();
+  });
+});
+
 describe('face embeddings', () => {
   it('stores SFace-sized (128-dim) vectors only', async () => {
     const photo = await insertPhoto();

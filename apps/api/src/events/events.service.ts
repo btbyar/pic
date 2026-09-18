@@ -248,7 +248,11 @@ export class EventsService {
     const event = await this.prisma.event.findUnique({
       where: { slug },
       include: {
-        photographers: { include: { user: { select: { displayName: true } } } },
+        photographers: {
+          include: {
+            user: { select: { displayName: true, status: true, photographerProfile: { select: { slug: true } } } },
+          },
+        },
         _count: { select: { photos: { where: VISIBLE_PHOTO } } },
       },
     });
@@ -257,8 +261,29 @@ export class EventsService {
     return {
       ...this.publicView(event, await this.coverUrls([event])),
       photoCount: event._count.photos,
-      photographers: event.photographers.map((p) => p.user.displayName),
+      photographers: event.photographers.map((p) => ({
+        name: p.user.displayName,
+        // Профайл нь нийтэд нээлттэй (батлагдсан, slug-тай) үед л холбоос
+        slug: p.user.status === 'APPROVED' ? (p.user.photographerProfile?.slug ?? null) : null,
+      })),
     };
+  }
+
+  /** Зурагчны нийтийн профайл дээрх эвэнтүүд (шинээс нь) */
+  async listPublicByPhotographer(userId: string) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        visibility: 'PUBLIC',
+        deletedAt: null,
+        expiresAt: { gt: new Date() },
+        photographers: { some: { userId } },
+      },
+      include: { _count: { select: { photos: { where: VISIBLE_PHOTO } } } },
+      orderBy: [{ startsAt: 'desc' }, { id: 'desc' }],
+      take: 100,
+    });
+    const covers = await this.coverUrls(events);
+    return events.map((e) => ({ ...this.publicView(e, covers), photoCount: e._count.photos }));
   }
 
   /** Галерей: авсан цагаар эрэмбэлсэн, watermark-тай зургууд. Цаггүй зургууд төгсгөлд. */

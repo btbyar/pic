@@ -9,6 +9,7 @@ import { MailModule } from './mail/mailer';
 import { MlModule } from './ml/ml-client';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PhotographersModule } from './photographers/photographers.module';
 import { PhotosModule } from './photos/photo-purge.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
@@ -38,6 +39,7 @@ import { UploadsModule } from './uploads/uploads.module';
     SearchModule,
     OrdersModule,
     FinanceModule,
+    PhotographersModule,
   ],
 })
 export class AppModule {}

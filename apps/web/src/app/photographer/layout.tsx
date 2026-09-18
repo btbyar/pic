@@ -23,6 +23,7 @@ export default async function PhotographerLayout({ children }: { children: React
             <nav className="flex gap-4 text-sm font-medium">
               <Link href="/photographer/events">{t('photographer.myEvents')}</Link>
               <Link href="/photographer/earnings">{t('photographer.earnings')}</Link>
+              <Link href="/photographer/profile">{t('photographer.profile')}</Link>
             </nav>
           ) : null
         }

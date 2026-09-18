@@ -47,7 +47,19 @@ export default async function EventPage({
         <p className="text-sm text-slate-500">{t('common.photos', { count: event.photoCount })}</p>
         {event.photographers?.length ? (
           <p className="text-sm text-slate-500">
-            {t('events.photographers')}: {event.photographers.join(', ')}
+            {t('events.photographers')}:{' '}
+            {event.photographers.map((p, i) => (
+              <span key={`${p.name}-${i}`}>
+                {i > 0 ? ', ' : ''}
+                {p.slug ? (
+                  <Link href={`/photographers/${p.slug}`} className="underline underline-offset-4">
+                    {p.name}
+                  </Link>
+                ) : (
+                  p.name
+                )}
+              </span>
+            ))}
           </p>
         ) : null}
       </Card>

@@ -39,7 +39,7 @@ interface EventBase {
 }
 
 export interface PublicEvent extends EventBase {
-  photographers?: string[];
+  photographers?: { name: string; slug: string | null }[];
 }
 
 export interface PublicPhoto {
@@ -248,4 +248,37 @@ export interface Earnings {
   currentPeriod: string;
   account: PayoutAccount | null;
   months: (LedgerMonth & { payout: PayoutInfo | null })[];
+}
+
+export interface PhotographerCard {
+  slug: string;
+  displayName: string;
+  city: string | null;
+  avatarUrl: string | null;
+  eventCount: number;
+}
+
+export interface PhotographerPage {
+  slug: string;
+  displayName: string;
+  city: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  photoCount: number;
+  events: PublicEvent[];
+}
+
+export interface MyProfile {
+  displayName: string;
+  slug: string;
+  slugSaved: boolean;
+  city: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+}
+
+export interface HomeStats {
+  events: number;
+  photos: number;
+  photographers: number;
 }

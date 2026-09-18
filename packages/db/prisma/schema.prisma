@@ -166,6 +166,11 @@ model PhotographerProfile {
   rejectionReason String?   @map("rejection_reason")
   suspendedAt     DateTime? @map("suspended_at") @db.Timestamptz(3)
   suspendReason   String?   @map("suspend_reason")
+  // Нийтийн профайл (/photographers/[slug]) — зөвхөн APPROVED зурагчин харагдана
+  slug            String?   @unique
+  bio             String?
+  city            String?
+  avatarKey       String?   @map("avatar_key") // pic-public дахь 256px WebP
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 

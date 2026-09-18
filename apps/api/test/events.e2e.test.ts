@@ -77,7 +77,7 @@ describe('events', () => {
     await anonymous(ctx).get(`/events/${slug}`).expect(404);
     await anonymous(ctx).get(`/events/${slug}`).query({ t: 'wrong-token' }).expect(404);
     const page = await anonymous(ctx).get(`/events/${slug}`).query({ t: token }).expect(200);
-    expect(page.body).toMatchObject({ slug, pricePerPhoto: 15_000, photographers: [expect.stringContaining('owner')] });
+    expect(page.body).toMatchObject({ slug, pricePerPhoto: 15_000, photographers: [{ name: expect.stringContaining('owner'), slug: null }] });
     // Нийтийн хариунд дотоод талбар гарахгүй
     expect(page.body).not.toHaveProperty('visibility');
     expect(page.body).not.toHaveProperty('bibPattern');
