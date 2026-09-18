@@ -7,3 +7,4 @@ export * from './uploads.js';
 export * from './capture-time.js';
 export * from './search.js';
 export * from './orders.js';
+export * from './admin.js';

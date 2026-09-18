@@ -1,11 +1,14 @@
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { type EmailJob, type PhotoIngestJob, QUEUES } from '@pic/shared';
+import { type EmailJob, type PhotoIndexJob, type PhotoIngestJob, QUEUES } from '@pic/shared';
 import { Queue } from 'bullmq';
 import type { Env } from '../config/env';
 
 export const PHOTO_INGEST_QUEUE = Symbol('PHOTO_INGEST_QUEUE');
 export type PhotoIngestQueue = Queue<PhotoIngestJob>;
+
+export const PHOTO_INDEX_QUEUE = Symbol('PHOTO_INDEX_QUEUE');
+export type PhotoIndexQueue = Queue<PhotoIndexJob>;
 
 export const EMAIL_QUEUE = Symbol('EMAIL_QUEUE');
 export type EmailQueue = Queue<EmailJob>;
@@ -34,6 +37,21 @@ const connection = (config: ConfigService<Env, true>) => ({
         }),
     },
     {
+      provide: PHOTO_INDEX_QUEUE,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>): PhotoIndexQueue =>
+        new Queue<PhotoIndexJob>(QUEUES.photoIndex, {
+          ...connection(config),
+          defaultJobOptions: {
+            // ML сервис дахин асах хүртэл хүлээх зай (30с, 1м, 2м, 4м, 8м)
+            attempts: 5,
+            backoff: { type: 'exponential', delay: 30_000 },
+            removeOnComplete: { age: 24 * 3600, count: 10_000 },
+            removeOnFail: { age: 14 * 24 * 3600 },
+          },
+        }),
+    },
+    {
       provide: EMAIL_QUEUE,
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>): EmailQueue =>
@@ -49,15 +67,16 @@ const connection = (config: ConfigService<Env, true>) => ({
         }),
     },
   ],
-  exports: [PHOTO_INGEST_QUEUE, EMAIL_QUEUE],
+  exports: [PHOTO_INGEST_QUEUE, PHOTO_INDEX_QUEUE, EMAIL_QUEUE],
 })
 export class QueueModule implements OnApplicationShutdown {
   constructor(
     @Inject(PHOTO_INGEST_QUEUE) private readonly ingest: PhotoIngestQueue,
+    @Inject(PHOTO_INDEX_QUEUE) private readonly index: PhotoIndexQueue,
     @Inject(EMAIL_QUEUE) private readonly email: EmailQueue,
   ) {}
 
   async onApplicationShutdown() {
-    await Promise.all([this.ingest.close(), this.email.close()]);
+    await Promise.all([this.ingest.close(), this.index.close(), this.email.close()]);
   }
 }

@@ -19,9 +19,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         area={t('area')}
         name={me.displayName}
         nav={
-          <Link href="/admin/photographers" className="text-sm font-medium">
-            {t('photographers')}
-          </Link>
+          <nav className="flex flex-wrap gap-4 text-sm font-medium">
+            <Link href="/admin">{t('nav_overview')}</Link>
+            <Link href="/admin/removals">{t('nav_removals')}</Link>
+            <Link href="/admin/photographers">{t('photographers')}</Link>
+          </nav>
         }
       />
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6">{children}</main>

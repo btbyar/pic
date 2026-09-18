@@ -10,6 +10,8 @@ const envSchema = z.object({
   WEB_ORIGIN: z.url(),
 
   APP_DATABASE_URL: z.string().min(1),
+  // Админ модуль: pic_admin_role — biometric schema-д огт эрхгүй (docs/ARCHITECTURE.md §8)
+  ADMIN_DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
 
   S3_ENDPOINT: z.url(),

@@ -8,6 +8,7 @@ import { MailModule } from './mail/mailer';
 import { MlModule } from './ml/ml-client';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PhotosModule } from './photos/photo-purge.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
 import { RedisModule } from './redis/redis.module';
@@ -27,6 +28,7 @@ import { UploadsModule } from './uploads/uploads.module';
     MlModule,
     MailModule,
     PaymentsModule,
+    PhotosModule,
     AuthModule,
     HealthModule,
     AdminModule,

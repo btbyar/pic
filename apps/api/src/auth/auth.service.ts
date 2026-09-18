@@ -343,6 +343,21 @@ export class AuthService {
     return { recoveryCodesLeft: fresh.recoveryCodeHashes.length };
   }
 
+  /**
+   * Эргэлт буцалтгүй үйлдэлд (зураг устгах, буцаалт) TOTP кодыг дахин асууна —
+   * хулгайлагдсан session дангаараа хүрэхгүй. 2FA албагүй орчинд (зөвхөн dev) алгасна.
+   */
+  async requireStepUpMfa(auth: AuthContext, code: string | undefined): Promise<void> {
+    if (!isMfaRequired(auth.role, true, this.adminMfaRequired)) return;
+    await this.rateLimiter.consume(MFA_BY_USER, auth.userId);
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: auth.userId } });
+    if (!user.totpEnabledAt || !user.totpSecretEnc) throw new ConflictException({ statusCode: 409, code: 'mfa_not_enabled' });
+    if (!code || !(await this.consumeTotp(user, code))) {
+      throw new UnauthorizedException({ statusCode: 401, code: 'invalid_mfa_code' });
+    }
+    await this.rateLimiter.reset(MFA_BY_USER, auth.userId);
+  }
+
   // ---------------------------------------------------------------- дотоод
 
   private async issueSession(user: User, meta: RequestMeta): Promise<IssuedSession> {

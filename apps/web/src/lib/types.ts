@@ -4,6 +4,7 @@ import type {
   EventVisibility,
   OrderStatus,
   ProcessingStatus,
+  RemovalStatus,
   Role,
   UserStatus,
 } from '@pic/shared';
@@ -147,4 +148,28 @@ export interface OrderView {
     height: number | null;
     thumbUrl: string | null;
   }[];
+}
+
+export interface AdminOverview {
+  pendingPhotographers: number;
+  newRemovals: number;
+  failedPhotos: number;
+  month: { orders: number; revenue: number; since: string };
+  expiringEvents: { id: string; slug: string; title: string; expiresAt: string; photoCount: number }[];
+}
+
+export interface AdminRemovalRequest {
+  id: string;
+  reason: string;
+  contact: string | null;
+  status: RemovalStatus;
+  resolution: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  photo: { id: string; eventTitle: string; eventSlug: string; hidden: boolean; previewUrl: string | null } | null;
+}
+
+export interface AdminRemovalPage {
+  items: AdminRemovalRequest[];
+  nextCursor: string | null;
 }

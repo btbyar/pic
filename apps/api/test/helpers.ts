@@ -1,14 +1,18 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
+import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { PrismaClient } from '@pic/db';
 import type { Role, UserStatus } from '@pic/shared';
 import type { Redis } from 'ioredis';
+import { generateSync } from 'otplib';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { hashPassword } from '../src/auth/password';
+import { newTotpSecret } from '../src/auth/totp';
+import { FieldCipher } from '../src/common/crypto';
 import { PRISMA } from '../src/prisma/prisma.module';
 import { REDIS } from '../src/redis/redis.module';
 
@@ -81,4 +85,41 @@ async function createUser(ctx: TestContext, email: string, role: Role, status: U
       ...(role === 'PHOTOGRAPHER' ? { photographerProfile: { create: {} } } : {}),
     },
   });
+}
+
+export interface AdminAgent {
+  agent: Agent;
+  userId: string;
+  /** Эргэлт буцалтгүй үйлдэлд дахин асуух TOTP код (replay хамгаалалтыг тестэд тойрно) */
+  stepUpCode(): Promise<string>;
+}
+
+/** 2FA идэвхтэй админ үүсгэж, нууц үг + TOTP-оор нэвтэрнэ */
+export async function adminAgent(ctx: TestContext, label: string): Promise<AdminAgent> {
+  const secret = newTotpSecret();
+  const cipher = new FieldCipher(ctx.app.get(ConfigService).get<string>('FIELD_ENCRYPTION_KEY')!);
+  const email = `e2e-admin-${label}-${ctx.run}@pic.local`;
+  const user = await ctx.prisma.user.create({
+    data: {
+      email,
+      passwordHash: await hashPassword(PASSWORD),
+      role: 'ADMIN',
+      status: 'APPROVED',
+      displayName: `E2E admin ${label}`,
+      totpSecretEnc: cipher.encrypt(secret),
+      totpEnabledAt: new Date(),
+    },
+  });
+  const code = () => generateSync({ secret, epoch: Math.floor(Date.now() / 1000), period: 30 });
+  const agent = request.agent(ctx.app.getHttpServer()).set('Origin', WEB_ORIGIN);
+  await agent.post('/auth/login').send({ email, password: PASSWORD }).expect(200);
+  await agent.post('/auth/mfa/verify').send({ code: code() }).expect(200);
+  return {
+    agent,
+    userId: user.id,
+    async stepUpCode() {
+      await ctx.prisma.user.update({ where: { id: user.id }, data: { totpLastStep: null } });
+      return code();
+    },
+  };
 }

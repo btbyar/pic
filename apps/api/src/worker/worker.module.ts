@@ -1,4 +1,4 @@
-import { Injectable, Logger, Module, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
+import { Inject, Injectable, Logger, Module, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type EmailJob, type PhotoIndexJob, type PhotoIngestJob, QUEUES } from '@pic/shared';
 import { type Job, Queue, UnrecoverableError, Worker } from 'bullmq';
@@ -8,19 +8,22 @@ import { MailModule } from '../mail/mailer';
 import { MlModule } from '../ml/ml-client';
 import { OrderPaymentsService } from '../payments/order-payments.service';
 import { PaymentsModule } from '../payments/payments.module';
+import { PhotosModule } from '../photos/photo-purge.service';
 import { PrismaModule } from '../prisma/prisma.module';
-import { QueueModule } from '../queue/queue.module';
+import { PHOTO_INDEX_QUEUE, type PhotoIndexQueue, QueueModule } from '../queue/queue.module';
 import { RedisModule } from '../redis/redis.module';
 import { StorageModule } from '../storage/storage.module';
 import { EmailService } from './email.service';
 import { IndexService } from './index.service';
 import { IngestService, PermanentIngestError } from './ingest.service';
+import { RetentionService } from './retention.service';
 import { SweeperService } from './sweeper.service';
 
 const SWEEP_EVERY_MS = 60 * 60 * 1000;
 /** search.service нь 24ц-аас энэ хугацааг хасаж expires_at тавьдаг — нийтдээ ≤24 цаг */
 export const SEARCH_PURGE_EVERY_MS = 5 * 60 * 1000;
 const EXPIRE_ORDERS_EVERY_MS = 5 * 60 * 1000;
+const RETENTION_EVERY_MS = 60 * 60 * 1000;
 
 /** BullMQ worker-уудыг асааж, унтраана. API-гаас тусдаа процесс (`node dist/worker.js`). */
 @Injectable()
@@ -36,6 +39,8 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
     private readonly sweeper: SweeperService,
     private readonly email: EmailService,
     private readonly orderPayments: OrderPaymentsService,
+    private readonly retention: RetentionService,
+    @Inject(PHOTO_INDEX_QUEUE) private readonly indexQueue: PhotoIndexQueue,
   ) {}
 
   async onApplicationBootstrap() {
@@ -43,17 +48,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
     const concurrency = this.config.get('WORKER_CONCURRENCY', { infer: true });
     const prefix = this.config.get('QUEUE_PREFIX', { infer: true });
 
-    const indexQueue = new Queue<PhotoIndexJob>(QUEUES.photoIndex, {
-      connection,
-      prefix,
-      defaultJobOptions: {
-        // ML сервис дахин асах хүртэл хүлээх зай (30с, 1м, 2м, 4м, 8м)
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 30_000 },
-        removeOnComplete: { age: 24 * 3600, count: 10_000 },
-        removeOnFail: { age: 14 * 24 * 3600 },
-      },
-    });
+    const indexQueue = this.indexQueue;
 
     const ingestWorker = new Worker<PhotoIngestJob>(
       QUEUES.photoIngest,
@@ -97,12 +92,14 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
     await maintenanceQueue.upsertJobScheduler('sweep-stale-uploads', { every: SWEEP_EVERY_MS }, { name: 'sweep-stale-uploads' });
     await maintenanceQueue.upsertJobScheduler('purge-search-sessions', { every: SEARCH_PURGE_EVERY_MS }, { name: 'purge-search-sessions' });
     await maintenanceQueue.upsertJobScheduler('expire-orders', { every: EXPIRE_ORDERS_EVERY_MS }, { name: 'expire-orders' });
+    await maintenanceQueue.upsertJobScheduler('retention', { every: RETENTION_EVERY_MS }, { name: 'retention' });
     const maintenanceWorker = new Worker(
       QUEUES.maintenance,
       async (job) => {
         if (job.name === 'sweep-stale-uploads') return this.sweeper.sweepStaleUploads();
         if (job.name === 'purge-search-sessions') return this.sweeper.purgeSearchSessions();
         if (job.name === 'expire-orders') return this.orderPayments.expireDue();
+        if (job.name === 'retention') return this.retention.run();
         throw new UnrecoverableError(`unknown maintenance job ${job.name}`);
       },
       { connection, concurrency: 1, prefix },
@@ -116,7 +113,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
     emailWorker.on('failed', (job, err) => this.logger.warn(`email ${job?.name} attempt ${job?.attemptsMade} failed: ${err.message}`));
 
     this.workers = [ingestWorker, indexWorker, maintenanceWorker, emailWorker];
-    this.queues = [indexQueue, maintenanceQueue];
+    this.queues = [maintenanceQueue];
     for (const w of this.workers) w.on('error', (err) => this.logger.error(err.message));
     this.logger.log(`started (concurrency ${concurrency})`);
   }
@@ -140,7 +137,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
 }
 
 @Module({
-  imports: [AppConfigModule, PrismaModule, RedisModule, StorageModule, QueueModule, MlModule, MailModule, PaymentsModule],
-  providers: [IngestService, IndexService, SweeperService, EmailService, WorkerRunner],
+  imports: [AppConfigModule, PrismaModule, RedisModule, StorageModule, QueueModule, MlModule, MailModule, PaymentsModule, PhotosModule],
+  providers: [IngestService, IndexService, SweeperService, EmailService, RetentionService, WorkerRunner],
 })
 export class WorkerModule {}
