@@ -73,7 +73,7 @@ export default function RegisterPage() {
       </form>
       <p className="text-sm text-ink-soft">
         {t('haveAccount')}{' '}
-        <Link href="/login" className="font-medium text-ink underline underline-offset-4">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4">
           {t('login')}
         </Link>
       </p>

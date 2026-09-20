@@ -29,7 +29,7 @@ export async function AppShell({
       <header className="sticky top-0 z-40 border-b border-line bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4">
           <div className="flex items-center gap-2.5">
-            <Link href="/" aria-label={t('appName')}>
+            <Link href="/" aria-label={t('appName')} className="inline-flex min-h-11 items-center">
               <Logo />
             </Link>
             <span className="rounded-full bg-surface-3 px-2.5 py-1 text-xs font-semibold text-ink-soft">{area}</span>
@@ -40,8 +40,9 @@ export async function AppShell({
           </div>
         </div>
         {nav.length ? (
-          <div className="mx-auto max-w-7xl px-4 pb-2 lg:hidden">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 pb-2 lg:hidden">
             <AppNav items={nav} />
+            {action ? <div className="ml-auto shrink-0">{action}</div> : null}
           </div>
         ) : null}
       </header>

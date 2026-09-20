@@ -24,7 +24,7 @@ export function SiteHeader() {
     return (
       <Link
         href={href}
-        className={`hidden rounded-lg px-3 py-2 text-sm font-medium sm:inline-flex ${
+        className={`inline-flex min-h-11 items-center rounded-lg px-2.5 text-sm font-medium sm:px-3 ${
           active ? 'bg-surface-3 text-ink' : 'text-ink-soft hover:text-ink'
         }`}
       >
@@ -36,7 +36,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
-        <Link href="/" aria-label={t('home')}>
+        <Link href="/" aria-label={t('home')} className="inline-flex min-h-11 items-center">
           <Logo />
         </Link>
         <nav className="flex items-center gap-1">
@@ -45,7 +45,7 @@ export function SiteHeader() {
           <Link
             href="/cart"
             aria-label={t('cartLabel', { count })}
-            className={`relative inline-flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium ${
+            className={`relative inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium ${
               count ? 'bg-ink text-surface' : 'text-ink-soft hover:bg-surface-3'
             }`}
           >
@@ -71,16 +71,16 @@ export function SiteFooter() {
           <Logo />
           <p>{t('tagline')}</p>
         </div>
-        <nav className="flex flex-col gap-2">
-          <Link href="/photographers" className="hover:text-ink">
-            {t('photographers')}
-          </Link>
-          <Link href="/my/orders" className="hover:text-ink">
-            {t('myOrders')}
-          </Link>
-          <Link href="/login" className="hover:text-ink">
-            {t('forPhotographers')}
-          </Link>
+        <nav className="flex flex-col">
+          {[
+            { href: '/photographers', label: t('photographers') },
+            { href: '/my/orders', label: t('myOrders') },
+            { href: '/login', label: t('forPhotographers') },
+          ].map((item) => (
+            <Link key={item.href} href={item.href} className="inline-flex min-h-11 items-center hover:text-ink">
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </div>
       <p className="flex items-center justify-center gap-4 pb-8 text-sm text-ink-faint">

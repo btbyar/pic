@@ -5,7 +5,7 @@ const buttonStyles = {
   // Цагаан товч: ногоон нь зөвхөн "олдлоо/сонгогдлоо" гэсэн дохиод үлдэнэ
   primary: 'bg-ink text-surface hover:bg-white disabled:bg-surface-3 disabled:text-ink-faint',
   dark: 'bg-surface-3 text-ink hover:bg-line disabled:text-ink-faint',
-  secondary: 'border border-line bg-surface-2 text-ink hover:bg-surface-3 disabled:text-ink-faint',
+  secondary: 'border border-line-strong bg-surface-2 text-ink hover:bg-surface-3 disabled:text-ink-faint',
   danger: 'bg-red-500 text-white hover:bg-red-400 disabled:bg-surface-3 disabled:text-ink-faint',
 } as const;
 
@@ -41,14 +41,20 @@ export function ButtonLink({
 }
 
 const fieldBase =
-  'w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15';
+  'w-full rounded-xl border bg-surface-2 px-3 py-2.5 text-base text-ink outline-none placeholder:text-ink-faint focus:border-brand-600 focus:ring-2 focus:ring-brand-600/25';
 
 export function Input({ invalid, className = '', ...props }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
-  return <input className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-line'} ${className}`} {...props} />;
+  return (
+    <input
+      aria-invalid={invalid || undefined}
+      className={`${fieldBase} ${invalid ? 'border-red-400' : 'border-line-strong'} ${className}`}
+      {...props}
+    />
+  );
 }
 
 export function Textarea({ invalid, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }) {
-  return <textarea className={`${fieldBase} ${invalid ? 'border-red-500' : 'border-line'}`} {...props} />;
+  return <textarea aria-invalid={invalid || undefined} className={`${fieldBase} ${invalid ? 'border-red-400' : 'border-line-strong'}`} {...props} />;
 }
 
 export function Field({
@@ -70,18 +76,26 @@ export function Field({
         {label}
       </label>
       {children}
-      {error ? <p className="text-sm text-red-600">{error}</p> : hint ? <p className="text-sm text-ink-soft">{hint}</p> : null}
+      {error ? (
+        <p id={`${htmlFor}-error`} role="alert" className="text-sm text-red-300">
+          {error}
+        </p>
+      ) : hint ? (
+        <p id={`${htmlFor}-hint`} className="text-sm text-ink-soft">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-xl bg-surface-2 p-5 ${className}`}>{children}</section>;
+  return <div className={`rounded-xl bg-surface-2 p-5 ${className}`}>{children}</div>;
 }
 
 export function Alert({ kind = 'error', children }: { kind?: 'error' | 'info' | 'success'; children: ReactNode }) {
   const styles = {
-    error: 'border-red-500/30 bg-red-500/10 text-red-200',
+    error: 'border-red-400/40 bg-red-500/10 text-red-200',
     info: 'border-sky-500/30 bg-sky-500/10 text-sky-200',
     success: 'border-brand-600/30 bg-brand-600/10 text-brand-800',
   }[kind];

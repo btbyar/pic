@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { FocusFrame } from '@/components/focus-frame';
 import { DownloadIcon, LockIcon, ScanFaceIcon, SearchIcon } from '@/components/icons';
 import { PhotographerCard } from '@/components/photographer-card';
 import { serverApi } from '@/lib/api-server';
@@ -39,7 +38,7 @@ export default async function HomePage() {
               type="search"
               placeholder={t('searchPlaceholder')}
               aria-label={t('searchPlaceholder')}
-              className="min-w-0 flex-1 bg-transparent px-1 text-base text-ink outline-none placeholder:text-ink-faint"
+              className="min-h-11 min-w-0 flex-1 bg-transparent px-1 text-base text-ink outline-none placeholder:text-ink-faint"
             />
             <button
               type="submit"
@@ -73,16 +72,13 @@ export default async function HomePage() {
         {/* Нэг зураг дээр "фокус тогтоосон" байдал — бүтээгдэхүүний гол мөч */}
         <div className="relative">
           {strip.length ? (
-            <FocusFrame className="overflow-hidden rounded-xl">
+            <div className="overflow-hidden rounded-xl">
               <img src={strip[0]} alt="" className="aspect-4/5 w-full object-cover" />
-              <span className="absolute bottom-3 left-3 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-on-brand">{t('found')}</span>
-            </FocusFrame>
+            </div>
           ) : (
-            <FocusFrame className="rounded-xl bg-surface-2">
-              <div className="flex aspect-4/5 items-center justify-center text-ink-faint">
-                <ScanFaceIcon size={64} strokeWidth={1.2} />
-              </div>
-            </FocusFrame>
+            <div className="flex aspect-4/5 items-center justify-center rounded-xl bg-surface-2 text-ink-faint">
+              <ScanFaceIcon size={64} strokeWidth={1.2} />
+            </div>
           )}
         </div>
       </section>
@@ -121,7 +117,7 @@ export default async function HomePage() {
               </Link>
             ) : null}
           </div>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {top.map((p) => (
               <li key={p.slug}>
                 <PhotographerCard p={p} />

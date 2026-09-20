@@ -2,7 +2,7 @@
 
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from './icons';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { type KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { addToCart, type CartEventInfo, removeFromCart, useCart } from '@/lib/cart';
 import { formatMnt, formatTime } from '@/lib/datetime';
 import type { PublicPhoto } from '@/lib/types';
@@ -110,6 +110,8 @@ function Lightbox({
   const t = useTranslations('gallery');
   const tc = useTranslations('cart');
   const [reporting, setReporting] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   const onKey = useCallback(
     (e: KeyboardEvent) => {
@@ -126,17 +128,53 @@ function Lightbox({
     return () => window.removeEventListener('keydown', onKey);
   }, [onKey]);
 
+  // Цонх нээгдэхэд фокусыг дотор нь аваачиж, хаахад буцаана. Ард нь гүйлгэхгүй.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = overflow;
+      opener?.focus?.();
+    };
+  }, []);
+
+  // Tab цонхны дотор эргэлдэнэ — ард байгаа галерей руу гарахгүй
+  const trapTab = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab') return;
+    const items = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input,textarea');
+    if (!items?.length) return;
+    const first = items[0]!;
+    const last = items[items.length - 1]!;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   const nav = 'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white disabled:opacity-0';
 
   return (
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex flex-col bg-black/95" onClick={onClose}>
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('lightbox')}
+      onKeyDown={trapTab}
+      className="fixed inset-0 z-50 flex flex-col bg-black/95"
+      onClick={onClose}
+    >
       <div className="flex items-center justify-between gap-2 px-4 py-3 text-sm text-white" onClick={(e) => e.stopPropagation()}>
         <span>{photo.capturedAt ? formatTime(photo.capturedAt, timezone) : ''}</span>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setReporting(true)} className="min-h-11 cursor-pointer px-2 text-ink-faint underline-offset-4 hover:underline">
             {t('requestRemoval')}
           </button>
-          <button type="button" onClick={onClose} className="min-h-11 cursor-pointer px-2 text-base">
+          <button ref={closeRef} type="button" onClick={onClose} className="min-h-11 cursor-pointer px-2 text-base">
             <span className="inline-flex items-center gap-1.5">
               {t('close')}
               <XIcon size={18} />

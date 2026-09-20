@@ -21,7 +21,7 @@ export function CartView() {
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Link href="/my/orders" className="text-sm text-ink-soft underline underline-offset-4">
+        <Link href="/my/orders" className="inline-flex min-h-11 items-center text-sm text-ink-soft underline underline-offset-4">
           {t('myOrders')}
         </Link>
       </header>
@@ -141,7 +141,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
               type="button"
               onClick={() => removeFromCart(event.slug, [photo.id])}
               aria-label={t('remove')}
-              className="absolute right-1 top-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-surface-2/90 text-ink shadow"
+              className="absolute right-1 top-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-surface/80 text-ink backdrop-blur"
             >
               <XIcon size={18} />
             </button>
@@ -174,8 +174,8 @@ function CartEventCard({ event }: { event: CartEvent }) {
             </Link>
           </p>
         ) : null}
-        {blocker === 'search_expired' ? <p className="text-sm text-amber-700">{t('bundleExpired')}</p> : null}
-        {blocker === 'not_matched' ? <p className="text-sm text-amber-700">{t('bundleNotMatched')}</p> : null}
+        {blocker === 'search_expired' ? <p className="text-sm text-amber-300">{t('bundleExpired')}</p> : null}
+        {blocker === 'not_matched' ? <p className="text-sm text-amber-300">{t('bundleNotMatched')}</p> : null}
       </div>
 
       {error ? <Alert>{error}</Alert> : null}

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { CheckIcon, LinkIcon, ShareIcon } from './icons';
 
 const button =
-  'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 text-sm font-medium text-ink transition  hover:text-ink';
+  'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 text-sm font-medium text-ink transition  hover:text-ink';
 
 /** Эвэнтийн холбоосыг хуваалцах: утсан дээр системийн цэс, бусад дээр хуулах ба Facebook */
 export function ShareEvent({ title }: { title: string }) {
@@ -32,6 +32,7 @@ export function ShareEvent({ title }: { title: string }) {
         onClick={async () => {
           await navigator.clipboard.writeText(url());
           setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
         }}
       >
         {copied ? <CheckIcon size={16} className="text-brand-600" /> : <LinkIcon size={16} />}

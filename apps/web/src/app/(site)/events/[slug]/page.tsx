@@ -37,9 +37,9 @@ export default async function EventPage({
   );
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-8 pt-4 sm:pt-6">
+    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-28 pt-4 sm:pb-8 sm:pt-6">
       <div className="flex flex-col gap-3">
-        <Link href={backHref} className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-ink-soft hover:text-ink">
+        <Link href={backHref} className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-ink-soft hover:text-ink">
           <ArrowLeftIcon size={16} />
           {backLabel}
         </Link>
@@ -51,30 +51,14 @@ export default async function EventPage({
           ) : (
             <div className="absolute inset-0 -z-10 bg-surface-2" />
           )}
-          <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-surface/90 via-surface/40 to-transparent" />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-surface via-surface/75 to-surface/25" />
           <div className="flex flex-col items-start gap-2 p-5 sm:p-8">
             <h1 className="max-w-3xl text-balance text-3xl font-bold leading-tight text-ink sm:text-5xl">{event.title}</h1>
-            <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-soft">
+            <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink">
               {meta.map((item) => (
                 <span key={item as string}>{item}</span>
               ))}
             </p>
-            {event.photographers?.length ? (
-              <p className="text-sm text-ink-soft">
-                {event.photographers.map((ph, i) => (
-                  <span key={`${ph.name}-${i}`}>
-                    {i > 0 ? ', ' : ''}
-                    {ph.slug ? (
-                      <Link href={`/photographers/${ph.slug}`} className="text-ink hover:text-ink">
-                        {ph.name}
-                      </Link>
-                    ) : (
-                      ph.name
-                    )}
-                  </span>
-                ))}
-              </p>
-            ) : null}
           </div>
         </FocusFrame>
       </div>
@@ -85,12 +69,15 @@ export default async function EventPage({
           <div className="flex flex-col items-start gap-3">
             <h2 className="font-display text-2xl font-bold">{t('search.ctaTitle')}</h2>
             <p className="max-w-md text-ink-soft">{t('search.ctaBody')}</p>
-            <ButtonLink href={`/events/${slug}/find${query}`} className="gap-2 px-6 text-base">
-              <ScanFaceIcon size={20} />
-              {t('search.cta')}
-            </ButtonLink>
-            <p className="flex items-center gap-1.5 text-xs text-ink-faint">
-              <LockIcon size={12} />
+            {/* Утсан дээр доод талд наалдана: QR уншуулсан хүн гүйлгэсэн ч товч харагдана */}
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0">
+              <ButtonLink href={`/events/${slug}/find${query}`} className="min-h-14 w-full gap-2 text-base sm:w-auto sm:px-6">
+                <ScanFaceIcon size={20} />
+                {t('search.cta')}
+              </ButtonLink>
+            </div>
+            <p className="flex items-start gap-1.5 text-sm text-ink-soft">
+              <LockIcon size={16} className="mt-0.5 shrink-0" />
               {t('search.ctaPrivacy')}
             </p>
           </div>
@@ -106,8 +93,6 @@ export default async function EventPage({
       </div>
 
       {event.description ? <p className="max-w-3xl whitespace-pre-line text-ink">{event.description}</p> : null}
-
-      <ShareEvent title={event.title} />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-xl font-bold">{t('gallery.title')}</h2>
@@ -125,6 +110,8 @@ export default async function EventPage({
           }}
         />
       </section>
+
+      <ShareEvent title={event.title} />
     </main>
   );
 }

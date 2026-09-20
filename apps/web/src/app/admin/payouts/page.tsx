@@ -61,7 +61,7 @@ export default async function AdminPayoutsPage({ searchParams }: { searchParams:
                       {r.account.bankName} · <b className="tabular-nums">{r.account.accountNumber}</b> · {r.account.accountName}
                     </span>
                   ) : (
-                    <span className="text-amber-700">{t('noAccount')}</span>
+                    <span className="text-amber-300">{t('noAccount')}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-2 sm:items-end">

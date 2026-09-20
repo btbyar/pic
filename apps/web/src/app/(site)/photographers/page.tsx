@@ -34,7 +34,7 @@ export default async function PhotographersPage({ searchParams }: { searchParams
             defaultValue={q}
             placeholder={t('searchPlaceholder')}
             aria-label={t('searchPlaceholder')}
-            className="min-w-0 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-ink-faint"
+            className="min-h-11 min-w-0 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-ink-faint"
           />
           <button type="submit" className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-ink px-5 text-sm font-semibold text-surface transition hover:bg-white">
             {t('search')}
@@ -44,7 +44,7 @@ export default async function PhotographersPage({ searchParams }: { searchParams
       {foundEvents.length ? (
         <section className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">{t('foundEvents')}</h2>
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {foundEvents.map((e) => (
               <li key={e.id}>
                 <EventCard event={e} />
@@ -61,7 +61,7 @@ export default async function PhotographersPage({ searchParams }: { searchParams
       ) : photographers.length ? (
         <section className="flex flex-col gap-4">
           {foundEvents.length ? <h2 className="text-lg font-semibold">{t('title')}</h2> : null}
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {photographers.map((p) => (
               <li key={p.slug}>
                 <PhotographerCard p={p} />

@@ -1,6 +1,5 @@
 'use client';
 
-import { CheckIcon, UserIcon } from '@/components/icons';
 import { BackLink } from '@/components/back-link';
 import { CONSENT_VERSION } from '@pic/shared';
 import Link from 'next/link';
@@ -8,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { FocusFrame } from '@/components/focus-frame';
+import { CheckIcon, ClockIcon, LockIcon, UserIcon } from '@/components/icons';
 import { type GridCart, PhotoGrid } from '@/components/photo-grid';
 import { Stepper } from '@/components/stepper';
 import { Alert, Button, Card } from '@/components/ui';
@@ -158,18 +158,41 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
       {step === 'consent' ? (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">{t('consent.title')}</h2>
-          <ul className="flex list-disc flex-col gap-2 pl-5 text-sm text-ink">
-            {(['purpose', 'selfieNotStored', 'retention', 'anonymous', 'noSharing', 'minors'] as const).map((k) => (
-              <li key={k}>{t(`consent.${k}`)}</li>
+          <ul className="flex flex-col gap-3 text-base text-ink">
+            {([
+              ['selfieNotStored', LockIcon],
+              ['retention', ClockIcon],
+              ['anonymous', UserIcon],
+            ] as const).map(([k, Icon]) => (
+              <li key={k} className="flex gap-3">
+                <Icon size={20} className="mt-0.5 shrink-0 text-brand-600" />
+                {t(`consent.${k}`)}
+              </li>
             ))}
           </ul>
-          <p className="text-xs text-ink-soft">{t('consent.law', { version: CONSENT_VERSION })}</p>
-          <label className="flex items-start gap-3 rounded-xl border border-line p-3">
-            <input type="checkbox" className="mt-1 h-5 w-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+          {/* Үлдсэн нөхцөл: нуугдаагүй, нэг товшилтын зайд */}
+          <details className="text-sm text-ink-soft">
+            <summary className="inline-flex min-h-11 cursor-pointer items-center font-medium text-ink">{t('consent.more')}</summary>
+            <div className="flex flex-col gap-2 pt-2">
+              {(['purpose', 'noSharing', 'minors'] as const).map((k) => (
+                <p key={k}>{t(`consent.${k}`)}</p>
+              ))}
+              <p>{t('consent.law', { version: CONSENT_VERSION })}</p>
+            </div>
+          </details>
+          <label className="flex items-start gap-3 rounded-xl border border-line-strong p-3">
+            <input type="checkbox" className="mt-0.5 size-6 shrink-0 accent-brand-600" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span className="text-sm font-medium">{t('consent.agree')}</span>
           </label>
           <div className="flex flex-wrap gap-2">
-            <Button disabled={!consent} onClick={() => setStep('capture')}>
+            {/* Идэвхгүй товч яагаад ажиллахгүйг хэлдэггүй — дарахад шалтгааныг хэлнэ */}
+            <Button
+              onClick={() => {
+                if (!consent) return setError(t('consent.required'));
+                setError(null);
+                setStep('capture');
+              }}
+            >
               {t('consent.continue')}
             </Button>
             <Link href={eventHref} className="inline-flex min-h-11 items-center px-2 text-sm text-ink-soft underline-offset-4 hover:underline">
@@ -261,7 +284,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
               >
                 {t('again')}
               </Button>
-              <Button variant="danger" onClick={() => void deleteSearchData()}>
+              <Button variant="secondary" onClick={() => void deleteSearchData()}>
                 {t('deleteData')}
               </Button>
             </div>

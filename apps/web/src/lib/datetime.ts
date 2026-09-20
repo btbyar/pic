@@ -49,6 +49,7 @@ export function formatTime(iso: string, timeZone = DEFAULT_TIMEZONE): string {
   return `${hh}:${mm}`;
 }
 
+/** "10 000 ₮" — мянгатын зай ба ₮-ийн өмнөх зай тасрахгүй (U+202F) */
 export function formatMnt(amount: number): string {
-  return `${new Intl.NumberFormat('en-US').format(amount).replace(/,/g, ' ')}₮`;
+  return `${new Intl.NumberFormat('en-US').format(amount).replace(/,/g, ' ')} ₮`;
 }

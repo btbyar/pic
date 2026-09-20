@@ -16,6 +16,8 @@
   --color-surface-2: #0c0c0e;
   --color-surface-3: #17171a;
   --color-line: #26262b;
+  /* Маягт, товчны хүрээ: дэвсгэр дээр 5:1 — WCAG 1.4.11 нь 3:1 шаарддаг */
+  --color-line-strong: #767e8a;
 
   /* Текст: 17.5:1, 8.2:1, 4.9:1 */
   --color-ink: #f2f2f3;
@@ -41,6 +43,8 @@
 
 :root {
   color-scheme: dark;
+  /* Наалдсан толгойн доор фокус орсон элемент нуугдахгүй (WCAG 2.4.11) */
+  scroll-padding-top: 5rem;
 }
 
 body {
@@ -66,7 +70,8 @@ body {
 
 /* Хөдөлгөөн багасгах тохиргоотой хэрэглэгчид (vestibular эмгэг) шилжилт харуулахгүй */
 @media (prefers-reduced-motion: reduce) {
-  *,
+  /* Ачаалж буйг заадаг эргэлт үлдэнэ — үгүй бол "гацсан" мэт харагдана */
+  *:not(.animate-spin),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
