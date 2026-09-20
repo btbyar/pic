@@ -36,8 +36,8 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
       <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
 
       {/* Эвэнтийн толгой: зураг, нэр, төлөв, гол үйлдэл */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-4 sm:flex-row sm:items-center">
-        <span className="h-24 w-full shrink-0 overflow-hidden rounded-xl bg-stone-100 sm:h-20 sm:w-28">
+      <div className="flex flex-col gap-4 rounded-xl bg-surface-2 p-4 sm:flex-row sm:items-center">
+        <span className="h-24 w-full shrink-0 overflow-hidden rounded-xl bg-surface-3 sm:h-20 sm:w-28">
           {event.coverUrl ? <img src={event.coverUrl} alt="" className="h-full w-full object-cover" /> : null}
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -45,7 +45,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
             <h1 className="text-2xl font-bold">{event.title}</h1>
             <VisibilityBadge visibility={event.visibility} />
           </div>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-ink-soft">
             {t('common.photos', { count: event.photoCount })}
             {' · '}
             {t('eventEditor.retention', { date: formatDate(event.expiresAt, event.timezone), days: event.retentionDays })}
@@ -56,7 +56,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
           {event.visibility !== 'HIDDEN' || event.isOwner ? (
             <Link
               href={`/events/${event.slug}`}
-              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-stone-600 underline underline-offset-4 hover:text-brand-700"
+              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-ink-soft underline underline-offset-4 hover:text-brand-700"
               target="_blank"
             >
               {t('photographer.viewPublic')}
@@ -90,7 +90,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
               <QrIcon size={18} className="text-brand-700" />
               {t('eventEditor.poster')}
             </h2>
-            <p className="text-sm text-stone-600">{t('eventEditor.posterBody')}</p>
+            <p className="text-sm text-ink-soft">{t('eventEditor.posterBody')}</p>
             <ButtonLink href={`/photographer/events/${event.id}/poster`} variant="secondary">
               {t('poster.print')}
             </ButtonLink>
@@ -136,7 +136,7 @@ function AccessLinkCard({ eventId, link, onRotated }: { eventId: string; link: s
           </div>
         </>
       ) : (
-        <p className="text-sm text-stone-600">{t('eventEditor.accessLinkHidden')}</p>
+        <p className="text-sm text-ink-soft">{t('eventEditor.accessLinkHidden')}</p>
       )}
       <Button
         variant="secondary"
@@ -190,15 +190,15 @@ function PhotographersCard({ event, onChange }: { event: MyEventDetail; onChange
     <Card className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{t('eventEditor.photographers')}</h2>
       {error ? <Alert>{errorMessage(error)}</Alert> : null}
-      <ul className="flex flex-col divide-y divide-stone-100">
+      <ul className="flex flex-col divide-y divide-line">
         {event.photographers.map((p) => (
           <li key={p.userId} className="flex items-center justify-between gap-3 py-2">
             <span className="flex flex-col">
               <span className="font-medium">{p.displayName}</span>
-              {p.email ? <span className="text-sm text-stone-500">{p.email}</span> : null}
+              {p.email ? <span className="text-sm text-ink-soft">{p.email}</span> : null}
             </span>
             {p.isOwner ? (
-              <span className="text-sm text-stone-500">{t('photographer.owner')}</span>
+              <span className="text-sm text-ink-soft">{t('photographer.owner')}</span>
             ) : event.isOwner ? (
               <ConfirmButton label={t('eventEditor.remove')} onConfirm={() => remove(p.userId)} />
             ) : null}
@@ -278,7 +278,7 @@ function DeleteCard({ eventId }: { eventId: string }) {
   return (
     <Card className="flex flex-col gap-3 border-red-200">
       <h2 className="text-lg font-semibold text-red-700">{t('eventEditor.dangerZone')}</h2>
-      <p className="text-sm text-stone-600">{t('eventEditor.deleteBody')}</p>
+      <p className="text-sm text-ink-soft">{t('eventEditor.deleteBody')}</p>
       {error ? <Alert>{errorMessage(error)}</Alert> : null}
       <ConfirmButton
         label={t('eventEditor.delete')}

@@ -23,15 +23,15 @@ export default async function EarningsPage() {
     <>
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-ink-soft">
           {data.revenueSharePct !== null ? t('share', { pct: data.revenueSharePct }) : ''} {t('intro')}
         </p>
       </div>
 
       <dl className="grid gap-3 sm:grid-cols-3">
         {summary.map(({ key, value }) => (
-          <div key={key} className="flex flex-col gap-1 rounded-2xl border border-stone-200 bg-white p-4">
-            <dt className="text-sm text-stone-500">{t(`summary.${key}`)}</dt>
+          <div key={key} className="flex flex-col gap-1 rounded-xl bg-surface-2 p-4">
+            <dt className="text-sm text-ink-soft">{t(`summary.${key}`)}</dt>
             <dd className="font-display text-2xl font-bold tabular-nums">{formatMnt(value)}</dd>
           </div>
         ))}
@@ -40,7 +40,7 @@ export default async function EarningsPage() {
       <PayoutAccountForm account={data.account} />
 
       {data.months.length === 0 ? (
-        <p className="py-10 text-center text-stone-500">{t('empty')}</p>
+        <p className="py-10 text-center text-ink-soft">{t('empty')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {data.months.map((m) => (
@@ -48,7 +48,7 @@ export default async function EarningsPage() {
               <Card className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-0.5 text-sm">
                   <span className="text-base font-semibold tabular-nums">{m.period}</span>
-                  <span className="text-stone-600">
+                  <span className="text-ink-soft">
                     {t('sales', { amount: formatMnt(m.gross) })}
                     {m.refunded ? ` · ${t('refunds', { amount: formatMnt(m.refunded) })}` : ''}
                     {m.carriedIn ? ` · ${t('carried', { amount: formatMnt(-m.carriedIn) })}` : ''}

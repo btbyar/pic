@@ -102,7 +102,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {stats ? (
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-ink-soft">
           {t('eventStats', { total: stats.total, processing: stats.byStatus.UPLOADED, ready: stats.byStatus.DERIVED + stats.byStatus.INDEXED, failed: stats.byStatus.FAILED })}
         </p>
       ) : null}
@@ -118,17 +118,17 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={`flex flex-col items-center gap-3 rounded-xl border-2 border-dashed px-4 py-10 text-center ${
-            dragging ? 'border-stone-900 bg-stone-50' : 'border-stone-300'
+            dragging ? 'border-brand-600 bg-brand-50' : 'border-line'
           }`}
         >
           <p className="font-medium">{t('dropHere')}</p>
-          <p className="text-sm text-stone-500">{t('formats')}</p>
+          <p className="text-sm text-ink-soft">{t('formats')}</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white ${running ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-surface-3 px-4 text-sm font-medium text-white ${running ? 'pointer-events-none opacity-50' : ''}`}>
               {t('pickFiles')}
               <input type="file" multiple accept={ACCEPT} className="sr-only" onChange={onPick} disabled={running} />
             </label>
-            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-stone-300 px-4 text-sm font-medium ${running ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-line px-4 text-sm font-medium ${running ? 'pointer-events-none opacity-50' : ''}`}>
               {t('pickFolder')}
               {/* webkitdirectory нь стандарт бус боловч бүх орчин үеийн desktop браузер дэмждэг */}
               <input
@@ -142,7 +142,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
             </label>
           </div>
         </div>
-        <p className="text-sm text-stone-500">{t('resumeHint')}</p>
+        <p className="text-sm text-ink-soft">{t('resumeHint')}</p>
       </Card>
 
       {list.length > 0 ? (
@@ -157,13 +157,13 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
           </div>
 
           <div
-            className="h-3 overflow-hidden rounded-full bg-stone-100"
+            className="h-3 overflow-hidden rounded-full bg-surface-3"
             role="progressbar"
             aria-valuenow={percent}
             aria-valuemin={0}
             aria-valuemax={100}
           >
-            <div className="h-full bg-emerald-500 transition-[width]" style={{ width: `${percent}%` }} />
+            <div className="h-full bg-brand-600 transition-[width]" style={{ width: `${percent}%` }} />
           </div>
 
           <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
@@ -177,9 +177,9 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
           {problems.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <ul className="max-h-64 overflow-y-auto rounded-xl border border-stone-200 text-sm">
+              <ul className="max-h-64 overflow-y-auto rounded-xl border border-line text-sm">
                 {problems.map((i, idx) => (
-                  <li key={idx} className="flex justify-between gap-3 border-b border-stone-100 px-3 py-2 last:border-0">
+                  <li key={idx} className="flex justify-between gap-3 border-b border-line px-3 py-2 last:border-0">
                     <span className="truncate">{i.file.name}</span>
                     <span className="shrink-0 text-red-700">{t(`problem.${i.problem ?? 'server'}`)}</span>
                   </li>
@@ -200,8 +200,8 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: 'red' | undefined }) {
   return (
-    <div className="rounded-xl bg-stone-50 px-3 py-2">
-      <dt className="text-stone-500">{label}</dt>
+    <div className="rounded-xl bg-surface-2 px-3 py-2">
+      <dt className="text-ink-soft">{label}</dt>
       <dd className={`text-lg font-semibold ${tone === 'red' ? 'text-red-700' : ''}`}>{value}</dd>
     </div>
   );

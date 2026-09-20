@@ -46,12 +46,12 @@ export function MyOrders() {
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-stone-600">{t('intro')}</p>
+        <p className="text-sm text-ink-soft">{t('intro')}</p>
       </header>
 
       {orders.length === 0 ? (
         <Card className="flex flex-col items-start gap-3">
-          <p className="text-stone-700">{t('empty')}</p>
+          <p className="text-ink">{t('empty')}</p>
           <ButtonLink href="/photographers">{t('browse')}</ButtonLink>
         </Card>
       ) : (
@@ -65,14 +65,14 @@ export function MyOrders() {
                     <Link href={orderHref(order.id, order.token)} className="font-semibold underline-offset-4 hover:underline">
                       {order.eventTitle}
                     </Link>
-                    <p className="text-sm text-stone-600">
+                    <p className="text-sm text-ink-soft">
                       {formatDate(order.createdAt)} · {formatMnt(order.total)}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     {status && status !== 'gone' ? <Badge tone={STATUS_TONE[status]}>{to(`status.${status}`)}</Badge> : null}
                     {status === 'gone' ? (
-                      <button type="button" className="min-h-11 cursor-pointer text-sm text-stone-500 underline" onClick={() => forgetOrder(order.id)}>
+                      <button type="button" className="min-h-11 cursor-pointer text-sm text-ink-soft underline" onClick={() => forgetOrder(order.id)}>
                         {t('forget')}
                       </button>
                     ) : (

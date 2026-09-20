@@ -97,7 +97,7 @@ export function EventForm({
             id="category"
             name="category"
             defaultValue={initial?.category ?? 'OTHER'}
-            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base"
+            className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-base"
           >
             {EVENT_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -174,16 +174,16 @@ export function EventForm({
             type="checkbox"
             name="faceSearchEnabled"
             defaultChecked={initial?.faceSearchEnabled ?? true}
-            className="mt-1 size-5 accent-stone-900"
+            className="mt-1 size-5 accent-brand-600"
           />
           <span className="flex flex-col">
-            <span className="text-sm font-medium text-stone-700">{t('faceSearch')}</span>
-            <span className="text-sm text-stone-500">{t('faceSearchHint')}</span>
+            <span className="text-sm font-medium text-ink">{t('faceSearch')}</span>
+            <span className="text-sm text-ink-soft">{t('faceSearchHint')}</span>
           </span>
         </label>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-sm font-medium text-stone-700">{t('visibility')}</legend>
+          <legend className="mb-1 text-sm font-medium text-ink">{t('visibility')}</legend>
           {EVENT_VISIBILITIES.map((v) => (
             <label key={v} className="flex items-center gap-3 text-sm">
               <input
@@ -191,7 +191,7 @@ export function EventForm({
                 name="visibility"
                 value={v}
                 defaultChecked={(initial?.visibility ?? 'HIDDEN') === v}
-                className="size-4 accent-stone-900"
+                className="size-4 accent-brand-600"
               />
               {t(`visibility_${v}`)}
             </label>

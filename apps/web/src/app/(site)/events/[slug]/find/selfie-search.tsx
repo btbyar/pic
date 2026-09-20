@@ -143,7 +143,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
       <BackLink href={eventHref}>{event.title}</BackLink>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-stone-600">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
+        <p className="text-ink-soft">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</p>
       </header>
 
       <Stepper
@@ -157,13 +157,13 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
       {step === 'consent' ? (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">{t('consent.title')}</h2>
-          <ul className="flex list-disc flex-col gap-2 pl-5 text-sm text-stone-700">
+          <ul className="flex list-disc flex-col gap-2 pl-5 text-sm text-ink">
             {(['purpose', 'selfieNotStored', 'retention', 'anonymous', 'noSharing', 'minors'] as const).map((k) => (
               <li key={k}>{t(`consent.${k}`)}</li>
             ))}
           </ul>
-          <p className="text-xs text-stone-500">{t('consent.law', { version: CONSENT_VERSION })}</p>
-          <label className="flex items-start gap-3 rounded-xl border border-stone-200 p-3">
+          <p className="text-xs text-ink-soft">{t('consent.law', { version: CONSENT_VERSION })}</p>
+          <label className="flex items-start gap-3 rounded-xl border border-line p-3">
             <input type="checkbox" className="mt-1 h-5 w-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span className="text-sm font-medium">{t('consent.agree')}</span>
           </label>
@@ -171,7 +171,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
             <Button disabled={!consent} onClick={() => setStep('capture')}>
               {t('consent.continue')}
             </Button>
-            <Link href={eventHref} className="inline-flex min-h-11 items-center px-2 text-sm text-stone-600 underline-offset-4 hover:underline">
+            <Link href={eventHref} className="inline-flex min-h-11 items-center px-2 text-sm text-ink-soft underline-offset-4 hover:underline">
               {t('browseAll')}
             </Link>
           </div>
@@ -197,7 +197,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
                     : tc('allPrice', { count: results.mine.length, price: formatMnt(results.mine.length * event.pricePerPhoto) })}
                 </p>
                 {bundleWorthIt ? (
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-ink-soft">
                     {tc('bundleSaves', { price: formatMnt(results.mine.length * event.pricePerPhoto - event.bundlePrice!) })}
                   </p>
                 ) : null}
@@ -224,7 +224,7 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
             {results.mine.length ? (
               <PhotoGrid photos={results.mine} timezone={event.timezone} cart={gridCart} />
             ) : (
-              <Card className="flex flex-col gap-2 text-sm text-stone-700">
+              <Card className="flex flex-col gap-2 text-sm text-ink">
                 <p className="font-medium">{t('noneFound')}</p>
                 <ul className="list-disc pl-5">
                   <li>{t('tips.light')}</li>
@@ -239,14 +239,14 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
             <section className="flex flex-col gap-3">
               <div>
                 <h2 className="text-lg font-semibold">{t('maybe', { count: results.maybe.length })}</h2>
-                <p className="text-sm text-stone-600">{t('maybeHint')}</p>
+                <p className="text-sm text-ink-soft">{t('maybeHint')}</p>
               </div>
               <PhotoGrid photos={results.maybe} timezone={event.timezone} cart={gridCart} />
             </section>
           ) : null}
 
           <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-stone-600">{t('privacyNote')}</p>
+            <p className="text-sm text-ink-soft">{t('privacyNote')}</p>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Button
                 variant="secondary"
@@ -273,7 +273,7 @@ function Searching() {
   const t = useTranslations('search');
   return (
     <div className="flex items-center gap-3" role="status">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" aria-hidden />
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-brand-600" aria-hidden />
       <p>{t('searching')}</p>
     </div>
   );
@@ -342,7 +342,7 @@ function CaptureCard({
 
   return (
     <Card className="flex flex-col items-center gap-4 text-center">
-      <p className="text-sm text-stone-600">{t('hint')}</p>
+      <p className="text-sm text-ink-soft">{t('hint')}</p>
 
       {stream ? (
         <video
@@ -351,12 +351,12 @@ function CaptureCard({
           playsInline
           muted
           // Урд камер: хэрэглэгчид толь шиг харагдуулна (хадгалах зураг нь буцаагүй)
-          className="aspect-square w-full max-w-sm -scale-x-100 rounded-2xl bg-black object-cover"
+          className="aspect-square w-full max-w-sm -scale-x-100 rounded-xl bg-black object-cover"
         />
       ) : preview ? (
-        <img src={preview.url} alt={t('previewAlt')} className="aspect-square w-full max-w-sm rounded-2xl object-cover" />
+        <img src={preview.url} alt={t('previewAlt')} className="aspect-square w-full max-w-sm rounded-xl object-cover" />
       ) : (
-        <div className="flex aspect-square w-full max-w-sm items-center justify-center rounded-2xl bg-stone-100 text-stone-300" aria-hidden>
+        <div className="flex aspect-square w-full max-w-sm items-center justify-center rounded-xl bg-surface-3 text-ink-faint" aria-hidden>
           <UserIcon size={96} strokeWidth={1.5} />
         </div>
       )}
@@ -383,7 +383,7 @@ function CaptureCard({
             {typeof navigator !== 'undefined' && navigator.mediaDevices ? (
               <Button onClick={() => void openCamera()}>{t('openCamera')}</Button>
             ) : null}
-            <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-stone-300 bg-white px-4 text-sm font-medium">
+            <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-line bg-surface-2 px-4 text-sm font-medium">
               {t('pickPhoto')}
               <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => void onFile(e)} />
             </label>

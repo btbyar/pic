@@ -25,7 +25,7 @@ export function SiteHeader() {
       <Link
         href={href}
         className={`hidden rounded-lg px-3 py-2 text-sm font-medium sm:inline-flex ${
-          active ? 'bg-brand-50 text-brand-700' : 'text-stone-600 hover:text-stone-900'
+          active ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:text-ink'
         }`}
       >
         {label}
@@ -34,7 +34,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200/70 bg-paper/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
         <Link href="/" aria-label={t('home')}>
           <Logo />
@@ -46,7 +46,7 @@ export function SiteHeader() {
             href="/cart"
             aria-label={t('cartLabel', { count })}
             className={`relative inline-flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium ${
-              count ? 'bg-brand-600 text-white' : 'text-stone-600 hover:bg-stone-100'
+              count ? 'bg-brand-600 text-on-brand' : 'text-ink-soft hover:bg-surface-3'
             }`}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -65,28 +65,28 @@ export function SiteHeader() {
 export function SiteFooter() {
   const t = useTranslations('site');
   return (
-    <footer className="mt-16 border-t border-stone-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-stone-600 sm:flex-row sm:items-start sm:justify-between">
+    <footer className="mt-16 border-t border-line bg-surface-2">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-ink-soft sm:flex-row sm:items-start sm:justify-between">
         <div className="flex max-w-sm flex-col gap-2">
           <Logo />
           <p>{t('tagline')}</p>
         </div>
         <nav className="flex flex-col gap-2">
-          <Link href="/photographers" className="hover:text-stone-900">
+          <Link href="/photographers" className="hover:text-ink">
             {t('photographers')}
           </Link>
-          <Link href="/my/orders" className="hover:text-stone-900">
+          <Link href="/my/orders" className="hover:text-ink">
             {t('myOrders')}
           </Link>
-          <Link href="/login" className="hover:text-stone-900">
+          <Link href="/login" className="hover:text-ink">
             {t('forPhotographers')}
           </Link>
         </nav>
       </div>
-      <p className="flex items-center justify-center gap-4 pb-8 text-sm text-stone-400">
-        <span aria-hidden className="h-px w-12 bg-stone-200" />
+      <p className="flex items-center justify-center gap-4 pb-8 text-sm text-ink-faint">
+        <span aria-hidden className="h-px w-12 bg-surface-3" />
         {t('motto')}
-        <span aria-hidden className="h-px w-12 bg-stone-200" />
+        <span aria-hidden className="h-px w-12 bg-surface-3" />
       </p>
     </footer>
   );

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { CheckIcon, LinkIcon, ShareIcon } from './icons';
 
 const button =
-  'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 text-sm font-medium text-stone-700 transition hover:border-brand-300 hover:text-brand-700';
+  'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 text-sm font-medium text-ink transition hover:border-brand-300 hover:text-brand-700';
 
 /** Эвэнтийн холбоосыг хуваалцах: утсан дээр системийн цэс, бусад дээр хуулах ба Facebook */
 export function ShareEvent({ title }: { title: string }) {
@@ -16,7 +16,7 @@ export function ShareEvent({ title }: { title: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-stone-500">{t('label')}</span>
+      <span className="text-sm text-ink-soft">{t('label')}</span>
       {/* navigator.share зөвхөн утсан дээр байдаг — байхгүй бол доорх товчнууд ажиллана */}
       <button
         type="button"
@@ -34,7 +34,7 @@ export function ShareEvent({ title }: { title: string }) {
           setCopied(true);
         }}
       >
-        {copied ? <CheckIcon size={16} className="text-emerald-600" /> : <LinkIcon size={16} />}
+        {copied ? <CheckIcon size={16} className="text-brand-600" /> : <LinkIcon size={16} />}
         {copied ? t('copied') : t('copyLink')}
       </button>
       <a

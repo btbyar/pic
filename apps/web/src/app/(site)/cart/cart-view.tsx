@@ -21,13 +21,13 @@ export function CartView() {
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Link href="/my/orders" className="text-sm text-stone-600 underline underline-offset-4">
+        <Link href="/my/orders" className="text-sm text-ink-soft underline underline-offset-4">
           {t('myOrders')}
         </Link>
       </header>
       {events.length === 0 ? (
         <Card className="flex flex-col items-start gap-3">
-          <p className="text-stone-700">{t('empty')}</p>
+          <p className="text-ink">{t('empty')}</p>
           <ButtonLink href="/photographers">{t('browse')}</ButtonLink>
         </Card>
       ) : (
@@ -126,7 +126,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
     <Card className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">{event.title}</h2>
-        <Link href={`/events/${event.slug}${eventQuery}`} className="text-sm text-stone-600 underline underline-offset-4">
+        <Link href={`/events/${event.slug}${eventQuery}`} className="text-sm text-ink-soft underline underline-offset-4">
           {t('addMore')}
         </Link>
       </div>
@@ -136,12 +136,12 @@ function CartEventCard({ event }: { event: CartEvent }) {
       <ul className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
         {event.photos.map((photo) => (
           <li key={photo.id} className="relative">
-            <img src={photo.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-stone-200 object-cover" />
+            <img src={photo.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-surface-3 object-cover" />
             <button
               type="button"
               onClick={() => removeFromCart(event.slug, [photo.id])}
               aria-label={t('remove')}
-              className="absolute right-1 top-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/90 text-stone-900 shadow"
+              className="absolute right-1 top-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-surface-2/90 text-ink shadow"
             >
               <XIcon size={18} />
             </button>
@@ -149,15 +149,15 @@ function CartEventCard({ event }: { event: CartEvent }) {
         ))}
       </ul>
 
-      <div className="flex flex-col gap-1 border-t border-stone-200 pt-4">
-        <div className="flex justify-between text-sm text-stone-600">
+      <div className="flex flex-col gap-1 border-t border-line pt-4">
+        <div className="flex justify-between text-sm text-ink-soft">
           <span>{t('lineItems', { count: event.photos.length, price: formatMnt(event.pricePerPhoto) })}</span>
           {price ? (
             <span className={price.bundleApplied ? 'line-through' : ''}>{formatMnt(price.subtotal)}</span>
           ) : null}
         </div>
         {price?.bundleApplied ? (
-          <div className="flex justify-between text-sm font-medium text-emerald-700">
+          <div className="flex justify-between text-sm font-medium text-brand-700">
             <span>{t('bundleApplied')}</span>
             <span>−{formatMnt(price.subtotal - price.total)}</span>
           </div>
@@ -167,7 +167,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
           <span>{price ? formatMnt(price.total) : '…'}</span>
         </div>
         {blocker === 'no_search' && event.bundlePrice !== null ? (
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-ink-soft">
             {t('bundleHint', { price: formatMnt(event.bundlePrice) })}{' '}
             <Link href={`/events/${event.slug}/find${eventQuery}`} className="font-medium underline underline-offset-4">
               {t('findMine')}
@@ -187,7 +187,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
         <Button type="submit" disabled={busy || !price}>
           {busy ? t('creating') : price?.total === 0 ? t('getFree') : t('pay', { price: price ? formatMnt(price.total) : '' })}
         </Button>
-        <p className="text-xs text-stone-500">{t('terms')}</p>
+        <p className="text-xs text-ink-soft">{t('terms')}</p>
       </form>
     </Card>
   );

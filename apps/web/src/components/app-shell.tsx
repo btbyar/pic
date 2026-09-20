@@ -25,17 +25,17 @@ export async function AppShell({
 }) {
   const t = await getTranslations('common');
   return (
-    <div className="min-h-dvh bg-paper">
-      <header className="sticky top-0 z-40 border-b border-stone-200 bg-paper/90 backdrop-blur-md">
+    <div className="min-h-dvh bg-surface">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4">
           <div className="flex items-center gap-2.5">
             <Link href="/" aria-label={t('appName')}>
               <Logo />
             </Link>
-            <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">{area}</span>
+            <span className="rounded-full bg-surface-3 px-2.5 py-1 text-xs font-semibold text-ink-soft">{area}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden max-w-40 truncate text-sm text-stone-700 sm:inline">{name}</span>
+            <span className="hidden max-w-40 truncate text-sm text-ink sm:inline">{name}</span>
             <LogoutButton />
           </div>
         </div>

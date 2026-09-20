@@ -22,21 +22,21 @@ export default async function PhotographersPage({ searchParams }: { searchParams
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t('title')}</h1>
-        <p className="max-w-xl text-stone-600">{t('intro')}</p>
+        <p className="max-w-xl text-ink-soft">{t('intro')}</p>
         <form
           action="/photographers"
-          className="mt-3 flex w-full max-w-lg items-center gap-2 rounded-2xl bg-white p-2 shadow-lg shadow-stone-900/[0.05] ring-1 ring-stone-200"
+          className="mt-3 flex w-full max-w-lg items-center gap-2 rounded-xl bg-surface-2 p-2 ring-1 ring-line"
         >
-          <SearchIcon size={20} className="ml-2 shrink-0 text-stone-400" />
+          <SearchIcon size={20} className="ml-2 shrink-0 text-ink-faint" />
           <input
             name="q"
             type="search"
             defaultValue={q}
             placeholder={t('searchPlaceholder')}
             aria-label={t('searchPlaceholder')}
-            className="min-w-0 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-stone-400"
+            className="min-w-0 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-ink-faint"
           />
-          <button type="submit" className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white transition hover:bg-brand-700">
+          <button type="submit" className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-brand-600 px-5 text-sm font-semibold text-on-brand transition hover:bg-brand-700">
             {t('search')}
           </button>
         </form>
@@ -55,7 +55,7 @@ export default async function PhotographersPage({ searchParams }: { searchParams
       ) : null}
 
       {photographers.length === 0 && foundEvents.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-stone-300 py-16 text-center text-stone-500">
+        <p className="rounded-xl border border-dashed border-line py-16 text-center text-ink-soft">
           {q ? t('emptySearch', { q }) : t('empty')}
         </p>
       ) : photographers.length ? (

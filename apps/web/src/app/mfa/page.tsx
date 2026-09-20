@@ -58,7 +58,7 @@ export default function MfaVerifyPage() {
         </Button>
         <button
           type="button"
-          className="cursor-pointer text-sm text-stone-600 underline underline-offset-4"
+          className="cursor-pointer text-sm text-ink-soft underline underline-offset-4"
           onClick={() => {
             setUseRecovery(!useRecovery);
             setError(null);

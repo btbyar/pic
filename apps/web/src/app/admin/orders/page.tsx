@@ -41,7 +41,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             key={s ?? 'all'}
             href={tab(s as OrderStatus | undefined)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              s === status ? 'bg-stone-900 text-white' : 'border border-stone-300 bg-white text-stone-700'
+              s === status ? 'bg-surface-3 text-white' : 'border border-line bg-surface-2 text-ink'
             }`}
           >
             {s ? to(`status.${s}`) : t('orders.all')}
@@ -49,16 +49,16 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         ))}
       </nav>
       {orders.length === 0 ? (
-        <p className="py-16 text-center text-stone-500">{t('orders.empty')}</p>
+        <p className="py-16 text-center text-ink-soft">{t('orders.empty')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {orders.map((o) => (
             <li key={o.id}>
               <Link href={`/admin/orders/${o.id}`}>
-                <Card className="flex flex-col gap-1 hover:border-stone-400 sm:flex-row sm:items-center sm:justify-between">
+                <Card className="flex flex-col gap-1 hover:border-brand-300 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium">{o.eventTitleSnap}</span>
-                    <span className="text-sm text-stone-600">
+                    <span className="text-sm text-ink-soft">
                       {formatDate(o.createdAt)} · {t('orders.items', { count: o.itemCount })}
                       {o.contactEmail ? ` · ${o.contactEmail}` : ''}
                     </span>

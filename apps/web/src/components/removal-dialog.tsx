@@ -45,7 +45,7 @@ export function RemovalDialog({ photoId, onClose }: { photoId: string; onClose: 
         role="dialog"
         aria-modal="true"
         aria-labelledby="removal-title"
-        className="flex max-h-[90dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-2xl bg-white p-5 text-stone-900 sm:rounded-2xl"
+        className="flex max-h-[90dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-2xl bg-surface-2 p-5 text-ink sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="removal-title" className="text-lg font-semibold">
@@ -58,11 +58,11 @@ export function RemovalDialog({ photoId, onClose }: { photoId: string; onClose: 
           </>
         ) : (
           <form className="flex flex-col gap-4" onSubmit={submit}>
-            <p className="text-sm text-stone-600">{t('intro')}</p>
+            <p className="text-sm text-ink-soft">{t('intro')}</p>
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium text-stone-700">{t('reason')}</legend>
+              <legend className="mb-1 text-sm font-medium text-ink">{t('reason')}</legend>
               {REMOVAL_REASONS.map((r) => (
-                <label key={r} className="flex min-h-11 items-center gap-3 rounded-xl border border-stone-200 px-3">
+                <label key={r} className="flex min-h-11 items-center gap-3 rounded-xl border border-line px-3">
                   <input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} />
                   <span className="text-sm">{t(`reasons.${r}`)}</span>
                 </label>

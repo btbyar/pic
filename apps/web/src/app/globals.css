@@ -1,27 +1,47 @@
 @import "tailwindcss";
 
 /*
- * Брэнд: бүлээн шаргал улбар (gnb.mn-тэй төстэй мэдрэмж), гэхдээ цагаан текст уншигдахуйц гүн өнгө:
- * brand-600 цагаан дээр 4.8:1 (WCAG AA). Гол үйлдэл, идэвхтэй төлөвт л ашиглана — зургууд өөрсдөө өнгөтэй.
+ * Dark, зураг төвтэй тогтолцоо (2026-09-20). Зураг харах программууд (Lightroom, Photos) харанхуй байдаг
+ * шалтгаан: хүрээ нь бүдэг байх тусам зураг өөрөө тод харагдана. Интерфейс саарал, зураг л өнгөтэй.
+ *
+ * Брэнд өнгө нь камерын фокус тогтсоны ногоон: "чиний зураг олдлоо" гэсэн утга. Товчны текст хар
+ * (brand дээр цагаан текст 1.6:1 — уншигдахгүй), ногоон дээр хар 10.8:1.
+ * Шат урвуу: brand-700 нь brand-600-аас цайвар — харанхуй дээр hover/холбоос цайрч тодрох ёстой.
  */
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-montserrat), var(--font-inter), ui-sans-serif, sans-serif;
-  --color-paper: #fdfbf8;
-  --color-brand-50: #fdf3ec;
-  --color-brand-100: #fbe3d3;
-  --color-brand-200: #f6c5a6;
-  --color-brand-300: #f0a172;
-  --color-brand-400: #ea8048;
-  --color-brand-500: #e2672c;
-  --color-brand-600: #c74716;
-  --color-brand-700: #a93b0c;
-  --color-brand-800: #86300e;
-  --color-brand-900: #6c2a10;
+
+  /* Гадаргуу */
+  --color-surface: #0c0e12;
+  --color-surface-2: #14171d;
+  --color-surface-3: #1b1f27;
+  --color-line: #262b34;
+
+  /* Текст: 17.5:1, 8.2:1, 4.9:1 */
+  --color-ink: #f2f4f7;
+  --color-ink-soft: #a2a9b5;
+  --color-ink-faint: #767d8a;
+
+  /* Фокусын ногоон */
+  --color-brand-50: #0f2a1e;
+  --color-brand-100: #123d2a;
+  --color-brand-200: #17563a;
+  --color-brand-300: #1f7a52;
+  --color-brand-400: #29a86f;
+  --color-brand-500: #34c77f;
+  --color-brand-600: #3ddc84;
+  --color-brand-700: #6be7a2;
+  --color-brand-800: #9cf0c2;
+  --color-brand-900: #c9f7dd;
+  --color-on-brand: #06120c;
+
+  /* Цаас (хэвлэх хуудас) — харанхуй дэлгэцийн хувилбар хэвлэхэд хортой */
+  --color-paper: #ffffff;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -34,7 +54,14 @@ body {
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+  }
+
+  /* Харанхуй дээр маягтын хяналтууд системийн цайвар хувилбараар гарахгүй */
+  input,
+  textarea,
+  select {
+    color-scheme: dark;
   }
 }
 
@@ -54,4 +81,16 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
+}
+
+/* Хэвлэх: цаасан дээр харанхуй дэвсгэр хэвлэхгүй */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
 }

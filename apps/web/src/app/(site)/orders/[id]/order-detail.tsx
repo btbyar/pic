@@ -72,7 +72,7 @@ function OrderBody({ order, token, onChange }: { order: OrderView; token: string
     <>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{order.eventTitle}</h1>
-        <p className="text-stone-600">
+        <p className="text-ink-soft">
           {t('summary', { count: order.items.length, total: formatMnt(order.totalAmount) })}
           {order.bundleApplied ? ` · ${t('bundle')}` : ''}
         </p>
@@ -125,11 +125,11 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
   return (
     <Card className="flex flex-col items-center gap-4 text-center">
       <p className="text-lg font-semibold">{t('payTitle', { total: formatMnt(order.totalAmount) })}</p>
-      <p className="text-sm text-stone-600">{t('payHint')}</p>
+      <p className="text-sm text-ink-soft">{t('payHint')}</p>
       {qr ? (
-        <img src={qr} alt={t('qrAlt')} width={280} height={280} className="rounded-xl border border-stone-200" />
+        <img src={qr} alt={t('qrAlt')} width={280} height={280} className="rounded-xl border border-line" />
       ) : (
-        <div className="h-[280px] w-[280px] animate-pulse rounded-xl bg-stone-100" />
+        <div className="h-[280px] w-[280px] animate-pulse rounded-xl bg-surface-3" />
       )}
 
       {order.payment.deeplinks.length ? (
@@ -140,7 +140,7 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
               <li key={bank.link}>
                 <a
                   href={bank.link}
-                  className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 p-2 text-xs"
+                  className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-line p-2 text-xs"
                 >
                   <img src={bank.logo} alt="" width={36} height={36} className="rounded-lg" loading="lazy" />
                   <span className="line-clamp-2">{bank.description || bank.name}</span>
@@ -151,8 +151,8 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
         </div>
       ) : null}
 
-      <div className="flex items-center gap-2 text-sm text-stone-600" role="status">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" aria-hidden />
+      <div className="flex items-center gap-2 text-sm text-ink-soft" role="status">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-brand-600" aria-hidden />
         {t('waiting')}
         {leftSec !== null ? ` · ${t('timeLeft', { minutes: Math.floor(leftSec / 60), seconds: String(leftSec % 60).padStart(2, '0') })}` : ''}
       </div>
@@ -221,7 +221,7 @@ function Downloads({ order, token }: { order: OrderView; token: string }) {
       </Alert>
 
       <Card className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-stone-700">{order.emailOnFile ? t('keepLinkEmailed') : t('keepLink')}</p>
+        <p className="text-sm text-ink">{order.emailOnFile ? t('keepLinkEmailed') : t('keepLink')}</p>
         <Button variant="secondary" className="shrink-0" onClick={() => void copyLink()}>
           {copied ? t('copied') : t('copyLink')}
         </Button>
@@ -239,9 +239,9 @@ function Downloads({ order, token }: { order: OrderView; token: string }) {
         {order.items.map((item, i) => (
           <li key={item.id} className="flex flex-col gap-2">
             {item.thumbUrl ? (
-              <img src={item.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-stone-200 object-cover" />
+              <img src={item.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-surface-3 object-cover" />
             ) : (
-              <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-stone-100 p-2 text-center text-xs text-stone-500">
+              <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-surface-3 p-2 text-center text-xs text-ink-soft">
                 {item.refunded ? t('itemRefunded') : t('itemUnavailable')}
               </div>
             )}

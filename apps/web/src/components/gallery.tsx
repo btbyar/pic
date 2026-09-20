@@ -39,7 +39,7 @@ export function Gallery({
     setLoading(false);
   }
 
-  if (photos.length === 0) return <p className="py-10 text-center text-stone-500">{t('empty')}</p>;
+  if (photos.length === 0) return <p className="py-10 text-center text-ink-soft">{t('empty')}</p>;
 
   return (
     <>

@@ -33,7 +33,7 @@ export default async function PhotographerLayout({ children }: { children: React
             action: (
               <Link
                 href="/photographer/events/new"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
               >
                 <PlusIcon size={16} />
                 {t('photographer.newEvent')}

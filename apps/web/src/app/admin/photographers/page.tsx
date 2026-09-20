@@ -23,7 +23,7 @@ export default async function AdminPhotographersPage({ searchParams }: { searchP
             key={s}
             href={`/admin/photographers?status=${s}`}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              s === status ? 'bg-stone-900 text-white' : 'border border-stone-300 bg-white text-stone-700'
+              s === status ? 'bg-surface-3 text-white' : 'border border-line bg-surface-2 text-ink'
             }`}
           >
             {t(`status_${s}`)}
@@ -32,7 +32,7 @@ export default async function AdminPhotographersPage({ searchParams }: { searchP
       </nav>
 
       {photographers.length === 0 ? (
-        <p className="py-16 text-center text-stone-500">{t('empty')}</p>
+        <p className="py-16 text-center text-ink-soft">{t('empty')}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {photographers.map((p) => (
@@ -40,9 +40,9 @@ export default async function AdminPhotographersPage({ searchParams }: { searchP
               <Card className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-semibold">{p.displayName}</span>
-                  <span className="text-sm text-stone-600">{p.email}</span>
-                  {p.phone ? <span className="text-sm text-stone-600">{p.phone}</span> : null}
-                  <span className="text-sm text-stone-500">
+                  <span className="text-sm text-ink-soft">{p.email}</span>
+                  {p.phone ? <span className="text-sm text-ink-soft">{p.phone}</span> : null}
+                  <span className="text-sm text-ink-soft">
                     {t('registeredAt')}: {formatDate(p.createdAt)}
                     {p.revenueSharePct !== null ? ` · ${t('share', { pct: p.revenueSharePct })}` : ''}
                   </span>

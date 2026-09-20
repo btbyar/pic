@@ -29,7 +29,7 @@ export function AppNav({ items, orientation = 'horizontal' }: { items: NavItem[]
                 } ${
                   active
                     ? `bg-brand-50 text-brand-700 ${vertical ? 'border-brand-600' : ''}`
-                    : `text-stone-600 hover:bg-stone-100 hover:text-stone-900 ${vertical ? 'border-transparent' : ''}`
+                    : `text-ink-soft hover:bg-surface-3 hover:text-ink ${vertical ? 'border-transparent' : ''}`
                 }`}
               >
                 {item.label}

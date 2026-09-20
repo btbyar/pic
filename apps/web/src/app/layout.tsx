@@ -21,14 +21,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#c74716',
+  themeColor: '#0c0e12',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   return (
     <html lang={locale} className={`${inter.variable} ${montserrat.variable}`}>
-      <body className="min-h-dvh bg-paper text-stone-900">
+      <body className="min-h-dvh bg-surface text-ink">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
