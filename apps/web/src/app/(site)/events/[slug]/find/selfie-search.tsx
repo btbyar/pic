@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { FocusFrame } from '@/components/focus-frame';
 import { type GridCart, PhotoGrid } from '@/components/photo-grid';
 import { Stepper } from '@/components/stepper';
 import { Alert, Button, Card } from '@/components/ui';
@@ -222,7 +223,9 @@ export function SelfieSearch({ event, accessToken }: { event: PublicEvent; acces
           <section className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{t('mine', { count: results.mine.length })}</h2>
             {results.mine.length ? (
-              <PhotoGrid photos={results.mine} timezone={event.timezone} cart={gridCart} />
+              <FocusFrame lock className="p-1">
+                <PhotoGrid photos={results.mine} timezone={event.timezone} cart={gridCart} />
+              </FocusFrame>
             ) : (
               <Card className="flex flex-col gap-2 text-sm text-ink">
                 <p className="font-medium">{t('noneFound')}</p>
@@ -273,7 +276,7 @@ function Searching() {
   const t = useTranslations('search');
   return (
     <div className="flex items-center gap-3" role="status">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-brand-600" aria-hidden />
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-ink" aria-hidden />
       <p>{t('searching')}</p>
     </div>
   );

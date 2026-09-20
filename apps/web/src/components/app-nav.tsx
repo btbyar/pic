@@ -28,7 +28,7 @@ export function AppNav({ items, orientation = 'horizontal' }: { items: NavItem[]
                   vertical ? 'border-l-2' : ''
                 } ${
                   active
-                    ? `bg-brand-50 text-brand-700 ${vertical ? 'border-brand-600' : ''}`
+                    ? `bg-surface-3 text-ink ${vertical ? 'border-ink' : ''}`
                     : `text-ink-soft hover:bg-surface-3 hover:text-ink ${vertical ? 'border-transparent' : ''}`
                 }`}
               >

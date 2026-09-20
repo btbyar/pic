@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRightIcon, ImagesIcon, PlusIcon } from '@/components/icons';
-import { Alert } from '@/components/ui';
+import { ImagesIcon, PlusIcon } from '@/components/icons';
+import { Alert, ButtonLink } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange } from '@/lib/datetime';
@@ -26,38 +26,31 @@ export default async function MyEventsPage() {
           ) : null}
         </div>
         {/* Өргөн дэлгэцэд энэ товч зүүн цэсэнд байгаа */}
-        <Link
-          href="/photographer/events/new"
-          className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-700 lg:hidden"
-        >
+        <ButtonLink href="/photographer/events/new" className="gap-2 lg:hidden">
           <PlusIcon size={16} />
           {t('photographer.newEvent')}
-        </Link>
+        </ButtonLink>
       </div>
 
       {profile && !profile.slugSaved ? (
         <Alert kind="info">
           {t('photographer.publishProfileHint')}{' '}
-          <Link href="/photographer/profile" className="inline-flex items-center gap-1 font-medium underline underline-offset-4">
+          <Link href="/photographer/profile" className="font-medium underline underline-offset-4">
             {t('photographer.publishProfile')}
-            <ArrowRightIcon size={14} />
           </Link>
         </Alert>
       ) : null}
 
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-surface-2 px-4 py-16 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+          <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-2 text-ink-soft">
             <ImagesIcon size={28} />
           </span>
           <p className="text-ink-soft">{t('photographer.noEvents')}</p>
-          <Link
-            href="/photographer/events/new"
-            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
-          >
+          <ButtonLink href="/photographer/events/new" className="gap-2">
             <PlusIcon size={16} />
             {t('photographer.newEvent')}
-          </Link>
+          </ButtonLink>
         </div>
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-xl bg-surface-2">

@@ -2,8 +2,8 @@ import Link from 'next/link';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const buttonStyles = {
-  // Ногоон дээр цагаан текст уншигдахгүй (1.6:1) — хар текст 10.8:1
-  primary: 'bg-brand-600 text-on-brand hover:bg-brand-700 disabled:bg-surface-3 disabled:text-ink-faint',
+  // Цагаан товч: ногоон нь зөвхөн "олдлоо/сонгогдлоо" гэсэн дохиод үлдэнэ
+  primary: 'bg-ink text-surface hover:bg-white disabled:bg-surface-3 disabled:text-ink-faint',
   dark: 'bg-surface-3 text-ink hover:bg-line disabled:text-ink-faint',
   secondary: 'border border-line bg-surface-2 text-ink hover:bg-surface-3 disabled:text-ink-faint',
   danger: 'bg-red-500 text-white hover:bg-red-400 disabled:bg-surface-3 disabled:text-ink-faint',
@@ -22,9 +22,19 @@ export function Button({
   return <button className={`${base} ${buttonStyles[variant]} ${className}`} {...props} />;
 }
 
-export function ButtonLink({ href, variant = 'primary', children }: { href: string; variant?: Variant; children: ReactNode }) {
+export function ButtonLink({
+  href,
+  variant = 'primary',
+  className = '',
+  children,
+}: {
+  href: string;
+  variant?: Variant;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <Link href={href} className={`${base} ${buttonStyles[variant]}`}>
+    <Link href={href} className={`${base} ${buttonStyles[variant]} ${className}`}>
       {children}
     </Link>
   );

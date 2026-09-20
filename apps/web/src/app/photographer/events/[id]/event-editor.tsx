@@ -56,7 +56,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
           {event.visibility !== 'HIDDEN' || event.isOwner ? (
             <Link
               href={`/events/${event.slug}`}
-              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-ink-soft underline underline-offset-4 hover:text-brand-700"
+              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-ink-soft underline underline-offset-4 hover:text-ink"
               target="_blank"
             >
               {t('photographer.viewPublic')}

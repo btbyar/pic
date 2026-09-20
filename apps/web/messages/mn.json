@@ -148,7 +148,7 @@
     "profile": "Профайл",
     "publishProfileHint": "Оролцогчид эвэнтүүдийг зурагчны профайлаас олдог. Профайлаа нийтлээгүй бол таны нийтийн эвэнт зөвхөн шууд холбоосоор нээгдэнэ.",
     "publishProfile": "Профайл нийтлэх",
-    "eventsSummary": "{events, plural, other {# эвэнт}} · {photos, plural, =0 {зураг алга} other {# зураг}}"
+    "eventsSummary": "{events, plural, other {# эвэнт}}, {photos, plural, =0 {зураг алга} other {# зураг}}"
   },
   "eventForm": {
     "title": "Эвэнтийн нэр",

@@ -157,7 +157,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
           ) : null}
         </div>
         {price?.bundleApplied ? (
-          <div className="flex justify-between text-sm font-medium text-brand-700">
+          <div className="flex justify-between text-sm font-medium text-ink">
             <span>{t('bundleApplied')}</span>
             <span>−{formatMnt(price.subtotal - price.total)}</span>
           </div>

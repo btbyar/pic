@@ -1,23 +1,21 @@
 import { SearchIcon } from '@/components/icons';
-import Link from 'next/link';
+import { ButtonLink } from '@/components/ui';
 import { getTranslations } from 'next-intl/server';
 
 export default async function NotFound() {
   const t = await getTranslations('notFound');
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-5 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+      <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2 text-ink-soft">
         <SearchIcon size={32} />
       </span>
       <h1 className="text-2xl font-bold">{t('title')}</h1>
       <p className="text-ink-soft">{t('body')}</p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Link href="/photographers" className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-on-brand hover:bg-brand-700">
-          {t('photographers')}
-        </Link>
-        <Link href="/" className="inline-flex min-h-11 items-center rounded-xl border border-line px-5 text-sm font-medium">
+        <ButtonLink href="/photographers">{t('photographers')}</ButtonLink>
+        <ButtonLink href="/" variant="secondary">
           {t('home')}
-        </Link>
+        </ButtonLink>
       </div>
     </main>
   );

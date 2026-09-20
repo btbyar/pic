@@ -55,7 +55,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
           {orders.map((o) => (
             <li key={o.id}>
               <Link href={`/admin/orders/${o.id}`}>
-                <Card className="flex flex-col gap-1 hover:border-brand-300 sm:flex-row sm:items-center sm:justify-between">
+                <Card className="flex flex-col gap-1  sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium">{o.eventTitleSnap}</span>
                     <span className="text-sm text-ink-soft">

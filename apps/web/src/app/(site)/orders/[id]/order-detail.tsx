@@ -152,7 +152,7 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
       ) : null}
 
       <div className="flex items-center gap-2 text-sm text-ink-soft" role="status">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-brand-600" aria-hidden />
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-ink" aria-hidden />
         {t('waiting')}
         {leftSec !== null ? ` · ${t('timeLeft', { minutes: Math.floor(leftSec / 60), seconds: String(leftSec % 60).padStart(2, '0') })}` : ''}
       </div>

@@ -15,7 +15,7 @@ export function PhotographerCard({ p }: { p: Card }) {
             alt=""
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:opacity-90"
           />
         ) : (
           <CameraIcon size={24} className="absolute inset-0 m-auto text-ink-faint" />
@@ -24,7 +24,7 @@ export function PhotographerCard({ p }: { p: Card }) {
       <div className="flex items-center gap-3">
         <Avatar url={p.avatarUrl} name={p.displayName} size={40} />
         <span className="flex min-w-0 flex-col">
-          <span className="truncate font-display font-semibold group-hover:text-brand-700">{p.displayName}</span>
+          <span className="truncate font-display font-semibold group-hover:text-ink">{p.displayName}</span>
           {p.city ? <span className="truncate text-sm text-ink-soft">{p.city}</span> : null}
         </span>
       </div>

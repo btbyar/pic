@@ -25,7 +25,7 @@ export function SiteHeader() {
       <Link
         href={href}
         className={`hidden rounded-lg px-3 py-2 text-sm font-medium sm:inline-flex ${
-          active ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:text-ink'
+          active ? 'bg-surface-3 text-ink' : 'text-ink-soft hover:text-ink'
         }`}
       >
         {label}
@@ -46,7 +46,7 @@ export function SiteHeader() {
             href="/cart"
             aria-label={t('cartLabel', { count })}
             className={`relative inline-flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium ${
-              count ? 'bg-brand-600 text-on-brand' : 'text-ink-soft hover:bg-surface-3'
+              count ? 'bg-ink text-surface' : 'text-ink-soft hover:bg-surface-3'
             }`}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

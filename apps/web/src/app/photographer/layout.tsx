@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { PlusIcon } from '@/components/icons';
-import { Alert } from '@/components/ui';
+import { Alert, ButtonLink } from '@/components/ui';
 import { getMe } from '@/lib/api-server';
 import { homeFor } from '@/lib/routes';
 
@@ -31,13 +31,10 @@ export default async function PhotographerLayout({ children }: { children: React
       {...(approved
         ? {
             action: (
-              <Link
-                href="/photographer/events/new"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
-              >
+              <ButtonLink href="/photographer/events/new" className="gap-2">
                 <PlusIcon size={16} />
                 {t('photographer.newEvent')}
-              </Link>
+              </ButtonLink>
             ),
           }
         : {})}

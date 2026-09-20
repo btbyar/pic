@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { FocusFrame } from '@/components/focus-frame';
-import { ArrowRightIcon, DownloadIcon, LockIcon, ScanFaceIcon, SearchIcon } from '@/components/icons';
+import { DownloadIcon, LockIcon, ScanFaceIcon, SearchIcon } from '@/components/icons';
 import { PhotographerCard } from '@/components/photographer-card';
 import { serverApi } from '@/lib/api-server';
 import type { HomeStats, PhotographerCard as Card } from '@/lib/types';
@@ -43,16 +43,15 @@ export default async function HomePage() {
             />
             <button
               type="submit"
-              className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-brand-600 px-5 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
+              className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-ink px-5 text-sm font-semibold text-surface transition hover:bg-white"
             >
               {t('searchButton')}
             </button>
           </form>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            <Link href="/photographers" className="inline-flex items-center gap-1.5 font-medium text-brand-700 hover:underline">
+            <Link href="/photographers" className="font-medium text-ink hover:underline">
               {t('allPhotographers')}
-              <ArrowRightIcon size={14} />
             </Link>
             <Link href="/register" className="text-ink-soft hover:text-ink">
               {t('imPhotographer')}
@@ -117,9 +116,8 @@ export default async function HomePage() {
               <p className="text-ink-soft">{t('photographersIntro')}</p>
             </div>
             {all.length > top.length ? (
-              <Link href="/photographers" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline">
+              <Link href="/photographers" className="text-sm font-medium text-ink hover:underline">
                 {t('seeAll', { count: all.length })}
-                <ArrowRightIcon size={14} />
               </Link>
             ) : null}
           </div>
