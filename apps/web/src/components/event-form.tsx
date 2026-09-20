@@ -4,7 +4,7 @@ import { EVENT_CATEGORIES, EVENT_VISIBILITIES, type EventCategory, type EventVis
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
 import { type ApiError, fieldErrors, useErrorMessage } from '@/lib/api-client';
-import { isoToLocalInput, localInputToIso } from '@/lib/datetime';
+import { describeLocalInput, isoToLocalInput, localInputToIso } from '@/lib/datetime';
 import type { MyEvent } from '@/lib/types';
 import { Alert, Button, Field, Input, Textarea } from './ui';
 
@@ -66,6 +66,8 @@ export function EventForm({
   const tcat = useTranslations('categories');
   const errorMessage = useErrorMessage();
   const [error, setError] = useState<ApiError | null>(null);
+  const [startsAt, setStartsAt] = useState(initial ? isoToLocalInput(initial.startsAt, initial.timezone) : '');
+  const [endsAt, setEndsAt] = useState(initial ? isoToLocalInput(initial.endsAt, initial.timezone) : '');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const invalid = fieldErrors(error);
@@ -108,23 +110,25 @@ export function EventForm({
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('startsAt')} htmlFor="startsAt" error={err('startsAt')}>
+          <Field label={t('startsAt')} htmlFor="startsAt" error={err('startsAt')} hint={describeLocalInput(startsAt)}>
             <Input
               id="startsAt"
               name="startsAt"
               type="datetime-local"
               required
-              defaultValue={initial ? isoToLocalInput(initial.startsAt, initial.timezone) : undefined}
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
               invalid={invalid.has('startsAt')}
             />
           </Field>
-          <Field label={t('endsAt')} htmlFor="endsAt" error={err('endsAt')} hint={t('timezoneNote')}>
+          <Field label={t('endsAt')} htmlFor="endsAt" error={err('endsAt')} hint={describeLocalInput(endsAt) || t('timezoneNote')}>
             <Input
               id="endsAt"
               name="endsAt"
               type="datetime-local"
               required
-              defaultValue={initial ? isoToLocalInput(initial.endsAt, initial.timezone) : undefined}
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
               invalid={invalid.has('endsAt')}
             />
           </Field>

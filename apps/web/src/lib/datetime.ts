@@ -24,6 +24,17 @@ export function isoToLocalInput(iso: string, timeZone = DEFAULT_TIMEZONE): strin
   return `${y}-${m}-${d}T${hh}:${mm}`;
 }
 
+/**
+ * "2026-09-13T08:00" → "2026 оны 9 сарын 13, 08:00". Браузер datetime-local-ийг системийн хэлээр
+ * (ихэвчлэн mm/dd/yyyy) харуулдаг тул сар, өдрийг андуурахаас сэргийлж давтан харуулна.
+ */
+export function describeLocalInput(value: string): string {
+  const m = /^(d{4})-(d{2})-(d{2})T(d{2}):(d{2})/.exec(value);
+  if (!m) return '';
+  const [, y, mo, dd, hh, mi] = m;
+  return `${y} оны ${Number(mo)} сарын ${Number(dd)}, ${hh}:${mi}`;
+}
+
 /** `<input type="datetime-local">` утга → offset-тэй ISO (API заавал offset шаарддаг) */
 export function localInputToIso(value: string): string {
   return `${value.length === 16 ? `${value}:00` : value}${UB_OFFSET}`;
