@@ -54,7 +54,7 @@ export class PhotoPurgeService {
 
   private async deleteObjects(keys: PhotoStorageKeys) {
     const jobs: Promise<void>[] = [this.storage.delete('originals', keys.original)];
-    for (const key of [keys.thumb, keys.preview]) {
+    for (const key of [keys.thumb, keys.preview, keys.cover]) {
       if (key) jobs.push(this.storage.delete('public', key));
     }
     await Promise.all(jobs);

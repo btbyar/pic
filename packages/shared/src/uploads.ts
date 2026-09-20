@@ -52,8 +52,11 @@ export function originalStorageKey(eventId: string, photoId: string, contentType
   return `events/${eventId}/originals/${photoId}.${EXTENSIONS[contentType]}`;
 }
 
-/** pic-public доторх watermark-тай preview ба жижиг thumb (галерей). URL нь таамаглахад хэцүү photoId-гаас хамаарна. */
-export function derivativeStorageKey(eventId: string, photoId: string, kind: 'thumb' | 'preview'): string {
+/**
+ * pic-public доторх хувилбарууд. URL нь таамаглахад хэцүү photoId-гаас хамаарна.
+ * thumb — жижиг (галерей), preview — watermark-тай, cover — эвэнтийн нүүрний том зураг (watermark-гүй).
+ */
+export function derivativeStorageKey(eventId: string, photoId: string, kind: 'thumb' | 'preview' | 'cover'): string {
   return `events/${eventId}/${kind}/${photoId}.webp`;
 }
 
@@ -61,6 +64,8 @@ export interface PhotoStorageKeys {
   original: string;
   thumb?: string;
   preview?: string;
+  /** Зөвхөн эвэнтийн cover зурагт — watermark-гүй тул бусад зурагт үүсгэхгүй */
+  cover?: string;
 }
 
 // ---------------------------------------------------------------- queue

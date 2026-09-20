@@ -141,7 +141,7 @@ function CartEventCard({ event }: { event: CartEvent }) {
               type="button"
               onClick={() => removeFromCart(event.slug, [photo.id])}
               aria-label={t('remove')}
-              className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-stone-900 shadow"
+              className="absolute right-1 top-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/90 text-stone-900 shadow"
             >
               <XIcon size={18} />
             </button>

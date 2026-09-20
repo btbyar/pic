@@ -10,6 +10,7 @@ const photosQuerySchema = z.object({
 });
 
 const slugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
+const searchQuerySchema = z.object({ q: z.string().trim().min(2).max(100) });
 
 /**
  * Нийтийн эвэнтийн нэгдсэн жагсаалт зориуд байхгүй (2026-09-18, хэрэглэгчийн шийдвэр): оролцогч эвэнтээ
@@ -19,6 +20,12 @@ const slugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
 @Controller('events')
 export class PublicEventsController {
   constructor(private readonly events: EventsService) {}
+
+  /** Эвэнтийн нэрээр хайх. `:slug`-аас өмнө байх ёстой (эс тэгвээс "search" нь slug болно). */
+  @Get('search')
+  search(@Query(new ZodPipe(searchQuerySchema)) query: z.output<typeof searchQuerySchema>) {
+    return this.events.searchPublic(query.q);
+  }
 
   /** `?t=` — нууц (UNLISTED) эвэнтийн холбоосны токен */
   @Get(':slug')

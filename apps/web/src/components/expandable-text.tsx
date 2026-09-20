@@ -19,7 +19,7 @@ export function ExpandableText({ text, more, less, className = '' }: { text: str
         {text}
       </p>
       {clamped || open ? (
-        <button type="button" onClick={() => setOpen((v) => !v)} className="text-sm font-semibold text-brand-700 hover:underline">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="cursor-pointer text-sm font-semibold text-brand-700 hover:underline">
           {open ? less : more}
         </button>
       ) : null}

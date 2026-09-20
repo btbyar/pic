@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLinkIcon } from '@/components/icons';
+import { ExternalLinkIcon, QrIcon } from '@/components/icons';
 import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -35,54 +35,75 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
     <>
       <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{event.title}</h1>
-          <VisibilityBadge visibility={event.visibility} />
+      {/* Эвэнтийн толгой: зураг, нэр, төлөв, гол үйлдэл */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-4 sm:flex-row sm:items-center">
+        <span className="h-24 w-full shrink-0 overflow-hidden rounded-xl bg-stone-100 sm:h-20 sm:w-28">
+          {event.coverUrl ? <img src={event.coverUrl} alt="" className="h-full w-full object-cover" /> : null}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold">{event.title}</h1>
+            <VisibilityBadge visibility={event.visibility} />
+          </div>
+          <p className="text-sm text-stone-500">
+            {t('common.photos', { count: event.photoCount })}
+            {' · '}
+            {t('eventEditor.retention', { date: formatDate(event.expiresAt, event.timezone), days: event.retentionDays })}
+          </p>
         </div>
-        {event.visibility !== 'HIDDEN' || event.isOwner ? (
-          <Link href={`/events/${event.slug}`} className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4" target="_blank">
-            {t('photographer.viewPublic')}
-            <ExternalLinkIcon size={14} />
-          </Link>
-        ) : null}
+        <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+          <ButtonLink href={`/photographer/events/${event.id}/upload`}>{t('photographer.uploadPhotos')}</ButtonLink>
+          {event.visibility !== 'HIDDEN' || event.isOwner ? (
+            <Link
+              href={`/events/${event.slug}`}
+              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-stone-600 underline underline-offset-4 hover:text-brand-700"
+              target="_blank"
+            >
+              {t('photographer.viewPublic')}
+              <ExternalLinkIcon size={14} />
+            </Link>
+          ) : null}
+        </div>
       </div>
 
-      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">{t('photographer.photos')}</h2>
-          <p className="text-sm text-stone-600">{t('common.photos', { count: event.photoCount })}</p>
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <Card className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold">{t('eventEditor.details')}</h2>
+          <EventForm
+            key={event.id}
+            initial={event}
+            disabled={!event.isOwner}
+            submitLabel={t('common.save')}
+            busyLabel={t('common.saving')}
+            onSubmit={async (values) => {
+              const res = await api<MyEventDetail>(`/photographer/events/${event.id}`, { method: 'PATCH', body: values });
+              if (!res.ok) return res.error;
+              apply(res.data);
+              return null;
+            }}
+          />
+        </Card>
+
+        <div className="flex flex-col gap-5">
+          <Card className="flex flex-col gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <QrIcon size={18} className="text-brand-700" />
+              {t('eventEditor.poster')}
+            </h2>
+            <p className="text-sm text-stone-600">{t('eventEditor.posterBody')}</p>
+            <ButtonLink href={`/photographer/events/${event.id}/poster`} variant="secondary">
+              {t('poster.print')}
+            </ButtonLink>
+          </Card>
+
+          {event.isOwner && event.visibility === 'UNLISTED' ? (
+            <AccessLinkCard eventId={event.id} link={accessLink} onRotated={setAccessLink} />
+          ) : null}
+          <PhotographersCard event={event} onChange={apply} />
+          <ClockOffsetCard event={event} onChange={apply} />
+          {event.isOwner ? <DeleteCard eventId={event.id} /> : null}
         </div>
-        <ButtonLink href={`/photographer/events/${event.id}/upload`}>{t('photographer.uploadPhotos')}</ButtonLink>
-      </Card>
-
-      <Card className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">{t('eventEditor.details')}</h2>
-        <EventForm
-          key={event.id}
-          initial={event}
-          disabled={!event.isOwner}
-          submitLabel={t('common.save')}
-          busyLabel={t('common.saving')}
-          onSubmit={async (values) => {
-            const res = await api<MyEventDetail>(`/photographer/events/${event.id}`, { method: 'PATCH', body: values });
-            if (!res.ok) return res.error;
-            apply(res.data);
-            return null;
-          }}
-        />
-        <p className="text-sm text-stone-500">
-          {t('eventEditor.retention', { date: formatDate(event.expiresAt, event.timezone), days: event.retentionDays })}
-        </p>
-      </Card>
-
-      {event.isOwner && event.visibility === 'UNLISTED' ? (
-        <AccessLinkCard eventId={event.id} link={accessLink} onRotated={setAccessLink} />
-      ) : null}
-
-      <PhotographersCard event={event} onChange={apply} />
-      <ClockOffsetCard event={event} onChange={apply} />
-      {event.isOwner ? <DeleteCard eventId={event.id} /> : null}
+      </div>
     </>
   );
 }

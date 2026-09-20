@@ -100,7 +100,9 @@ describe('photo ingest', () => {
     expect([preview.width, preview.height]).toEqual([1000, 667]);
 
     const page = await anonymous(ctx).get(`/events/${event.slug}`).expect(200);
-    expect(page.body).toMatchObject({ photoCount: 1, coverUrl: storage.publicUrl(keys.thumb!), coverPreviewUrl: storage.publicUrl(keys.preview!) });
+    // Cover-ийн том зураг нь watermark-гүй тусдаа хувилбар (preview биш)
+    expect(page.body).toMatchObject({ photoCount: 1, coverUrl: storage.publicUrl(keys.thumb!), coverLargeUrl: storage.publicUrl(keys.cover!) });
+    expect(keys.cover).toContain(`/cover/${photoId}.webp`);
     const gallery = await anonymous(ctx).get(`/events/${event.slug}/photos`).expect(200);
     expect(gallery.body.items).toEqual([
       {

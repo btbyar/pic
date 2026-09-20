@@ -59,7 +59,7 @@ export default async function HomePage() {
               aria-label={t('searchPlaceholder')}
               className="min-w-0 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-stone-400"
             />
-            <button type="submit" className="min-h-11 shrink-0 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white transition hover:bg-brand-700">
+            <button type="submit" className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white transition hover:bg-brand-700">
               {t('searchButton')}
             </button>
           </form>

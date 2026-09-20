@@ -1,8 +1,7 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
-import { AppHeader } from '@/components/app-header';
+import { AppShell } from '@/components/app-shell';
 import { getMe } from '@/lib/api-server';
 import { homeFor } from '@/lib/routes';
 
@@ -14,21 +13,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   const t = await getTranslations('admin');
   return (
-    <div className="min-h-dvh bg-stone-50">
-      <AppHeader
-        area={t('area')}
-        name={me.displayName}
-        nav={
-          <nav className="flex flex-wrap gap-4 text-sm font-medium">
-            <Link href="/admin">{t('nav_overview')}</Link>
-            <Link href="/admin/removals">{t('nav_removals')}</Link>
-            <Link href="/admin/photographers">{t('photographers')}</Link>
-            <Link href="/admin/orders">{t('nav_orders')}</Link>
-            <Link href="/admin/payouts">{t('nav_payouts')}</Link>
-          </nav>
-        }
-      />
-      <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6">{children}</main>
-    </div>
+    <AppShell
+      area={t('area')}
+      name={me.displayName}
+      nav={[
+        { href: '/admin', label: t('nav_overview'), exact: true },
+        { href: '/admin/removals', label: t('nav_removals') },
+        { href: '/admin/photographers', label: t('photographers') },
+        { href: '/admin/orders', label: t('nav_orders') },
+        { href: '/admin/payouts', label: t('nav_payouts') },
+      ]}
+    >
+      {children}
+    </AppShell>
   );
 }

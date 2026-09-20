@@ -7,6 +7,8 @@ sharp.cache(false);
 
 export const THUMB_MAX_PX = 400;
 export const PREVIEW_MAX_PX = 1000;
+/** Эвэнтийн нүүрний зураг (hero, баннер) — өргөн дэлгэцэд хүрэлцэхүйц */
+export const COVER_MAX_PX = 1600;
 const SUPPORTED_FORMATS = new Set(['jpeg', 'png', 'webp']);
 
 /** Дахин оролдоод засагдахгүй алдаа (эвдэрсэн файл, дэмжигдээгүй формат) */
@@ -90,6 +92,23 @@ export async function renderDerivatives(original: Buffer): Promise<Derivatives> 
       throw new InvalidImageError('unreadable_image');
     }
     throw err;
+  }
+}
+
+/**
+ * Эвэнтийн cover зураг: watermark-гүй, том хэмжээтэй. Зөвхөн зурагчны сонгосон нэг зурагт үүсгэнэ —
+ * нүүр хуудас, профайлын баннер дээр бичигтэй зураг муухай харагддаг.
+ */
+export async function renderCover(original: Buffer): Promise<RenderedImage> {
+  try {
+    const out = await sharp(original, { failOn: 'truncated' })
+      .rotate()
+      .resize(COVER_MAX_PX, COVER_MAX_PX, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 78, effort: 4 })
+      .toBuffer({ resolveWithObject: true });
+    return { buffer: out.data, width: out.info.width, height: out.info.height };
+  } catch {
+    throw new InvalidImageError('unreadable_image');
   }
 }
 

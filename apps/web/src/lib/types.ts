@@ -36,8 +36,8 @@ interface EventBase {
   faceSearchEnabled: boolean;
   /** 400px thumb — карт */
   coverUrl: string | null;
-  /** 1000px watermark-тай preview — том hero */
-  coverPreviewUrl: string | null;
+  /** Watermark-гүй том зураг (hero, баннер) */
+  coverLargeUrl: string | null;
   photoCount: number;
 }
 

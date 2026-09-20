@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Gallery } from '@/components/gallery';
 import { ArrowLeftIcon, ArrowRightIcon, CalendarIcon, CameraIcon, ImagesIcon, LockIcon, PinIcon, ScanFaceIcon, TagIcon } from '@/components/icons';
+import { ShareEvent } from '@/components/share-event';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange, formatMnt } from '@/lib/datetime';
 import type { PublicEvent, PublicPhotoPage } from '@/lib/types';
@@ -28,7 +29,7 @@ export default async function EventPage({
   const owner = event.photographers?.find((p) => p.slug);
   const backHref = owner ? `/photographers/${owner.slug}` : '/photographers';
   const backLabel = owner ? owner.name : t('photographers.title');
-  const heroImage = event.coverPreviewUrl ?? event.coverUrl;
+  const heroImage = event.coverLargeUrl ?? event.coverUrl;
   const chip = 'inline-flex items-center gap-1.5 rounded-full bg-black/35 px-3 py-1 text-sm text-white backdrop-blur-md';
 
   return (
@@ -130,6 +131,8 @@ export default async function EventPage({
       </div>
 
       {event.description ? <p className="max-w-3xl whitespace-pre-line text-stone-700">{event.description}</p> : null}
+
+      <ShareEvent title={event.title} />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-xl font-bold">{t('gallery.title')}</h2>

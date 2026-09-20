@@ -10,6 +10,15 @@ export default async function EarningsPage() {
   const { data } = await serverApi<Earnings>('/photographer/earnings');
   if (!data) return null;
 
+  const closed = data.months.filter((m) => m.period !== data.currentPeriod);
+  const current = data.months.find((m) => m.period === data.currentPeriod);
+  const summary = [
+    // Хүлээгдэж буй: сар нь хаагдсан, гэхдээ хараахан шилжүүлээгүй
+    { key: 'awaiting', value: closed.reduce((sum, m) => sum + (m.payout?.status === 'PAID' ? 0 : m.payable), 0) },
+    { key: 'thisMonth', value: current?.payable ?? 0 },
+    { key: 'paidTotal', value: data.months.reduce((sum, m) => sum + (m.payout?.status === 'PAID' ? m.payout.netAmount : 0), 0) },
+  ] as const;
+
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -18,6 +27,15 @@ export default async function EarningsPage() {
           {data.revenueSharePct !== null ? t('share', { pct: data.revenueSharePct }) : ''} {t('intro')}
         </p>
       </div>
+
+      <dl className="grid gap-3 sm:grid-cols-3">
+        {summary.map(({ key, value }) => (
+          <div key={key} className="flex flex-col gap-1 rounded-2xl border border-stone-200 bg-white p-4">
+            <dt className="text-sm text-stone-500">{t(`summary.${key}`)}</dt>
+            <dd className="font-display text-2xl font-bold tabular-nums">{formatMnt(value)}</dd>
+          </div>
+        ))}
+      </dl>
 
       <PayoutAccountForm account={data.account} />
 

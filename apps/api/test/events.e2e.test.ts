@@ -106,6 +106,22 @@ describe('events', () => {
     await anonymous(ctx).get('/events').expect(404);
   });
 
+  it('finds public events by name but not hidden ones', async () => {
+    const found = await anonymous(ctx).get('/events/search').query({ q: `Туул гүйлт ${ctx.run}` }).expect(200);
+    expect(found.body).toContainEqual(
+      expect.objectContaining({ slug, photographers: [expect.objectContaining({ name: expect.any(String) })] }),
+    );
+
+    // Нуусан эвэнт хайлтад гарахгүй
+    const hidden = await owner.agent.post('/photographer/events').send({ ...baseEvent(), title: `Нууц наадам ${ctx.run}` }).expect(201);
+    const none = await anonymous(ctx).get('/events/search').query({ q: `Нууц наадам ${ctx.run}` }).expect(200);
+    expect(none.body).toEqual([]);
+    await owner.agent.delete(`/photographer/events/${hidden.body.id}`).expect(204);
+
+    // Хэт богино хайлт (бүх эвэнтийг гаргахгүй)
+    await anonymous(ctx).get('/events/search').query({ q: 'т' }).expect(400);
+  });
+
   it('recomputes expiry when the end date changes and rejects inverted dates', async () => {
     const res = await owner.agent
       .patch(`/photographer/events/${eventId}`)

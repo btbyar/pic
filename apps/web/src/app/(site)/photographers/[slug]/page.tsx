@@ -23,7 +23,7 @@ export default async function PhotographerProfilePage({ params }: { params: Prom
   if (!p) notFound();
   const t = await getTranslations('photographers');
   // Баннер: хамгийн сүүлийн cover-тэй эвэнтийн том зураг
-  const banner = p.events.find((e) => e.coverPreviewUrl)?.coverPreviewUrl ?? null;
+  const banner = p.events.find((e) => e.coverLargeUrl)?.coverLargeUrl ?? null;
 
   const chip = 'inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1 text-sm text-stone-600';
   return (

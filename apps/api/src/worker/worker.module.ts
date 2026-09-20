@@ -24,6 +24,7 @@ const SWEEP_EVERY_MS = 60 * 60 * 1000;
 export const SEARCH_PURGE_EVERY_MS = 5 * 60 * 1000;
 const EXPIRE_ORDERS_EVERY_MS = 5 * 60 * 1000;
 const RETENTION_EVERY_MS = 60 * 60 * 1000;
+const COVERS_EVERY_MS = 10 * 60 * 1000;
 
 /** BullMQ worker-уудыг асааж, унтраана. API-гаас тусдаа процесс (`node dist/worker.js`). */
 @Injectable()
@@ -93,6 +94,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
     await maintenanceQueue.upsertJobScheduler('purge-search-sessions', { every: SEARCH_PURGE_EVERY_MS }, { name: 'purge-search-sessions' });
     await maintenanceQueue.upsertJobScheduler('expire-orders', { every: EXPIRE_ORDERS_EVERY_MS }, { name: 'expire-orders' });
     await maintenanceQueue.upsertJobScheduler('retention', { every: RETENTION_EVERY_MS }, { name: 'retention' });
+    await maintenanceQueue.upsertJobScheduler('backfill-covers', { every: COVERS_EVERY_MS }, { name: 'backfill-covers' });
     const maintenanceWorker = new Worker(
       QUEUES.maintenance,
       async (job) => {
@@ -100,6 +102,7 @@ class WorkerRunner implements OnApplicationBootstrap, OnApplicationShutdown {
         if (job.name === 'purge-search-sessions') return this.sweeper.purgeSearchSessions();
         if (job.name === 'expire-orders') return this.orderPayments.expireDue();
         if (job.name === 'retention') return this.retention.run();
+        if (job.name === 'backfill-covers') return this.ingest.backfillCovers();
         throw new UnrecoverableError(`unknown maintenance job ${job.name}`);
       },
       { connection, concurrency: 1, prefix },

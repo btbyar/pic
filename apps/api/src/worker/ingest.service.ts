@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { PrismaClient } from '@pic/db';
 import { derivativeStorageKey, parseExifDateTime, type PhotoStorageKeys } from '@pic/shared';
-import { InvalidImageError, renderDerivatives } from '../media/derivatives';
+import { InvalidImageError, renderCover, renderDerivatives } from '../media/derivatives';
 import { PRISMA } from '../prisma/prisma.module';
 import { StorageService } from '../storage/storage.module';
 
@@ -15,6 +15,8 @@ export class PermanentIngestError extends Error {
 }
 
 const IMMUTABLE = 'public, max-age=31536000, immutable';
+/** Нэг удаад үүсгэх cover-ийн тоо (эх файл татдаг тул багцалж ачааллыг хязгаарлана) */
+const COVER_BACKFILL_LIMIT = 20;
 
 export type IngestOutcome = 'derived' | 'skipped';
 
@@ -82,11 +84,58 @@ export class IngestService {
     if (updated === 0) return 'skipped';
 
     // Эвэнтийн анхны боловсруулагдсан зураг нь cover болно (зурагчин дараа нь солих — Phase 6)
-    await this.prisma.event.updateMany({
+    const becameCover = await this.prisma.event.updateMany({
       where: { id: photo.eventId, coverPhotoId: null },
       data: { coverPhotoId: photo.id },
     });
+    // Эх файл гарт байгаа дээр нь watermark-гүй cover үүсгэнэ (дахин татахгүй)
+    if (becameCover.count > 0) await this.storeCover(photo.id, photo.eventId, storageKeys, original);
     return 'derived';
+  }
+
+  /**
+   * Cover-т watermark-гүй том хувилбар үүсгэнэ. Cover нь дараа сонгогдсон (эсвэл хуучин) зурагт
+   * maintenance job энэ функцийг дууддаг. Аль хэдийн байвал юу ч хийхгүй.
+   */
+  async ensureCover(photoId: string): Promise<'created' | 'skipped'> {
+    const photo = await this.prisma.photo.findUnique({ where: { id: photoId } });
+    if (!photo || photo.deletedAt || photo.hiddenAt) return 'skipped';
+    const keys = photo.storageKeys as unknown as PhotoStorageKeys;
+    if (keys.cover) return 'skipped';
+    const original = await this.storage.get('originals', keys.original);
+    await this.storeCover(photo.id, photo.eventId, keys, original);
+    return 'created';
+  }
+
+  private async storeCover(photoId: string, eventId: string, keys: PhotoStorageKeys, original: Buffer): Promise<void> {
+    const coverKey = derivativeStorageKey(eventId, photoId, 'cover');
+    const cover = await renderCover(original);
+    await this.storage.put('public', coverKey, cover.buffer, { contentType: 'image/webp', cacheControl: IMMUTABLE });
+    await this.prisma.photo.update({ where: { id: photoId }, data: { storageKeys: { ...keys, cover: coverKey } } });
+  }
+
+  /**
+   * Cover-гүй үлдсэн эвэнтүүдэд (хуучин зураг, эсвэл өмнө нь үүсгэж чадаагүй) багцаар үүсгэнэ.
+   * Maintenance job-оос дуудагдана.
+   */
+  async backfillCovers(limit = COVER_BACKFILL_LIMIT): Promise<number> {
+    const events = await this.prisma.event.findMany({
+      where: { coverPhotoId: { not: null }, deletedAt: null },
+      select: { coverPhotoId: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 500,
+    });
+    let created = 0;
+    for (const e of events) {
+      if (created >= limit) break;
+      try {
+        if ((await this.ensureCover(e.coverPhotoId!)) === 'created') created++;
+      } catch (err) {
+        this.logger.warn(`cover for photo ${e.coverPhotoId} failed: ${(err as Error).message}`);
+      }
+    }
+    if (created) this.logger.log(`created ${created} covers`);
+    return created;
   }
 
   /** Бүх оролдлого дууссан эсвэл засагдахгүй алдаа */

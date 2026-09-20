@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
-import { AppHeader } from '@/components/app-header';
+import { AppShell } from '@/components/app-shell';
+import { PlusIcon } from '@/components/icons';
 import { Alert } from '@/components/ui';
 import { getMe } from '@/lib/api-server';
 import { homeFor } from '@/lib/routes';
@@ -13,31 +14,42 @@ export default async function PhotographerLayout({ children }: { children: React
   if (me.role !== 'PHOTOGRAPHER' || (me.mfa.required && !me.mfa.passed)) redirect(homeFor(me));
 
   const t = await getTranslations();
+  const approved = me.status === 'APPROVED';
   return (
-    <div className="min-h-dvh bg-stone-50">
-      <AppHeader
-        area={t('photographer.area')}
-        name={me.displayName}
-        nav={
-          me.status === 'APPROVED' ? (
-            <nav className="flex gap-4 text-sm font-medium">
-              <Link href="/photographer/events">{t('photographer.myEvents')}</Link>
-              <Link href="/photographer/earnings">{t('photographer.earnings')}</Link>
-              <Link href="/photographer/profile">{t('photographer.profile')}</Link>
-            </nav>
-          ) : null
-        }
-      />
-      <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6">
-        {me.status === 'PENDING' ? (
-          <Alert kind="info">
-            <p className="font-medium">{t('auth.pendingTitle')}</p>
-            <p>{t('auth.pendingBody')}</p>
-          </Alert>
-        ) : (
-          children
-        )}
-      </main>
-    </div>
+    <AppShell
+      area={t('photographer.area')}
+      name={me.displayName}
+      nav={
+        approved
+          ? [
+              { href: '/photographer/events', label: t('photographer.myEvents') },
+              { href: '/photographer/earnings', label: t('photographer.earnings') },
+              { href: '/photographer/profile', label: t('photographer.profile') },
+            ]
+          : []
+      }
+      {...(approved
+        ? {
+            action: (
+              <Link
+                href="/photographer/events/new"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
+              >
+                <PlusIcon size={16} />
+                {t('photographer.newEvent')}
+              </Link>
+            ),
+          }
+        : {})}
+    >
+      {me.status === 'PENDING' ? (
+        <Alert kind="info">
+          <p className="font-medium">{t('auth.pendingTitle')}</p>
+          <p>{t('auth.pendingBody')}</p>
+        </Alert>
+      ) : (
+        children
+      )}
+    </AppShell>
   );
 }

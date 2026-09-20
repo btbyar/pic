@@ -72,7 +72,7 @@ export function MyOrders() {
                   <div className="flex items-center gap-3">
                     {status && status !== 'gone' ? <Badge tone={STATUS_TONE[status]}>{to(`status.${status}`)}</Badge> : null}
                     {status === 'gone' ? (
-                      <button type="button" className="min-h-11 text-sm text-stone-500 underline" onClick={() => forgetOrder(order.id)}>
+                      <button type="button" className="min-h-11 cursor-pointer text-sm text-stone-500 underline" onClick={() => forgetOrder(order.id)}>
                         {t('forget')}
                       </button>
                     ) : (

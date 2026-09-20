@@ -33,12 +33,14 @@ export const VISIBLE_PHOTO: Prisma.PhotoWhereInput = {
 };
 
 const PHOTO_PAGE_SIZE = 60;
+/** Эвэнтийн нэрээр хайхад буцаах дээд тоо */
+const SEARCH_LIMIT = 12;
 
 export type Viewer = { accessToken?: string | undefined; auth?: AuthContext | undefined };
 
 export const PUBLIC_PHOTO_SELECT = { id: true, width: true, height: true, capturedAt: true, storageKeys: true } as const;
 type PublicPhotoRow = Prisma.PhotoGetPayload<{ select: typeof PUBLIC_PHOTO_SELECT }>;
-type CoverUrls = { thumb: string; preview: string };
+type CoverUrls = { thumb: string; large: string };
 
 @Injectable()
 export class EventsService {
@@ -245,6 +247,40 @@ export class EventsService {
     };
   }
 
+  /**
+   * Эвэнтийг нэрээр нь хайна. Нэгдсэн жагсаалт байхгүй ч оролцогч ихэвчлэн эвэнтийнхээ нэрийг л мэддэг —
+   * тиймээс хайлтаар олох боломжтой (хоосон хайлтад юу ч буцаахгүй).
+   */
+  async searchPublic(q: string) {
+    const query = q.trim();
+    if (query.length < 2) return [];
+    const events = await this.prisma.event.findMany({
+      where: {
+        visibility: 'PUBLIC',
+        deletedAt: null,
+        expiresAt: { gt: new Date() },
+        title: { contains: query, mode: 'insensitive' },
+      },
+      include: {
+        photographers: {
+          include: { user: { select: { displayName: true, status: true, photographerProfile: { select: { slug: true } } } } },
+        },
+        _count: { select: { photos: { where: VISIBLE_PHOTO } } },
+      },
+      orderBy: [{ startsAt: 'desc' }, { id: 'desc' }],
+      take: SEARCH_LIMIT,
+    });
+    const covers = await this.coverUrls(events);
+    return events.map((e) => ({
+      ...this.publicView(e, covers),
+      photoCount: e._count.photos,
+      photographers: e.photographers.map((p) => ({
+        name: p.user.displayName,
+        slug: p.user.status === 'APPROVED' ? (p.user.photographerProfile?.slug ?? null) : null,
+      })),
+    }));
+  }
+
   /** Зурагчны нийтийн профайл дээрх эвэнтүүд (шинээс нь) */
   async listPublicByPhotographer(userId: string) {
     const events = await this.prisma.event.findMany({
@@ -311,7 +347,7 @@ export class EventsService {
     });
   }
 
-  /** Cover зургийн thumb (карт) ба preview (том hero) URL. Нуусан/устгасан бол орохгүй. */
+  /** Cover зургийн thumb (карт) ба том (hero) URL. Том нь watermark-гүй cover, түүнийг хараахан үүсгээгүй бол preview. */
   async coverUrls(events: { coverPhotoId: string | null }[]): Promise<Map<string, CoverUrls>> {
     const ids = events.flatMap((e) => (e.coverPhotoId ? [e.coverPhotoId] : []));
     if (ids.length === 0) return new Map();
@@ -321,9 +357,10 @@ export class EventsService {
     });
     return new Map(
       photos.flatMap((p) => {
-        const { thumb, preview } = p.storageKeys as unknown as PhotoStorageKeys;
-        if (!thumb || !preview) return [];
-        return [[p.id, { thumb: this.storage.publicUrl(thumb), preview: this.storage.publicUrl(preview) }] as const];
+        const { thumb, preview, cover } = p.storageKeys as unknown as PhotoStorageKeys;
+        const large = cover ?? preview;
+        if (!thumb || !large) return [];
+        return [[p.id, { thumb: this.storage.publicUrl(thumb), large: this.storage.publicUrl(large) }] as const];
       }),
     );
   }
@@ -376,7 +413,7 @@ export class EventsService {
       bundlePrice: e.bundlePrice,
       faceSearchEnabled: e.faceSearchEnabled,
       coverUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)?.thumb) || null,
-      coverPreviewUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)?.preview) || null,
+      coverLargeUrl: (e.coverPhotoId && covers.get(e.coverPhotoId)?.large) || null,
     };
   }
 

@@ -14,7 +14,7 @@ export function LogoutButton() {
     <button
       type="button"
       disabled={busy}
-      className="text-sm text-stone-600 underline-offset-4 hover:underline"
+      className="cursor-pointer text-sm text-stone-600 underline-offset-4 hover:underline"
       onClick={async () => {
         setBusy(true);
         await api('/auth/logout', { method: 'POST' });

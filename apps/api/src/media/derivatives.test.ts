@@ -1,13 +1,37 @@
 import exifReader from 'exifr';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
-import { InvalidImageError, renderDerivatives } from './derivatives';
+import { InvalidImageError, renderCover, renderDerivatives } from './derivatives';
 
 async function jpeg(width: number, height: number, exif?: sharp.WriteableMetadata['exif'], orientation?: number) {
   let img = sharp({ create: { width, height, channels: 3, background: '#4a8' } }).jpeg();
   if (exif || orientation) img = img.withMetadata({ ...(exif ? { exif } : {}), ...(orientation ? { orientation } : {}) });
   return img.toBuffer();
 }
+
+describe('renderCover', () => {
+  it('produces a 1600px WebP without a watermark', async () => {
+    const original = await jpeg(3000, 2000);
+    const cover = await renderCover(original);
+    expect(cover).toMatchObject({ width: 1600, height: 1067 });
+    expect((await sharp(cover.buffer).metadata()).format).toBe('webp');
+
+    // Нэг өнгийн зураг: watermark байвал пикселүүд хоорондоо зөрнө (preview шиг)
+    const flat = (await sharp(cover.buffer).stats()).channels.every((c) => c.stdev < 1);
+    const preview = (await renderDerivatives(original)).preview;
+    const previewFlat = (await sharp(preview.buffer).stats()).channels.every((c) => c.stdev < 1);
+    expect(flat).toBe(true);
+    expect(previewFlat).toBe(false);
+  });
+
+  it('does not upscale small images', async () => {
+    expect(await renderCover(await jpeg(800, 600))).toMatchObject({ width: 800, height: 600 });
+  });
+
+  it('rejects a broken file', async () => {
+    await expect(renderCover(Buffer.from('not an image'))).rejects.toBeInstanceOf(InvalidImageError);
+  });
+});
 
 describe('renderDerivatives', () => {
   it('produces a 400px WebP thumb and a watermarked 1000px WebP preview', async () => {

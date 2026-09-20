@@ -42,7 +42,7 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
               <button
                 type="button"
                 onClick={() => setOpenIndex(i)}
-                className={`block aspect-[4/3] w-full overflow-hidden rounded-lg bg-stone-200 ${selected ? 'ring-4 ring-emerald-500 ring-inset' : ''}`}
+                className={`block aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-lg bg-stone-200 ${selected ? 'ring-4 ring-emerald-500 ring-inset' : ''}`}
                 aria-label={t('open', { index: i + 1 })}
               >
                 <img
@@ -61,7 +61,7 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
                   onClick={() => toggle(photo)}
                   aria-pressed={selected}
                   aria-label={selected ? tc('removeOne', { index: i + 1 }) : tc('addOne', { index: i + 1 })}
-                  className={`absolute right-1.5 top-1.5 flex h-11 w-11 items-center justify-center rounded-full text-xl font-bold shadow ${
+                  className={`absolute right-1.5 top-1.5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-xl font-bold shadow ${
                     selected ? 'bg-emerald-500 text-white' : 'bg-white/90 text-stone-900'
                   }`}
                 >
@@ -126,17 +126,17 @@ function Lightbox({
     return () => window.removeEventListener('keydown', onKey);
   }, [onKey]);
 
-  const nav = 'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-2xl text-white disabled:opacity-0';
+  const nav = 'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white disabled:opacity-0';
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex flex-col bg-black/95" onClick={onClose}>
       <div className="flex items-center justify-between gap-2 px-4 py-3 text-sm text-white" onClick={(e) => e.stopPropagation()}>
         <span>{photo.capturedAt ? formatTime(photo.capturedAt, timezone) : ''}</span>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setReporting(true)} className="min-h-11 px-2 text-stone-300 underline-offset-4 hover:underline">
+          <button type="button" onClick={() => setReporting(true)} className="min-h-11 cursor-pointer px-2 text-stone-300 underline-offset-4 hover:underline">
             {t('requestRemoval')}
           </button>
-          <button type="button" onClick={onClose} className="min-h-11 px-2 text-base">
+          <button type="button" onClick={onClose} className="min-h-11 cursor-pointer px-2 text-base">
             <span className="inline-flex items-center gap-1.5">
               {t('close')}
               <XIcon size={18} />
@@ -158,7 +158,7 @@ function Lightbox({
           <button
             type="button"
             onClick={onToggleCart}
-            className={`min-h-11 rounded-xl px-5 text-sm font-medium ${selected ? 'bg-emerald-500 text-white' : 'bg-white text-stone-900'}`}
+            className={`min-h-11 cursor-pointer rounded-xl px-5 text-sm font-medium ${selected ? 'bg-emerald-500 text-white' : 'bg-white text-stone-900'}`}
           >
             {selected ? (
               <span className="inline-flex items-center gap-1.5">
