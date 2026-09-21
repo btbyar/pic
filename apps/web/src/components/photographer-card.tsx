@@ -8,7 +8,7 @@ export function PhotographerCard({ p }: { p: Card }) {
   return (
     <Link href={`/photographers/${p.slug}`} className="group flex h-full flex-col gap-3">
       {/* Зураггүй байсан ч хэмжээ нь ижил — эс тэгвээс тор эвдэрнэ */}
-      <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-surface-2">
+      <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-surface-2">
         {p.coverUrl ? (
           <img
             src={p.coverUrl}

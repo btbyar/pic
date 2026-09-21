@@ -124,7 +124,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
           <p className="font-medium">{t('dropHere')}</p>
           <p className="text-sm text-ink-soft">{t('formats')}</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-surface-3 px-4 text-sm font-medium text-white ${running ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line-strong bg-surface-2 px-4 text-sm font-medium text-ink ${running ? 'pointer-events-none opacity-50' : ''}`}>
               {t('pickFiles')}
               <input type="file" multiple accept={ACCEPT} className="sr-only" onChange={onPick} disabled={running} />
             </label>
@@ -200,7 +200,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: 'red' | undefined }) {
   return (
-    <div className="rounded-xl bg-surface-2 px-3 py-2">
+    <div className="rounded-2xl bg-surface-2 px-3 py-2">
       <dt className="text-ink-soft">{label}</dt>
       <dd className={`text-lg font-semibold ${tone === 'red' ? 'text-red-700' : ''}`}>{value}</dd>
     </div>

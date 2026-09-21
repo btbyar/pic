@@ -34,7 +34,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
         <Link href="/" aria-label={t('home')} className="inline-flex min-h-11 items-center">
           <Logo />
@@ -46,7 +46,7 @@ export function SiteHeader() {
             href="/cart"
             aria-label={t('cartLabel', { count })}
             className={`relative inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium ${
-              count ? 'bg-ink text-surface' : 'text-ink-soft hover:bg-surface-3'
+              count ? 'bg-brand-600 text-on-brand' : 'text-ink-soft hover:bg-surface-3'
             }`}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

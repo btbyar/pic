@@ -31,7 +31,7 @@ export default async function HomePage() {
           <h1 className="text-balance font-display text-4xl font-extrabold leading-[1.05] sm:text-6xl">{t('title')}</h1>
           <p className="max-w-lg text-pretty text-lg text-ink-soft">{t('subtitle')}</p>
 
-          <form action="/photographers" className="flex w-full max-w-md items-center gap-2 rounded-xl bg-surface-2 p-2">
+          <form action="/photographers" className="flex w-full max-w-md items-center gap-2 rounded-2xl bg-surface-2 p-2">
             <SearchIcon size={20} className="ml-2 shrink-0 text-ink-faint" />
             <input
               name="q"
@@ -42,7 +42,7 @@ export default async function HomePage() {
             />
             <button
               type="submit"
-              className="min-h-11 shrink-0 cursor-pointer rounded-xl bg-ink px-5 text-sm font-semibold text-surface transition hover:bg-white"
+              className="min-h-11 shrink-0 cursor-pointer rounded-full bg-brand-600 px-5 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
             >
               {t('searchButton')}
             </button>
@@ -76,7 +76,7 @@ export default async function HomePage() {
               <img src={strip[0]} alt="" className="aspect-4/5 w-full object-cover" />
             </div>
           ) : (
-            <div className="flex aspect-4/5 items-center justify-center rounded-xl bg-surface-2 text-ink-faint">
+            <div className="flex aspect-4/5 items-center justify-center rounded-2xl bg-surface-2 text-ink-faint">
               <ScanFaceIcon size={64} strokeWidth={1.2} />
             </div>
           )}

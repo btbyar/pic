@@ -62,7 +62,7 @@ export default function MfaSetupPage() {
   if (recoveryCodes) {
     return (
       <AuthShell title={t('recoveryTitle')} intro={t('recoveryIntro')}>
-        <ol className="grid grid-cols-2 gap-2 rounded-xl bg-surface-2 p-4 font-mono text-sm">
+        <ol className="grid grid-cols-2 gap-2 rounded-2xl bg-surface-2 p-4 font-mono text-sm">
           {recoveryCodes.map((code) => (
             <li key={code}>{code}</li>
           ))}

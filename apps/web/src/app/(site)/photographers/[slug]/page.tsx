@@ -29,7 +29,7 @@ export default async function PhotographerProfilePage({ params }: { params: Prom
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-8 pt-4 sm:pt-6">
       <header className="flex flex-col items-center text-center">
-        <div className="relative h-40 w-full overflow-hidden rounded-xl bg-surface-2 sm:h-60">
+        <div className="relative h-40 w-full overflow-hidden rounded-2xl bg-surface-2 sm:h-60">
           {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" /> : null}
           <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/40 to-transparent" />
         </div>

@@ -26,7 +26,7 @@ export async function AppShell({
   const t = await getTranslations('common');
   return (
     <div className="min-h-dvh bg-surface">
-      <header className="sticky top-0 z-40 border-b border-line bg-surface/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4">
           <div className="flex items-center gap-2.5">
             <Link href="/" aria-label={t('appName')} className="inline-flex min-h-11 items-center">

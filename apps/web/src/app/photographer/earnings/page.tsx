@@ -30,7 +30,7 @@ export default async function EarningsPage() {
 
       <dl className="grid gap-3 sm:grid-cols-3">
         {summary.map(({ key, value }) => (
-          <div key={key} className="flex flex-col gap-1 rounded-xl bg-surface-2 p-4">
+          <div key={key} className="flex flex-col gap-1 rounded-2xl bg-surface-2 p-4">
             <dt className="text-sm text-ink-soft">{t(`summary.${key}`)}</dt>
             <dd className="font-display text-2xl font-bold tabular-nums">{formatMnt(value)}</dd>
           </div>

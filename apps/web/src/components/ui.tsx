@@ -3,16 +3,16 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTML
 
 const buttonStyles = {
   // Цагаан товч: ногоон нь зөвхөн "олдлоо/сонгогдлоо" гэсэн дохиод үлдэнэ
-  primary: 'bg-ink text-surface hover:bg-white disabled:bg-surface-3 disabled:text-ink-faint',
-  dark: 'bg-surface-3 text-ink hover:bg-line disabled:text-ink-faint',
+  primary: 'bg-brand-600 text-on-brand hover:bg-brand-700 disabled:bg-surface-3 disabled:text-ink-faint',
+  dark: 'bg-ink text-surface-2 hover:bg-brand-900 disabled:text-ink-faint',
   secondary: 'border border-line-strong bg-surface-2 text-ink hover:bg-surface-3 disabled:text-ink-faint',
-  danger: 'bg-red-500 text-white hover:bg-red-400 disabled:bg-surface-3 disabled:text-ink-faint',
+  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-surface-3 disabled:text-ink-faint',
 } as const;
 
 type Variant = keyof typeof buttonStyles;
 
 const base =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed';
+  'inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 py-2 text-base font-semibold transition disabled:cursor-not-allowed';
 
 export function Button({
   variant = 'primary',
@@ -77,7 +77,7 @@ export function Field({
       </label>
       {children}
       {error ? (
-        <p id={`${htmlFor}-error`} role="alert" className="text-sm text-red-300">
+        <p id={`${htmlFor}-error`} role="alert" className="text-sm text-red-700">
           {error}
         </p>
       ) : hint ? (
@@ -90,14 +90,14 @@ export function Field({
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-xl bg-surface-2 p-5 ${className}`}>{children}</div>;
+  return <div className={`rounded-2xl bg-surface-2 p-5 ${className}`}>{children}</div>;
 }
 
 export function Alert({ kind = 'error', children }: { kind?: 'error' | 'info' | 'success'; children: ReactNode }) {
   const styles = {
-    error: 'border-red-400/40 bg-red-500/10 text-red-200',
-    info: 'border-sky-500/30 bg-sky-500/10 text-sky-200',
-    success: 'border-brand-600/30 bg-brand-600/10 text-brand-800',
+    error: 'border-red-200 bg-red-50 text-red-800',
+    info: 'border-brand-200 bg-brand-50 text-brand-800',
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
   }[kind];
   return (
     <div role={kind === 'error' ? 'alert' : 'status'} className={`rounded-xl border px-4 py-3 text-sm ${styles}`}>
@@ -109,9 +109,9 @@ export function Alert({ kind = 'error', children }: { kind?: 'error' | 'info' | 
 export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: 'slate' | 'green' | 'amber' | 'red' }) {
   const styles = {
     slate: 'bg-surface-3 text-ink-soft',
-    green: 'bg-brand-600/15 text-brand-800',
-    amber: 'bg-amber-400/15 text-amber-200',
-    red: 'bg-red-500/15 text-red-200',
+    green: 'bg-emerald-100 text-emerald-800',
+    amber: 'bg-amber-100 text-amber-800',
+    red: 'bg-red-100 text-red-800',
   }[tone];
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}>{children}</span>;
 }

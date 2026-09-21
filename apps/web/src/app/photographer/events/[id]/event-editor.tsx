@@ -36,7 +36,7 @@ export function EventEditor({ event: initial }: { event: MyEventDetail }) {
       <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
 
       {/* Эвэнтийн толгой: зураг, нэр, төлөв, гол үйлдэл */}
-      <div className="flex flex-col gap-4 rounded-xl bg-surface-2 p-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 rounded-2xl bg-surface-2 p-4 sm:flex-row sm:items-center">
         <span className="h-24 w-full shrink-0 overflow-hidden rounded-xl bg-surface-3 sm:h-20 sm:w-28">
           {event.coverUrl ? <img src={event.coverUrl} alt="" className="h-full w-full object-cover" /> : null}
         </span>

@@ -43,7 +43,7 @@ export default async function MyEventsPage() {
 
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-surface-2 px-4 py-16 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-2 text-ink-soft">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-2 text-ink-soft">
             <ImagesIcon size={28} />
           </span>
           <p className="text-ink-soft">{t('photographer.noEvents')}</p>
@@ -53,7 +53,7 @@ export default async function MyEventsPage() {
           </ButtonLink>
         </div>
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-xl bg-surface-2">
+        <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface-2">
           {events.map((e) => (
             <li key={e.id}>
               <Link href={`/photographer/events/${e.id}`} className="flex cursor-pointer items-center gap-4 p-3 transition hover:bg-surface-3">

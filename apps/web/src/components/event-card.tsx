@@ -9,7 +9,7 @@ export async function EventCard({ event }: { event: PublicEvent }) {
   const t = await getTranslations();
   return (
     <Link href={`/events/${event.slug}`} className="group flex h-full flex-col gap-3">
-      <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-surface-2">
+      <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-surface-2">
         {event.coverUrl ? (
           <img
             src={event.coverUrl}

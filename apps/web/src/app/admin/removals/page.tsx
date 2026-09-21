@@ -28,7 +28,7 @@ export default async function AdminRemovalsPage({ searchParams }: { searchParams
             key={s}
             href={`/admin/removals?status=${s}`}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              s === status ? 'bg-surface-3 text-white' : 'border border-line bg-surface-2 text-ink'
+              s === status ? 'bg-brand-600 text-on-brand' : 'border border-line-strong bg-surface-2 text-ink'
             }`}
           >
             {t(`removals.status_${s}`)}

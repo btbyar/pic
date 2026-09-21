@@ -41,7 +41,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             key={s ?? 'all'}
             href={tab(s as OrderStatus | undefined)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              s === status ? 'bg-surface-3 text-white' : 'border border-line bg-surface-2 text-ink'
+              s === status ? 'bg-brand-600 text-on-brand' : 'border border-line-strong bg-surface-2 text-ink'
             }`}
           >
             {s ? to(`status.${s}`) : t('orders.all')}
