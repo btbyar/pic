@@ -19,7 +19,7 @@ export function AppNav({ items, orientation = 'horizontal' }: { items: NavItem[]
   const pathname = usePathname();
   const vertical = orientation === 'vertical';
   return (
-    <nav className={vertical ? '' : '-mx-4 overflow-x-auto px-4'}>
+    <nav className={vertical ? '' : 'min-w-0 flex-1 overflow-x-auto'}>
       <ul className={vertical ? 'flex flex-col gap-1' : 'flex gap-1'}>
         {items.map((item) => {
           const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);

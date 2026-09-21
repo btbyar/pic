@@ -84,6 +84,23 @@ describe('orders', () => {
   });
 });
 
+describe('sales', () => {
+  it('shows a photographer their own sales per event and recent orders, without buyer details', async () => {
+    await anonymous(ctx).get('/photographer/sales').expect(401);
+    await admin.agent.get('/photographer/sales').expect(403);
+    const res = await seller.agent.get('/photographer/sales').expect(200);
+    // 60% × 10 000₮ × 2 зураг
+    expect(res.body.byEvent).toEqual([{ eventId: event.id, photos: 2, amount: 12_000 }]);
+    expect(res.body.recent).toEqual([
+      { id: order.id, eventId: event.id, eventTitle: `Finance ${ctx.run}`, paidAt: lastMonth.toISOString(), photos: 2, amount: 12_000, bundle: false, refunded: false },
+    ]);
+
+    const other = await photographerAgent(ctx, 'no-sales');
+    const empty = await other.agent.get('/photographer/sales').expect(200);
+    expect(empty.body).toEqual({ byEvent: [], recent: [] });
+  });
+});
+
 describe('payouts', () => {
   it('shows what each photographer earned in a closed month, with their bank account', async () => {
     const before = await admin.agent.get(`/admin/payouts?period=${PREV}`).expect(200);

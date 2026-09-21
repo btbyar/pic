@@ -4,15 +4,17 @@ import { ExternalLinkIcon, ImagesIcon, PlusIcon, QrIcon, UploadIcon } from '@/co
 import { Alert, ButtonLink } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { serverApi } from '@/lib/api-server';
-import { formatEventRange } from '@/lib/datetime';
-import type { MyEvent, MyProfile } from '@/lib/types';
+import { formatEventRange, formatMnt } from '@/lib/datetime';
+import type { MyEvent, MyProfile, PhotographerSales } from '@/lib/types';
 
 export default async function MyEventsPage() {
   const t = await getTranslations();
-  const [{ data }, { data: profile }] = await Promise.all([
+  const [{ data }, { data: profile }, { data: sales }] = await Promise.all([
     serverApi<MyEvent[]>('/photographer/events'),
     serverApi<MyProfile>('/photographer/profile'),
+    serverApi<PhotographerSales>('/photographer/sales'),
   ]);
+  const salesByEvent = new Map(sales?.byEvent.map((s) => [s.eventId, s.amount]));
   const events = data ?? [];
   const totalPhotos = events.reduce((sum, e) => sum + e.photoCount, 0);
 
@@ -25,11 +27,6 @@ export default async function MyEventsPage() {
             <p className="text-sm text-ink-soft">{t('photographer.eventsSummary', { events: events.length, photos: totalPhotos })}</p>
           ) : null}
         </div>
-        {/* Өргөн дэлгэцэд энэ товч зүүн цэсэнд байгаа */}
-        <ButtonLink href="/photographer/events/new" className="gap-2 lg:hidden">
-          <PlusIcon size={16} />
-          {t('photographer.newEvent')}
-        </ButtonLink>
       </div>
 
       {profile && !profile.slugSaved ? (
@@ -55,9 +52,10 @@ export default async function MyEventsPage() {
       ) : (
         <div className="overflow-hidden rounded-2xl bg-surface-2 p-2">
           {/* Өргөн дэлгэцэд хүснэгтийн толгой */}
-          <div className="hidden grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_7.5rem] gap-4 px-3 py-2 text-xs font-semibold text-ink-soft lg:grid" aria-hidden>
+          <div className="hidden grid-cols-[minmax(0,1fr)_7rem_8rem_6rem_8rem_7.5rem] gap-4 px-3 py-2 text-xs font-semibold text-ink-soft lg:grid" aria-hidden>
             <span>{t('photographer.colEvent')}</span>
             <span>{t('photographer.photos')}</span>
+            <span>{t('photographer.colSales')}</span>
             <span>{t('photographer.colRole')}</span>
             <span>{t('photographer.colStatus')}</span>
             <span />
@@ -66,7 +64,7 @@ export default async function MyEventsPage() {
             {events.map((e) => (
               <li
                 key={e.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-xl p-3 transition hover:bg-surface lg:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_7.5rem]"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-xl p-3 transition hover:bg-surface lg:grid-cols-[minmax(0,1fr)_7rem_8rem_6rem_8rem_7.5rem]"
               >
                 <Link href={`/photographer/events/${e.id}`} className="flex min-w-0 items-center gap-4">
                   <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-3">
@@ -86,6 +84,9 @@ export default async function MyEventsPage() {
                 </Link>
                 <span className="hidden text-sm font-semibold tabular-nums lg:block">
                   {e.photoCount ? t('common.photos', { count: e.photoCount }) : <span className="text-amber-800">{t('photographer.noPhotosYet')}</span>}
+                </span>
+                <span className="hidden text-sm font-semibold tabular-nums lg:block">
+                  {salesByEvent.get(e.id) ? formatMnt(salesByEvent.get(e.id)!) : <span className="font-normal text-ink-faint">—</span>}
                 </span>
                 <span className="hidden text-sm text-ink-soft lg:block">{e.isOwner ? t('photographer.owner') : t('photographer.member')}</span>
                 <span className="justify-self-end lg:justify-self-start">
@@ -118,7 +119,9 @@ export default async function MyEventsPage() {
                     >
                       <ExternalLinkIcon size={18} />
                     </Link>
-                  ) : null}
+                  ) : (
+                    <span className="size-10" aria-hidden />
+                  )}
                 </span>
               </li>
             ))}

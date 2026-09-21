@@ -4,8 +4,8 @@ import { AlertIcon, CheckIcon, ImagesIcon, PlusIcon, QrIcon, UploadIcon } from '
 import { ButtonLink, Card } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { getMe, serverApi } from '@/lib/api-server';
-import { formatEventRange, formatMnt } from '@/lib/datetime';
-import type { Earnings, MyEvent, MyProfile } from '@/lib/types';
+import { formatDate, formatEventRange, formatMnt } from '@/lib/datetime';
+import type { Earnings, MyEvent, MyProfile, PhotographerSales } from '@/lib/types';
 
 /**
  * Зурагчны тойм: орлого, зураг, дараагийн хийх алхам. Өмнө нь /photographer шууд эвэнтийн жагсаалт руу
@@ -13,11 +13,12 @@ import type { Earnings, MyEvent, MyProfile } from '@/lib/types';
  */
 export default async function PhotographerOverview() {
   const t = await getTranslations();
-  const [me, { data: eventsData }, { data: earnings }, { data: profile }] = await Promise.all([
+  const [me, { data: eventsData }, { data: earnings }, { data: profile }, { data: sales }] = await Promise.all([
     getMe(),
     serverApi<MyEvent[]>('/photographer/events'),
     serverApi<Earnings>('/photographer/earnings'),
     serverApi<MyProfile>('/photographer/profile'),
+    serverApi<PhotographerSales>('/photographer/sales'),
   ]);
   const events = [...(eventsData ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
@@ -77,30 +78,56 @@ export default async function PhotographerOverview() {
         <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
           {pending ? <NextStep event={pending} /> : <AllSet />}
 
-          <Card className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">{t('overview.recent')}</h2>
-              <Link href="/photographer/events" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700">
-                {t('overview.all')}
-              </Link>
-            </div>
-            <ul className="flex flex-col gap-1">
-              {events.slice(0, 4).map((e) => (
-                <li key={e.id}>
-                  <Link href={`/photographer/events/${e.id}`} className="-mx-2 flex items-center gap-3 rounded-xl p-2 hover:bg-surface-3">
-                    <span className="relative size-11 shrink-0 overflow-hidden rounded-lg bg-surface-3">
-                      {e.coverUrl ? <img src={e.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
-                    </span>
+          {sales?.recent.length ? (
+            <Card className="flex flex-col gap-3">
+              <h2 className="text-lg font-bold">{t('overview.recentSales')}</h2>
+              <ul className="flex flex-col gap-3">
+                {sales.recent.map((o) => (
+                  <li key={o.id} className="flex items-center gap-3">
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-sm font-semibold">{e.title}</span>
-                      <span className="text-xs text-ink-soft">{t('common.photos', { count: e.photoCount })}</span>
+                      <span className="truncate text-sm font-semibold">
+                        {o.bundle ? t('overview.saleBundle', { count: o.photos }) : t('common.photos', { count: o.photos })}
+                      </span>
+                      <span className="flex gap-1 text-xs text-ink-soft">
+                        <span className="truncate">{o.eventTitle}</span>
+                        <span className="shrink-0">· {formatDate(o.paidAt)}</span>
+                      </span>
                     </span>
-                    <VisibilityBadge visibility={e.visibility} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
+                    {o.refunded ? (
+                      <span className="text-sm font-semibold text-ink-faint line-through">{t('overview.refunded')}</span>
+                    ) : (
+                      <span className="text-sm font-bold tabular-nums text-emerald-700">+{formatMnt(o.amount)}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : (
+            <Card className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">{t('overview.recent')}</h2>
+                <Link href="/photographer/events" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700">
+                  {t('overview.all')}
+                </Link>
+              </div>
+              <ul className="flex flex-col gap-1">
+                {events.slice(0, 4).map((e) => (
+                  <li key={e.id}>
+                    <Link href={`/photographer/events/${e.id}`} className="-mx-2 flex items-center gap-3 rounded-xl p-2 hover:bg-surface-3">
+                      <span className="relative size-11 shrink-0 overflow-hidden rounded-lg bg-surface-3">
+                        {e.coverUrl ? <img src={e.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
+                      </span>
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-sm font-semibold">{e.title}</span>
+                        <span className="text-xs text-ink-soft">{t('common.photos', { count: e.photoCount })}</span>
+                      </span>
+                      <VisibilityBadge visibility={e.visibility} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </div>
       )}
 
@@ -173,7 +200,7 @@ async function NextStep({ event }: { event: MyEvent }) {
         )}
         <ButtonLink href={`/photographer/events/${event.id}/poster`} variant="secondary" className="gap-2">
           <QrIcon size={18} />
-          {t('poster.print')}
+          {t('overview.poster')}
         </ButtonLink>
       </div>
     </Card>

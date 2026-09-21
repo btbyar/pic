@@ -44,6 +44,37 @@ export class PhotographerFinanceController {
     };
   }
 
+  /**
+   * Тойм, эвэнтийн жагсаалтад: эвэнт бүрийн борлуулалт ба сүүлийн захиалгууд.
+   * Дүн нь зурагчны хувь (photographer_amount), буцаасан зураг хасагдсан. Худалдан авагчийн мэдээлэл өгөхгүй.
+   */
+  @Get('sales')
+  async sales(@CurrentUser() user: AuthContext) {
+    const [byEvent, recent] = await Promise.all([
+      this.prisma.$queryRaw<{ eventId: string; photos: number; amount: number }[]>`
+        SELECT o.event_id AS "eventId", count(*)::int AS photos, sum(oi.photographer_amount)::int AS amount
+        FROM "public"."order_item" oi JOIN "public"."order" o ON o.id = oi.order_id
+        WHERE oi.photographer_id = ${user.userId}::uuid AND oi.refund_id IS NULL AND o.event_id IS NOT NULL
+          AND o.status IN ('PAID', 'PARTIALLY_REFUNDED')
+        GROUP BY 1`,
+      this.prisma.$queryRaw<
+        { id: string; eventId: string | null; eventTitle: string; paidAt: Date; photos: number; amount: number; bundle: boolean; refunded: boolean }[]
+      >`
+        SELECT o.id, o.event_id AS "eventId", o.event_title_snap AS "eventTitle", o.paid_at AS "paidAt",
+               count(*)::int AS photos,
+               coalesce(sum(oi.photographer_amount) FILTER (WHERE oi.refund_id IS NULL), 0)::int AS amount,
+               bool_or(oi.pricing = 'BUNDLE') AS bundle,
+               bool_and(oi.refund_id IS NOT NULL) AS refunded
+        FROM "public"."order_item" oi JOIN "public"."order" o ON o.id = oi.order_id
+        WHERE oi.photographer_id = ${user.userId}::uuid AND o.paid_at IS NOT NULL
+          AND o.status IN ('PAID', 'PARTIALLY_REFUNDED', 'REFUNDED')
+        GROUP BY o.id
+        ORDER BY o.paid_at DESC
+        LIMIT 5`,
+    ]);
+    return { byEvent, recent };
+  }
+
   @Put('payout-account')
   async setAccount(@CurrentUser() user: AuthContext, @Body(new ZodPipe(payoutAccountSchema)) body: PayoutAccountInput) {
     const enc = this.cipher.encrypt(JSON.stringify({ accountNumber: body.accountNumber, accountName: body.accountName }));

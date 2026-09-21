@@ -283,3 +283,18 @@ export interface HomeStats {
   photos: number;
   photographers: number;
 }
+
+/** Зурагчны борлуулалт — зурагчны хувь, буцаалт хассан */
+export interface PhotographerSales {
+  byEvent: { eventId: string; photos: number; amount: number }[];
+  recent: {
+    id: string;
+    eventId: string | null;
+    eventTitle: string;
+    paidAt: string;
+    photos: number;
+    amount: number;
+    bundle: boolean;
+    refunded: boolean;
+  }[];
+}
