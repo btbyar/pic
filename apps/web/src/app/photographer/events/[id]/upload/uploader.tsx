@@ -4,6 +4,7 @@ import { BackLink } from '@/components/back-link';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type ChangeEvent, type DragEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { AlertIcon, RefreshIcon, UploadIcon } from '@/components/icons';
 import { Alert, Button, Card } from '@/components/ui';
 import { api, useErrorMessage } from '@/lib/api-client';
 import type { PhotoStats } from '@/lib/types';
@@ -95,11 +96,16 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
   const problems = list.filter((i) => i.state === 'failed' || i.state === 'rejected');
   const retryable = list.filter((i) => i.state === 'failed').map((i) => i.file);
   const finished = !running && list.length > 0;
+  const segments = [
+    { key: 'done', value: count('done'), bar: 'bg-emerald-700' },
+    { key: 'duplicate', value: count('duplicate'), bar: 'bg-brand-200' },
+    { key: 'failed', value: problems.length, bar: 'bg-red-600' },
+  ];
 
   return (
     <>
       <BackLink href={`/photographer/events/${eventId}`}>{eventTitle}</BackLink>
-      <h1 className="text-2xl font-bold">{t('title')}</h1>
+      <h1 className="text-3xl font-extrabold">{t('title')}</h1>
 
       {stats ? (
         <p className="text-sm text-ink-soft">
@@ -109,7 +115,7 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
 
       {error ? <Alert>{error}</Alert> : null}
 
-      <Card className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -117,18 +123,21 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`flex flex-col items-center gap-3 rounded-xl border-2 border-dashed px-4 py-10 text-center ${
-            dragging ? 'border-brand-600 bg-brand-50' : 'border-line'
+          className={`flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed px-4 py-12 text-center transition ${
+            dragging ? 'border-brand-600 bg-brand-100' : 'border-brand-200 bg-brand-50'
           }`}
         >
-          <p className="font-medium">{t('dropHere')}</p>
+          <span className="flex size-16 items-center justify-center rounded-2xl bg-surface-2 text-brand-600" aria-hidden>
+            <UploadIcon size={30} />
+          </span>
+          <p className="font-display text-xl font-bold">{t('dropHere')}</p>
           <p className="text-sm text-ink-soft">{t('formats')}</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line-strong bg-surface-2 px-4 text-sm font-medium text-ink ${running ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-on-brand hover:bg-brand-700 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-600 ${running ? 'pointer-events-none opacity-50' : ''}`}>
               {t('pickFiles')}
               <input type="file" multiple accept={ACCEPT} className="sr-only" onChange={onPick} disabled={running} />
             </label>
-            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-line px-4 text-sm font-medium ${running ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line-strong bg-surface-2 px-5 text-sm font-semibold text-ink hover:bg-surface-3 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-600 ${running ? 'pointer-events-none opacity-50' : ''}`}>
               {t('pickFolder')}
               {/* webkitdirectory нь стандарт бус боловч бүх орчин үеийн desktop браузер дэмждэг */}
               <input
@@ -143,12 +152,13 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
           </div>
         </div>
         <p className="text-sm text-ink-soft">{t('resumeHint')}</p>
-      </Card>
+      </div>
 
       {list.length > 0 ? (
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{running ? t('inProgress') : t('finished')}</h2>
+            <h2 className="text-lg font-bold">{running ? t('inProgress') : t('finished')}</h2>
+            <span className="ml-auto font-display text-lg font-bold tabular-nums text-brand-700">{percent}%</span>
             {running ? (
               <Button variant="secondary" onClick={() => abort.current?.abort()}>
                 {t('cancel')}
@@ -163,30 +173,43 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
             aria-valuemin={0}
             aria-valuemax={100}
           >
-            <div className="h-full bg-brand-600 transition-[width]" style={{ width: `${percent}%` }} />
+            {/* Хэсэгчилсэн мөр: орсон · өмнө орсон · амжилтгүй (файлын тоогоор); байт явц нь % дээр */}
+            <div className="flex h-full">
+              {segments.map((seg) =>
+                seg.value ? <div key={seg.key} className={`h-full transition-[width] ${seg.bar}`} style={{ width: `${(seg.value / list.length) * 100}%` }} /> : null,
+              )}
+            </div>
           </div>
 
-          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <Stat label={t('stat.done')} value={count('done')} />
-            <Stat label={t('stat.duplicate')} value={count('duplicate')} />
-            <Stat label={t('stat.pending')} value={count('queued', 'hashing', 'uploading')} />
-            <Stat label={t('stat.failed')} value={problems.length} tone={problems.length ? 'red' : undefined} />
+          <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            {[...segments, { key: 'pending', value: count('queued', 'hashing', 'uploading'), bar: 'bg-surface-3 ring-1 ring-line-strong' }].map((seg) => (
+              <div key={seg.key} className="flex items-center gap-2">
+                <span className={`size-2.5 rounded-full ${seg.bar}`} aria-hidden />
+                <dt className="text-ink-soft">{t(`stat.${seg.key}`)}</dt>
+                <dd className={`font-bold tabular-nums ${seg.key === 'failed' && seg.value ? 'text-red-700' : ''}`}>{seg.value}</dd>
+              </div>
+            ))}
           </dl>
 
           {finished && problems.length === 0 ? <Alert kind="success">{t('allDone')}</Alert> : null}
 
           {problems.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <ul className="max-h-64 overflow-y-auto rounded-xl border border-line text-sm">
+              <p className="flex items-center gap-2 font-semibold">
+                <AlertIcon size={18} className="text-red-700" />
+                {t('problemsTitle', { count: problems.length })}
+              </p>
+              <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto text-sm">
                 {problems.map((i, idx) => (
-                  <li key={idx} className="flex justify-between gap-3 border-b border-line px-3 py-2 last:border-0">
+                  <li key={idx} className="flex justify-between gap-3 rounded-xl bg-surface px-3 py-2.5">
                     <span className="truncate">{i.file.name}</span>
                     <span className="shrink-0 text-red-700">{t(`problem.${i.problem ?? 'server'}`)}</span>
                   </li>
                 ))}
               </ul>
               {finished && retryable.length > 0 ? (
-                <Button onClick={() => void start(retryable)} className="self-start">
+                <Button variant="secondary" onClick={() => void start(retryable)} className="gap-2 self-start">
+                  <RefreshIcon size={18} />
                   {t('retryFailed', { count: retryable.length })}
                 </Button>
               ) : null}
@@ -198,11 +221,3 @@ export function Uploader({ eventId, eventTitle }: { eventId: string; eventTitle:
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: number; tone?: 'red' | undefined }) {
-  return (
-    <div className="rounded-2xl bg-surface-2 px-3 py-2">
-      <dt className="text-ink-soft">{label}</dt>
-      <dd className={`text-lg font-semibold ${tone === 'red' ? 'text-red-700' : ''}`}>{value}</dd>
-    </div>
-  );
-}

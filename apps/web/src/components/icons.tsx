@@ -174,3 +174,23 @@ export const SunIcon = icon(
 );
 
 export const ChevronDownIcon = icon(<path d="m6 9 6 6 6-6" />);
+
+export const HomeIcon = icon(<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" />);
+
+export const WalletIcon = icon(
+  <>
+    <rect x="3" y="6" width="18" height="13" rx="2" />
+    <path d="M16 12.5h2M3 9.5h18" />
+  </>,
+);
+
+export const UploadIcon = icon(<path d="M12 16V5M7 9.5l5-5 5 5M5 20h14" />);
+
+export const AlertIcon = icon(
+  <>
+    <path d="M12 3 22 21H2z" />
+    <path d="M12 10v5M12 18v.5" />
+  </>,
+);
+
+export const RefreshIcon = icon(<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" />);
