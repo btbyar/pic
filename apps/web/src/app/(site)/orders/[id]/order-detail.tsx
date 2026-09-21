@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useCallback, useEffect, useState } from 'react';
+import { CheckIcon, ChevronDownIcon, DownloadIcon, LinkIcon, QrIcon } from '@/components/icons';
 import { Alert, Button, ButtonLink, Card } from '@/components/ui';
 import { api, useErrorMessage } from '@/lib/api-client';
 import { formatDate, formatMnt } from '@/lib/datetime';
@@ -99,6 +100,8 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
   const errorMessage = useErrorMessage();
   const [qr, setQr] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Цагирагийн 100% = хуудас нээгдэх үеийн үлдсэн хугацаа
+  const [span] = useState(() => (order.paymentDueAt ? Math.max(1, new Date(order.paymentDueAt).getTime() - Date.now()) : 1));
   const [mockError, setMockError] = useState<string | null>(null);
   const qrText = order.payment?.qrText;
 
@@ -112,7 +115,7 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
     return () => clearInterval(timer);
   }, []);
 
-  const leftSec = order.paymentDueAt ? Math.max(0, Math.floor((new Date(order.paymentDueAt).getTime() - now) / 1000)) : null;
+  const leftMs = order.paymentDueAt ? Math.max(0, new Date(order.paymentDueAt).getTime() - now) : null;
 
   async function mockPay() {
     const res = await api(`/orders/${order.id}/mock-pay`, { method: 'POST', headers: { 'x-order-token': token } });
@@ -121,44 +124,57 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
   }
 
   if (!order.payment) return <Alert>{t('failed')}</Alert>;
+  const banks = order.payment.deeplinks;
+
+  const qrImage = qr ? (
+    <img src={qr} alt={t('qrAlt')} width={260} height={260} className="rounded-xl border border-line" />
+  ) : (
+    <div className="h-[260px] w-[260px] animate-pulse rounded-xl bg-surface-3" />
+  );
 
   return (
-    <Card className="flex flex-col items-center gap-4 text-center">
-      <p className="text-lg font-semibold">{t('payTitle', { total: formatMnt(order.totalAmount) })}</p>
-      <p className="text-sm text-ink-soft">{t('payHint')}</p>
-      {qr ? (
-        <img src={qr} alt={t('qrAlt')} width={280} height={280} className="rounded-xl border border-line" />
-      ) : (
-        <div className="h-[280px] w-[280px] animate-pulse rounded-xl bg-surface-3" />
-      )}
+    <section className="flex flex-col items-center gap-4 text-center">
+      {leftMs !== null ? <Countdown fraction={leftMs / span} seconds={Math.floor(leftMs / 1000)} /> : null}
+      <span role="status" className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+        {t('waiting')}
+      </span>
+      <h2 className="font-display text-3xl font-extrabold">{t('payTitle', { total: formatMnt(order.totalAmount) })}</h2>
 
-      {order.payment.deeplinks.length ? (
-        <div className="flex w-full flex-col gap-2">
-          <p className="text-sm font-medium">{t('bankApps')}</p>
-          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {order.payment.deeplinks.map((bank) => (
+      {banks.length ? (
+        <>
+          {/* Ихэнх хүн яг энэ утсаараа төлнө: банкны апп эхэнд, QR нь "өөр утаснаас" гэж эвхэгдсэн */}
+          <p className="max-w-sm text-[15px] text-ink-soft">{t('payHintApps')}</p>
+          <ul className="grid w-full grid-cols-3 gap-2 sm:grid-cols-4">
+            {banks.map((bank) => (
               <li key={bank.link}>
                 <a
                   href={bank.link}
-                  className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-line p-2 text-xs"
+                  className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl bg-surface-2 p-2 text-xs font-semibold hover:bg-brand-50"
                 >
-                  <img src={bank.logo} alt="" width={36} height={36} className="rounded-lg" loading="lazy" />
+                  <img src={bank.logo} alt="" width={40} height={40} className="rounded-xl" loading="lazy" />
                   <span className="line-clamp-2">{bank.description || bank.name}</span>
                 </a>
               </li>
             ))}
           </ul>
-        </div>
-      ) : null}
-
-      <div className="flex items-center gap-2 text-sm text-ink-soft" role="status">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-ink" aria-hidden />
-        {t('waiting')}
-        {leftSec !== null ? ` · ${t('timeLeft', { minutes: Math.floor(leftSec / 60), seconds: String(leftSec % 60).padStart(2, '0') })}` : ''}
-      </div>
+          <details className="group w-full rounded-2xl bg-surface-2 text-left">
+            <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 font-semibold [&::-webkit-details-marker]:hidden">
+              <QrIcon size={22} />
+              <span className="flex-1">{t('otherPhone')}</span>
+              <ChevronDownIcon size={20} className="text-ink-soft transition group-open:rotate-180" />
+            </summary>
+            <div className="flex justify-center px-4 pb-4">{qrImage}</div>
+          </details>
+        </>
+      ) : (
+        <Card className="flex flex-col items-center gap-3">
+          <p className="text-sm text-ink-soft">{t('payHintQr')}</p>
+          {qrImage}
+        </Card>
+      )}
 
       {order.mockPayment ? (
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-dashed border-amber-400 bg-amber-50 p-3">
+        <div className="flex w-full flex-col gap-2 rounded-2xl border border-dashed border-amber-400 bg-amber-50 p-3">
           <p className="text-xs text-amber-900">{t('mockNote')}</p>
           <Button variant="secondary" onClick={() => void mockPay()}>
             {t('mockPay')}
@@ -166,7 +182,38 @@ function PaymentCard({ order, token, onChange }: { order: OrderView; token: stri
           {mockError ? <p className="text-sm text-red-700">{mockError}</p> : null}
         </div>
       ) : null}
-    </Card>
+    </section>
+  );
+}
+
+/** Төлбөрийн үлдсэн хугацааны цагираг */
+function Countdown({ fraction, seconds }: { fraction: number; seconds: number }) {
+  const t = useTranslations('order');
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative size-30">
+      <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
+        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="8" className="stroke-surface-3" />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - Math.min(1, Math.max(0, fraction)))}
+          className="stroke-brand-600 transition-[stroke-dashoffset] duration-1000 ease-linear"
+        />
+      </svg>
+      <span className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-2xl font-extrabold tabular-nums">
+          {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
+        </span>
+        <span className="text-xs text-ink-soft">{t('left')}</span>
+      </span>
+    </div>
   );
 }
 
@@ -175,6 +222,7 @@ function Downloads({ order, token }: { order: OrderView; token: string }) {
   const errorMessage = useErrorMessage();
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [done, setDone] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const available = order.items.filter((i) => i.available);
 
@@ -199,9 +247,11 @@ function Downloads({ order, token }: { order: OrderView; token: string }) {
 
   async function downloadAll() {
     setError(null);
-    for (const item of available) {
+    setDone(0);
+    for (const [i, item] of available.entries()) {
       setDownloading(item.id);
       if (!(await download(item.id))) break;
+      setDone(i + 1);
       // Браузер олон файлыг зэрэг татахыг хаадаг тул дараалуулна
       await new Promise((r) => setTimeout(r, 900));
     }
@@ -215,48 +265,82 @@ function Downloads({ order, token }: { order: OrderView; token: string }) {
 
   return (
     <>
-      <Alert kind="success">
-        {t('paid')}
-        {order.downloadableUntil ? ` ${t('until', { date: formatDate(order.downloadableUntil) })}` : ''}
-      </Alert>
-
-      <Card className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-ink">{order.emailOnFile ? t('keepLinkEmailed') : t('keepLink')}</p>
-        <Button variant="secondary" className="shrink-0" onClick={() => void copyLink()}>
-          {copied ? t('copied') : t('copyLink')}
-        </Button>
-      </Card>
+      {/* Амжилтын агшин */}
+      <div className="flex items-center gap-4">
+        <span className="flex size-13 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white" aria-hidden>
+          <CheckIcon size={28} strokeWidth={2.6} />
+        </span>
+        <div className="flex flex-col" role="status">
+          <p className="font-display text-2xl font-extrabold">{t('paidTitle')}</p>
+          <p className="text-ink-soft">{t('readyCount', { count: available.length })}</p>
+        </div>
+      </div>
 
       {error ? <Alert>{error}</Alert> : null}
 
       {available.length > 1 ? (
-        <Button onClick={() => void downloadAll()} disabled={downloading !== null} className="self-start">
-          {downloading ? t('downloadingAll') : t('downloadAll', { count: available.length })}
-        </Button>
+        <Card className="flex flex-col gap-3">
+          <Button onClick={() => void downloadAll()} disabled={downloading !== null} className="min-h-14 w-full gap-2">
+            <DownloadIcon size={20} />
+            {downloading ? t('downloadingAll') : t('downloadAll', { count: available.length })}
+          </Button>
+          {done !== null ? (
+            <div className="flex flex-col gap-1.5" aria-live="polite">
+              <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
+                <div className="h-full rounded-full bg-emerald-700 transition-all" style={{ width: `${(done / available.length) * 100}%` }} />
+              </div>
+              <p className="text-sm font-semibold text-emerald-800">{t('progress', { done, total: available.length })}</p>
+            </div>
+          ) : null}
+        </Card>
       ) : null}
 
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <Card className="flex flex-wrap items-center gap-3 p-4!">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden>
+          <LinkIcon size={20} />
+        </span>
+        <div className="flex min-w-48 flex-1 flex-col">
+          <p className="font-semibold">{t('keepLinkTitle')}</p>
+          <p className="text-sm text-ink-soft">
+            {order.downloadableUntil ? `${t('until', { date: formatDate(order.downloadableUntil) })} ` : ''}
+            {order.emailOnFile ? t('keepLinkEmailed') : t('keepLink')}
+          </p>
+        </div>
+        <Button variant="secondary" className="min-h-11 shrink-0" onClick={() => void copyLink()}>
+          {copied ? t('copied') : t('copyLink')}
+        </Button>
+      </Card>
+
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {order.items.map((item, i) => (
-          <li key={item.id} className="flex flex-col gap-2">
+          <li key={item.id} className="relative">
             {item.thumbUrl ? (
-              <img src={item.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-surface-3 object-cover" />
+              <img src={item.thumbUrl} alt="" loading="lazy" className="aspect-[4/5] w-full rounded-xl bg-surface-3 object-cover" />
             ) : (
-              <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-surface-3 p-2 text-center text-xs text-ink-soft">
+              <div className="flex aspect-[4/5] w-full items-center justify-center rounded-xl bg-surface-3 p-2 text-center text-xs text-ink-soft">
                 {item.refunded ? t('itemRefunded') : t('itemUnavailable')}
               </div>
             )}
-            <Button
-              variant="secondary"
-              disabled={!item.available || downloading !== null}
-              onClick={async () => {
-                setDownloading(item.id);
-                setError(null);
-                await download(item.id);
-                setDownloading(null);
-              }}
-            >
-              {downloading === item.id ? t('downloading') : t('download', { index: i + 1 })}
-            </Button>
+            {item.available ? (
+              <button
+                type="button"
+                aria-label={t('download', { index: i + 1 })}
+                disabled={downloading !== null}
+                onClick={async () => {
+                  setDownloading(item.id);
+                  setError(null);
+                  await download(item.id);
+                  setDownloading(null);
+                }}
+                className="absolute bottom-2 right-2 flex size-11 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink shadow-sm hover:bg-brand-50 disabled:cursor-wait disabled:opacity-70"
+              >
+                {downloading === item.id ? (
+                  <span className="size-4 animate-spin rounded-full border-2 border-line border-t-ink" aria-hidden />
+                ) : (
+                  <DownloadIcon size={20} />
+                )}
+              </button>
+            ) : null}
           </li>
         ))}
       </ul>

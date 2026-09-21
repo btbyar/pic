@@ -157,3 +157,20 @@ export const ClockIcon = icon(
     <path d="M12 7v5l3 2" />
   </>,
 );
+
+export const CartIcon = icon(
+  <>
+    <path d="M3 4h2l2.4 11h10.2L20 7H6.2" />
+    <circle cx="9" cy="19.5" r="1.3" />
+    <circle cx="17" cy="19.5" r="1.3" />
+  </>,
+);
+
+export const SunIcon = icon(
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5" />
+  </>,
+);
+
+export const ChevronDownIcon = icon(<path d="m6 9 6 6 6-6" />);

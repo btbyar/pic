@@ -98,6 +98,22 @@ body {
   animation: focus-lock 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Хайлтын үед селфи дээгүүр гүйх шугам (reduced-motion үед дээрх дүрмээр зогсоно) */
+@keyframes scan {
+  0%,
+  100% {
+    top: 10%;
+  }
+  50% {
+    top: 88%;
+  }
+}
+
+.scan-line {
+  top: 50%;
+  animation: scan 2.4s ease-in-out infinite;
+}
+
 /* Хэвлэх: дэвсгэр өнгө хэвлэхгүй */
 @media print {
   body {

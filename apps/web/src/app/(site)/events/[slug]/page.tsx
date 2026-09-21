@@ -37,7 +37,7 @@ export default async function EventPage({
   );
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-28 pt-4 sm:pb-8 sm:pt-6">
+    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-36 pt-4 sm:pb-8 sm:pt-6">
       <div className="flex flex-col gap-3">
         <Link href={backHref} className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-ink-soft hover:text-ink">
           <ArrowLeftIcon size={16} />
@@ -45,16 +45,16 @@ export default async function EventPage({
         </Link>
 
         {/* Hero: cover зураг дээр гарчиг */}
-        <FocusFrame className="isolate flex min-h-64 flex-col justify-end overflow-hidden rounded-xl bg-surface-2 sm:min-h-80">
+        <FocusFrame className="isolate flex min-h-64 flex-col justify-end overflow-hidden rounded-2xl bg-surface-2 sm:min-h-80">
           {heroImage ? (
             <img src={heroImage} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
           ) : (
             <div className="absolute inset-0 -z-10 bg-surface-2" />
           )}
-          <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-surface via-surface/75 to-surface/25" />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-black/75 via-black/35 to-transparent" />
           <div className="flex flex-col items-start gap-2 p-5 sm:p-8">
-            <h1 className="max-w-3xl text-balance text-3xl font-bold leading-tight text-ink sm:text-5xl">{event.title}</h1>
-            <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink">
+            <h1 className="max-w-3xl text-balance text-3xl font-bold leading-tight text-white sm:text-5xl">{event.title}</h1>
+            <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/90">
               {meta.map((item) => (
                 <span key={item as string}>{item}</span>
               ))}
@@ -70,13 +70,24 @@ export default async function EventPage({
             <h2 className="font-display text-2xl font-bold">{t('search.ctaTitle')}</h2>
             <p className="max-w-md text-ink-soft">{t('search.ctaBody')}</p>
             {/* Утсан дээр доод талд наалдана: QR уншуулсан хүн гүйлгэсэн ч товч харагдана */}
-            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0">
-              <ButtonLink href={`/events/${slug}/find${query}`} className="min-h-14 w-full gap-2 text-base sm:w-auto sm:px-6">
-                <ScanFaceIcon size={20} />
-                {t('search.cta')}
-              </ButtonLink>
+            {/* Утсан дээр: үнэ + товч + нууцлал нэг мөрөнд, эрхий хурууны бүсэд */}
+            <div className="fixed inset-x-0 bottom-0 z-30 flex flex-col gap-2 bg-surface-2/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_24px_rgba(26,20,51,0.08)] backdrop-blur-md sm:static sm:bg-transparent sm:p-0 sm:shadow-none">
+              <div className="flex items-center gap-3">
+                <span className="flex shrink-0 flex-col sm:hidden">
+                  <span className="text-xs text-ink-soft">{t('events.priceLabel')}</span>
+                  <span className="font-display text-lg font-bold tabular-nums">{formatMnt(event.pricePerPhoto)}</span>
+                </span>
+                <ButtonLink href={`/events/${slug}/find${query}`} className="min-h-14 flex-1 gap-2 text-base sm:flex-none sm:px-6">
+                  <ScanFaceIcon size={20} />
+                  {t('search.cta')}
+                </ButtonLink>
+              </div>
+              <p className="flex items-center justify-center gap-1.5 text-xs text-ink-soft sm:hidden">
+                <LockIcon size={14} className="shrink-0" />
+                {t('search.ctaPrivacy')}
+              </p>
             </div>
-            <p className="flex items-start gap-1.5 text-sm text-ink-soft">
+            <p className="hidden items-start gap-1.5 text-sm text-ink-soft sm:flex">
               <LockIcon size={16} className="mt-0.5 shrink-0" />
               {t('search.ctaPrivacy')}
             </p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { XIcon } from '@/components/icons';
+import { CheckIcon, QrIcon, XIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -164,8 +164,14 @@ function CartEventCard({ event }: { event: CartEvent }) {
         ) : null}
         <div className="flex justify-between text-lg font-bold">
           <span>{t('total')}</span>
-          <span>{price ? formatMnt(price.total) : '…'}</span>
+          <span className="tabular-nums">{price ? formatMnt(price.total) : '…'}</span>
         </div>
+        {price?.bundleApplied ? (
+          <p className="mt-1 inline-flex items-center gap-2 self-start rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+            <CheckIcon size={16} strokeWidth={2.5} />
+            {t('saved', { price: formatMnt(price.subtotal - price.total) })}
+          </p>
+        ) : null}
         {blocker === 'no_search' && event.bundlePrice !== null ? (
           <p className="text-sm text-ink-soft">
             {t('bundleHint', { price: formatMnt(event.bundlePrice) })}{' '}
@@ -174,8 +180,15 @@ function CartEventCard({ event }: { event: CartEvent }) {
             </Link>
           </p>
         ) : null}
-        {blocker === 'search_expired' ? <p className="text-sm text-amber-300">{t('bundleExpired')}</p> : null}
-        {blocker === 'not_matched' ? <p className="text-sm text-amber-300">{t('bundleNotMatched')}</p> : null}
+        {blocker === 'search_expired' ? (
+          <div className="flex flex-col items-start gap-2">
+            <p className="text-sm text-amber-800">{t('bundleExpired')}</p>
+            <ButtonLink href={`/events/${event.slug}/find${eventQuery}`} variant="secondary" className="min-h-11">
+              {t('searchAgain')}
+            </ButtonLink>
+          </div>
+        ) : null}
+        {blocker === 'not_matched' ? <p className="text-sm text-amber-700">{t('bundleNotMatched')}</p> : null}
       </div>
 
       {error ? <Alert>{error}</Alert> : null}
@@ -184,7 +197,8 @@ function CartEventCard({ event }: { event: CartEvent }) {
         <Field label={t('email')} hint={t('emailHint')} htmlFor={`email-${event.slug}`}>
           <Input id={`email-${event.slug}`} name="email" type="email" autoComplete="email" inputMode="email" />
         </Field>
-        <Button type="submit" disabled={busy || !price}>
+        <Button type="submit" disabled={busy || !price} className="min-h-14 w-full gap-2">
+          {!busy && price?.total !== 0 ? <QrIcon size={20} /> : null}
           {busy ? t('creating') : price?.total === 0 ? t('getFree') : t('pay', { price: price ? formatMnt(price.total) : '' })}
         </Button>
         <p className="text-xs text-ink-soft">{t('terms')}</p>
