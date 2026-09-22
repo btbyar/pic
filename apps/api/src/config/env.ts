@@ -7,7 +7,8 @@ const base64Key32 = z
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_PORT: z.coerce.number().int().positive().default(4000),
-  WEB_ORIGIN: z.url(),
+  // Браузерын Origin-той яг тулгана — "https://x.app/" гэж бичсэн ч "https://x.app" болгоно
+  WEB_ORIGIN: z.url().transform((v) => new URL(v).origin),
 
   APP_DATABASE_URL: z.string().min(1),
   // Админ модуль: pic_admin_role — biometric schema-д огт эрхгүй (docs/ARCHITECTURE.md §8)
