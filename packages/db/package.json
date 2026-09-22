@@ -19,6 +19,7 @@
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "prisma db seed",
+    "bootstrap": "tsx prisma/bootstrap.ts",
     "test": "vitest run"
   },
   "dependencies": {

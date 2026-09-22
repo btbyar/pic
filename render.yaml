@@ -1,0 +1,173 @@
+# Render Blueprint — backend (api, worker, ml, Postgres, Redis). Web нь Vercel дээр.
+# Render → New → Blueprint → энэ repo. "sync: false" утгуудыг Render анх үүсгэхэд асууна.
+# Бүгд нэг бүсэд байх ёстой (private network).
+
+envVarGroups:
+  - name: pic-shared
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Нууцуудыг Render өөрөө үүсгэнэ (base64, 256-bit)
+      - key: PIC_APP_DB_PASSWORD
+        generateValue: true
+      - key: PIC_ADMIN_DB_PASSWORD
+        generateValue: true
+      - key: ML_SERVICE_TOKEN
+        generateValue: true
+      - key: FIELD_ENCRYPTION_KEY
+        generateValue: true
+      - key: IP_HASH_SECRET
+        generateValue: true
+      # Vercel дээрх web-ийн хаяг, ж: https://pic.vercel.app (төгсгөлд / байхгүй)
+      - key: WEB_ORIGIN
+        sync: false
+      # ----- Cloudflare R2 -----
+      # https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_PUBLIC_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        value: auto
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "true"
+      - key: S3_BUCKET_ORIGINALS
+        value: pic-originals
+      - key: S3_BUCKET_PUBLIC
+        value: pic-public
+      # pic-public bucket-ийн нийтийн хаяг, ж: https://pub-xxxx.r2.dev
+      - key: PUBLIC_MEDIA_BASE_URL
+        sync: false
+      # ----- QPay (production-д mock хориотой) -----
+      - key: PAYMENT_PROVIDER
+        value: qpay
+      - key: QPAY_BASE_URL
+        value: https://merchant-sandbox.qpay.mn/v2
+      - key: QPAY_USERNAME
+        sync: false
+      - key: QPAY_PASSWORD
+        sync: false
+      - key: QPAY_INVOICE_CODE
+        sync: false
+      # <WEB_ORIGIN>/api/payments/qpay/callback
+      - key: QPAY_CALLBACK_URL
+        sync: false
+      # ----- Имэйл: SMTP relay тохируулах хүртэл имэйл илгээгдэхгүй (бусад нь ажиллана) -----
+      - key: SMTP_URL
+        value: smtp://localhost:1025
+      - key: MAIL_FROM
+        value: Pic <no-reply@pic.local>
+      - key: WORKER_CONCURRENCY
+        value: "1"
+
+services:
+  - type: web
+    name: pic-api
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./infra/docker/render.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    preDeployCommand: /repo/infra/docker/render-entrypoint.sh sh -c "cd /repo/packages/db && pnpm migrate:deploy && pnpm bootstrap"
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/**
+        - infra/docker/render*
+        - pnpm-lock.yaml
+    envVars:
+      - fromGroup: pic-shared
+      - key: PORT
+        value: "4000"
+      - key: API_PORT
+        value: "4000"
+      # Эзэмшигч холболт — migration/bootstrap. pic_app/pic_admin холболтыг entrypoint үүсгэнэ.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pic-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: pic-redis
+          property: connectionString
+      - key: ML_HOSTPORT
+        fromService:
+          type: pserv
+          name: pic-ml
+          property: hostport
+      # Анхны админ (админ байхгүй үед л үүснэ). Нууц үг 12+ тэмдэгт.
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+
+  - type: worker
+    name: pic-worker
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./infra/docker/render.Dockerfile
+    dockerContext: .
+    dockerCommand: /repo/infra/docker/render-entrypoint.sh node dist/worker.js
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/**
+        - infra/docker/render*
+        - pnpm-lock.yaml
+    envVars:
+      - fromGroup: pic-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pic-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: pic-redis
+          property: connectionString
+      - key: ML_HOSTPORT
+        fromService:
+          type: pserv
+          name: pic-ml
+          property: hostport
+
+  - type: pserv
+    name: pic-ml
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./infra/docker/ml.Dockerfile
+    dockerContext: .
+    buildFilter:
+      paths:
+        - services/ml/**
+        - infra/docker/ml.Dockerfile
+    envVars:
+      - fromGroup: pic-shared
+      # 512MB RAM-д нэг процесс
+      - key: ML_WORKERS
+        value: "1"
+
+  - type: keyvalue
+    name: pic-redis
+    region: singapore
+    plan: starter
+    # BullMQ noeviction шаарддаг
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: pic-db
+    region: singapore
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+    databaseName: pic
+    user: pic
+    ipAllowList: []
