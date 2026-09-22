@@ -1,0 +1,15 @@
+# Vercel-д зөвхөн web + түүний хамаарлууд очно. Нууц, dev өгөгдөл хэзээ ч upload хийхгүй.
+.env
+.env.*
+!.env.example
+.git
+.claude
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/dist-worker
+**/*.tsbuildinfo
+services
+infra
+docs

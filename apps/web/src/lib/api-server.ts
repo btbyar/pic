@@ -11,10 +11,16 @@ export interface ServerResult<T> {
 /** Server component-оос API дуудах. Хэрэглэгчийн session cookie-г дамжуулна. */
 export async function serverApi<T>(path: string): Promise<ServerResult<T>> {
   const cookieHeader = (await cookies()).toString();
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: cookieHeader ? { cookie: cookieHeader } : {},
-    cache: 'no-store',
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      headers: cookieHeader ? { cookie: cookieHeader } : {},
+      cache: 'no-store',
+    });
+  } catch {
+    // API унтарсан/хүрэхгүй — хуудас 500 болохын оронд хоосон төлөвөө харуулна
+    return { status: 503, data: null };
+  }
   const isJson = res.headers.get('content-type')?.includes('application/json');
   const body = isJson ? ((await res.json()) as T) : null;
   return { status: res.status, data: res.ok ? body : null };
