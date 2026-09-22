@@ -1,13 +1,12 @@
 'use client';
 
-import { BackLink } from '@/components/back-link';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { BackLink } from '@/components/back-link';
 import { EventForm } from '@/components/event-form';
-import { Card } from '@/components/ui';
-import { api } from '@/lib/api-client';
+import { Card, PageHeader } from '@/components/ui';
 import { rememberAccessLink } from '@/lib/access-link';
+import { api } from '@/lib/api-client';
 import type { MyEvent } from '@/lib/types';
 
 export default function NewEventPage() {
@@ -17,8 +16,8 @@ export default function NewEventPage() {
   return (
     <>
       <BackLink href="/photographer/events">{t('photographer.myEvents')}</BackLink>
-      <h1 className="text-2xl font-bold">{t('photographer.newEvent')}</h1>
-      <Card>
+      <PageHeader kicker={t('photographer.newEventKicker')} title={t('photographer.newEvent')} intro={<p>{t('photographer.newEventIntro')}</p>} />
+      <Card className="max-w-3xl animate-rise stagger [--i:3]">
         <EventForm
           submitLabel={t('eventForm.create')}
           busyLabel={t('eventForm.creating')}

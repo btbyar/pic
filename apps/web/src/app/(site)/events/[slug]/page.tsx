@@ -1,11 +1,11 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { FocusFrame } from '@/components/focus-frame';
+import { BackLink } from '@/components/back-link';
 import { Gallery } from '@/components/gallery';
-import { ButtonLink } from '@/components/ui';
-import { ArrowLeftIcon, LockIcon, ScanFaceIcon } from '@/components/icons';
+import { LockIcon, ScanFaceIcon } from '@/components/icons';
 import { ShareEvent } from '@/components/share-event';
+import { Perforation, Ticket } from '@/components/ticket';
+import { ButtonLink, Kicker } from '@/components/ui';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange, formatMnt } from '@/lib/datetime';
 import type { PublicEvent, PublicPhotoPage } from '@/lib/types';
@@ -32,97 +32,129 @@ export default async function EventPage({
   const backHref = owner ? `/photographers/${owner.slug}` : '/photographers';
   const backLabel = owner ? owner.name : t('photographers.title');
   const heroImage = event.coverLargeUrl ?? event.coverUrl;
-  const meta = [formatEventRange(event.startsAt, event.endsAt, event.timezone), event.location, t('common.photos', { count: event.photoCount })].filter(
-    Boolean,
-  );
+  const findHref = `/events/${slug}/find${query}`;
+  const credits = event.photographers?.map((p) => p.name).join(' · ');
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-36 pt-4 sm:pb-8 sm:pt-6">
-      <div className="flex flex-col gap-3">
-        <Link href={backHref} className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-ink-soft hover:text-ink">
-          <ArrowLeftIcon size={16} />
-          {backLabel}
-        </Link>
+    <main className="pb-[calc(var(--dock)+7rem)] md:pb-0">
+      {/* ——— Нээлтийн кадр: cover дэлгэц дүүргэнэ ——— */}
+      <section className="relative isolate flex min-h-[82svh] flex-col overflow-hidden">
+        {heroImage ? (
+          <img src={heroImage} alt="" className="absolute inset-0 -z-20 h-full w-full animate-kenburns object-cover" />
+        ) : (
+          <div aria-hidden className="absolute -top-40 left-1/3 -z-20 h-[36rem] w-[50rem] animate-drift rounded-full bg-gold/10 blur-[120px]" />
+        )}
+        {/* Letterbox: дээр, доор харанхуйлна */}
+        <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-b from-night/80 via-night/30 to-night" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-r from-night/70 via-transparent to-transparent" />
 
-        {/* Hero: cover зураг дээр гарчиг */}
-        <FocusFrame className="isolate flex min-h-64 flex-col justify-end overflow-hidden rounded-2xl bg-surface-2 sm:min-h-80">
-          {heroImage ? (
-            <img src={heroImage} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 -z-10 bg-surface-2" />
-          )}
-          <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-black/75 via-black/35 to-transparent" />
-          <div className="flex flex-col items-start gap-2 p-5 sm:p-8">
-            <h1 className="max-w-3xl text-balance text-3xl font-bold leading-tight text-white sm:text-5xl">{event.title}</h1>
-            <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/90">
-              {meta.map((item) => (
-                <span key={item as string}>{item}</span>
-              ))}
-            </p>
-          </div>
-        </FocusFrame>
-      </div>
-
-      {/* Гол үйлдэл: селфигээр хайх. Хажууд нь үнэ — картгүй, зөвхөн зураасаар тусгаарлана. */}
-      <div className="flex flex-col gap-6 border-y border-line py-8 sm:flex-row sm:items-center sm:justify-between">
-        {event.faceSearchEnabled ? (
-          <div className="flex flex-col items-start gap-3">
-            <h2 className="font-display text-2xl font-bold">{t('search.ctaTitle')}</h2>
-            <p className="max-w-md text-ink-soft">{t('search.ctaBody')}</p>
-            {/* Утсан дээр доод талд наалдана: QR уншуулсан хүн гүйлгэсэн ч товч харагдана */}
-            {/* Утсан дээр: үнэ + товч + нууцлал нэг мөрөнд, эрхий хурууны бүсэд */}
-            <div className="fixed inset-x-0 bottom-0 z-30 flex flex-col gap-2 bg-surface-2/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_24px_rgba(26,20,51,0.08)] backdrop-blur-md sm:static sm:bg-transparent sm:p-0 sm:shadow-none">
-              <div className="flex items-center gap-3">
-                <span className="flex shrink-0 flex-col sm:hidden">
-                  <span className="text-xs text-ink-soft">{t('events.priceLabel')}</span>
-                  <span className="font-display text-lg font-bold tabular-nums">{formatMnt(event.pricePerPhoto)}</span>
-                </span>
-                <ButtonLink href={`/events/${slug}/find${query}`} className="min-h-14 flex-1 gap-2 text-base sm:flex-none sm:px-6">
-                  <ScanFaceIcon size={20} />
-                  {t('search.cta')}
-                </ButtonLink>
-              </div>
-              <p className="flex items-center justify-center gap-1.5 text-xs text-ink-soft sm:hidden">
-                <LockIcon size={14} className="shrink-0" />
-                {t('search.ctaPrivacy')}
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-5 pb-10 pt-28">
+          <BackLink href={backHref}>{backLabel}</BackLink>
+          <div className="mt-auto grid items-end gap-10 pt-24 lg:grid-cols-[1fr_24rem]">
+            <div className="flex flex-col items-start gap-5">
+              <Kicker className="animate-rise !text-mist">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</Kicker>
+              <h1 className="animate-rise font-display text-[clamp(2.75rem,7vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.03em] stagger [--i:1]">
+                {event.title}
+              </h1>
+              <p className="flex animate-rise flex-wrap gap-x-6 gap-y-2 text-mist stagger [--i:2]">
+                {event.location ? <span>{event.location}</span> : null}
+                <span>{t('common.photos', { count: event.photoCount })}</span>
+                {credits ? <span className="font-display text-lg italic text-ivory">{credits}</span> : null}
               </p>
             </div>
-            <p className="hidden items-start gap-1.5 text-sm text-ink-soft sm:flex">
-              <LockIcon size={16} className="mt-0.5 shrink-0" />
+
+            {/* Тасалбар: үнэ + гол үйлдэл. Өргөн дэлгэцэнд hero дотор, утсан дээр доор нь. */}
+            <div className="hidden animate-rise stagger [--i:3] lg:block">
+              <PriceTicket event={event} findHref={findHref} t={t} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto flex max-w-7xl flex-col gap-16 px-5">
+        <div className="lg:hidden">
+          <PriceTicket event={event} findHref={findHref} t={t} />
+        </div>
+
+        {event.description ? (
+          <p className="max-w-3xl whitespace-pre-line font-display text-2xl leading-snug text-ivory/90 sm:text-3xl">{event.description}</p>
+        ) : null}
+
+        <section className="flex flex-col gap-8">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-col gap-3">
+              <Kicker>{t('gallery.kicker')}</Kicker>
+              <h2 className="font-display text-5xl font-semibold leading-none tracking-[-0.02em]">{t('gallery.title')}</h2>
+            </div>
+            <ShareEvent title={event.title} />
+          </div>
+          <Gallery
+            slug={slug}
+            accessToken={token}
+            timezone={event.timezone}
+            initial={photos ?? { items: [], nextCursor: null }}
+            cartEvent={{
+              slug,
+              title: event.title,
+              pricePerPhoto: event.pricePerPhoto,
+              bundlePrice: event.bundlePrice,
+              accessToken: token,
+            }}
+          />
+        </section>
+      </div>
+
+      {/* Утсан дээр: гол үйлдэл эрхий хурууны бүсэд, доод цэсний дээр */}
+      {event.faceSearchEnabled ? (
+        <div className="fixed inset-x-3 bottom-[calc(var(--dock)+0.5rem)] z-30 lg:hidden">
+          <div className="glass flex items-center gap-3 rounded-[20px] p-2 pl-4 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)]">
+            <span className="flex shrink-0 flex-col">
+              <span className="kicker !text-[10px]">{t('events.priceLabel')}</span>
+              <span className="font-display text-2xl font-semibold leading-none tabular-nums">{formatMnt(event.pricePerPhoto)}</span>
+            </span>
+            <ButtonLink href={findHref} className="flex-1">
+              <ScanFaceIcon size={20} />
+              {t('search.cta')}
+            </ButtonLink>
+          </div>
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
+function PriceTicket({ event, findHref, t }: { event: PublicEvent; findHref: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
+  return (
+    <Ticket glow className="p-6">
+      <div className="flex flex-col gap-3">
+        <span className="kicker">{t('events.priceLabel')}</span>
+        <span className="font-display text-5xl font-semibold leading-none tabular-nums">{formatMnt(event.pricePerPhoto)}</span>
+        {event.bundlePrice !== null ? (
+          <span className="inline-flex items-center gap-2 self-start rounded-full bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold ring-1 ring-inset ring-gold/30">
+            <span aria-hidden className="size-1.5 rounded-full bg-gold" />
+            {t('events.bundle', { price: formatMnt(event.bundlePrice) })}
+          </span>
+        ) : null}
+      </div>
+      {event.faceSearchEnabled ? (
+        <>
+          <Perforation />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <p className="font-display text-2xl font-semibold leading-tight">{t('search.ctaTitle')}</p>
+              <p className="text-sm text-mist">{t('search.ctaBody')}</p>
+            </div>
+            <ButtonLink href={findHref} size="lg" className="w-full">
+              <ScanFaceIcon size={20} />
+              {t('search.cta')}
+            </ButtonLink>
+            <p className="flex items-start gap-2 text-xs leading-relaxed text-mist">
+              <LockIcon size={14} className="mt-px shrink-0 text-gold" />
               {t('search.ctaPrivacy')}
             </p>
           </div>
-        ) : null}
-
-        <div className="flex flex-col gap-1 sm:text-right">
-          <span className="text-sm text-ink-soft">{t('events.priceLabel')}</span>
-          <span className="font-display text-3xl font-bold tabular-nums">{formatMnt(event.pricePerPhoto)}</span>
-          {event.bundlePrice !== null ? (
-            <span className="text-sm text-ink-soft">{t('events.bundle', { price: formatMnt(event.bundlePrice) })}</span>
-          ) : null}
-        </div>
-      </div>
-
-      {event.description ? <p className="max-w-3xl whitespace-pre-line text-ink">{event.description}</p> : null}
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-bold">{t('gallery.title')}</h2>
-        <Gallery
-          slug={slug}
-          accessToken={token}
-          timezone={event.timezone}
-          initial={photos ?? { items: [], nextCursor: null }}
-          cartEvent={{
-            slug,
-            title: event.title,
-            pricePerPhoto: event.pricePerPhoto,
-            bundlePrice: event.bundlePrice,
-            accessToken: token,
-          }}
-        />
-      </section>
-
-      <ShareEvent title={event.title} />
-    </main>
+        </>
+      ) : null}
+    </Ticket>
   );
 }

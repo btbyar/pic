@@ -1,11 +1,12 @@
 'use client';
 
-import { CheckIcon, QrIcon, XIcon } from '@/components/icons';
+import { CartIcon, CheckIcon, QrIcon, XIcon } from '@/components/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useEffect, useState } from 'react';
-import { Alert, Button, ButtonLink, Card, Field, Input } from '@/components/ui';
+import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
+import { Perforation, Ticket } from '@/components/ticket';
+import { Alert, Button, ButtonLink, EmptyState, Field, Input, Kicker } from '@/components/ui';
 import { api, useErrorMessage } from '@/lib/api-client';
 import { type CartEvent, clearCartEvent, removeFromCart, useCart } from '@/lib/cart';
 import { formatMnt } from '@/lib/datetime';
@@ -18,23 +19,30 @@ export function CartView() {
   const events = Object.values(cart).sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Link href="/my/orders" className="inline-flex min-h-11 items-center text-sm text-ink-soft underline underline-offset-4">
+    <main className="mx-auto flex max-w-7xl flex-col gap-10 px-5 pt-32">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-4">
+          <Kicker className="animate-rise">{t('kicker')}</Kicker>
+          <h1 className="animate-rise font-display text-[clamp(3rem,8vw,6.5rem)] font-semibold leading-[0.88] tracking-[-0.035em] stagger [--i:1]">
+            {t('title')}
+          </h1>
+        </div>
+        <Link href="/my/orders" className="inline-flex min-h-11 items-center font-semibold text-mist transition hover:text-ivory">
           {t('myOrders')}
         </Link>
       </header>
       {events.length === 0 ? (
-        <Card className="flex flex-col items-start gap-3">
-          <p className="text-ink">{t('empty')}</p>
-          <ButtonLink href="/photographers">{t('browse')}</ButtonLink>
-        </Card>
+        <EmptyState
+          icon={<CartIcon size={28} />}
+          title={t('emptyTitle')}
+          body={t('empty')}
+          action={<ButtonLink href="/photographers">{t('browse')}</ButtonLink>}
+        />
       ) : (
         <>
           {events.length > 1 ? <Alert kind="info">{t('perEvent')}</Alert> : null}
-          {events.map((event) => (
-            <CartEventCard key={event.slug} event={event} />
+          {events.map((event, i) => (
+            <CartEventCard key={event.slug} event={event} index={i} />
           ))}
         </>
       )}
@@ -42,7 +50,7 @@ export function CartView() {
   );
 }
 
-function CartEventCard({ event }: { event: CartEvent }) {
+function CartEventCard({ event, index }: { event: CartEvent; index: number }) {
   const t = useTranslations('cart');
   const errorMessage = useErrorMessage();
   const router = useRouter();
@@ -123,86 +131,112 @@ function CartEventCard({ event }: { event: CartEvent }) {
   const blocker = price?.bundleBlocker;
 
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold">{event.title}</h2>
-        <Link href={`/events/${event.slug}${eventQuery}`} className="text-sm text-ink-soft underline underline-offset-4">
-          {t('addMore')}
-        </Link>
+    <section
+      className="grid animate-rise items-start gap-4 stagger lg:grid-cols-[1fr_26rem] lg:gap-6"
+      style={{ '--i': index + 2 } as CSSProperties}
+      aria-labelledby={`cart-${event.slug}`}
+    >
+      {/* Зүүн: сонгосон кадрууд */}
+      <div className="panel flex flex-col gap-5 p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id={`cart-${event.slug}`} className="font-display text-3xl font-semibold leading-tight">
+            {event.title}
+          </h2>
+          <Link
+            href={`/events/${event.slug}${eventQuery}`}
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-gold transition hover:text-gold-soft"
+          >
+            + {t('addMore')}
+          </Link>
+        </div>
+
+        {notice ? <Alert kind="info">{notice}</Alert> : null}
+
+        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
+          {event.photos.map((photo, i) => (
+            <li key={photo.id} className="group relative animate-fade">
+              <img src={photo.thumbUrl} alt="" loading="lazy" className="aspect-4/5 w-full rounded-xl bg-night-3 object-cover" />
+              <span className="absolute bottom-1.5 left-2 font-mono text-[9px] tracking-[0.14em] text-ivory/80">#{String(i + 1).padStart(2, '0')}</span>
+              <button
+                type="button"
+                onClick={() => removeFromCart(event.slug, [photo.id])}
+                aria-label={t('remove')}
+                className="glass absolute right-1 top-1 flex size-11 cursor-pointer items-center justify-center rounded-full text-ivory transition hover:bg-ember hover:text-night sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+              >
+                <XIcon size={16} />
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {notice ? <Alert kind="info">{notice}</Alert> : null}
-
-      <ul className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-        {event.photos.map((photo) => (
-          <li key={photo.id} className="relative">
-            <img src={photo.thumbUrl} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-surface-3 object-cover" />
-            <button
-              type="button"
-              onClick={() => removeFromCart(event.slug, [photo.id])}
-              aria-label={t('remove')}
-              className="absolute right-1 top-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-surface/80 text-ink backdrop-blur"
-            >
-              <XIcon size={18} />
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex flex-col gap-1 border-t border-line pt-4">
-        <div className="flex justify-between text-sm text-ink-soft">
-          <span>{t('lineItems', { count: event.photos.length, price: formatMnt(event.pricePerPhoto) })}</span>
-          {price ? (
-            <span className={price.bundleApplied ? 'line-through' : ''}>{formatMnt(price.subtotal)}</span>
+      {/* Баруун: тасалбар — тооцоо, төлбөр */}
+      <Ticket glow className="p-6 lg:sticky lg:top-28">
+        <div className="flex flex-col gap-2.5 text-sm">
+          <div className="flex justify-between text-mist">
+            <span>{t('lineItems', { count: event.photos.length, price: formatMnt(event.pricePerPhoto) })}</span>
+            {price ? (
+              <span className={`tabular-nums ${price.bundleApplied ? 'line-through decoration-ember/70' : ''}`}>{formatMnt(price.subtotal)}</span>
+            ) : (
+              <span className="skeleton h-4 w-16 rounded" />
+            )}
+          </div>
+          {price?.bundleApplied ? (
+            <div className="flex justify-between font-semibold text-jade">
+              <span>{t('bundleApplied')}</span>
+              <span className="tabular-nums">−{formatMnt(price.subtotal - price.total)}</span>
+            </div>
           ) : null}
         </div>
-        {price?.bundleApplied ? (
-          <div className="flex justify-between text-sm font-medium text-ink">
-            <span>{t('bundleApplied')}</span>
-            <span>−{formatMnt(price.subtotal - price.total)}</span>
-          </div>
-        ) : null}
-        <div className="flex justify-between text-lg font-bold">
-          <span>{t('total')}</span>
-          <span className="tabular-nums">{price ? formatMnt(price.total) : '…'}</span>
+        <div className="mt-4 flex items-end justify-between gap-3">
+          <span className="kicker">{t('total')}</span>
+          <span className="font-display text-5xl font-semibold leading-none tabular-nums" aria-live="polite">
+            {price ? formatMnt(price.total) : <span className="skeleton inline-block h-10 w-32 rounded-lg" />}
+          </span>
         </div>
         {price?.bundleApplied ? (
-          <p className="mt-1 inline-flex items-center gap-2 self-start rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
-            <CheckIcon size={16} strokeWidth={2.5} />
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-jade/10 px-3 py-1.5 text-sm font-semibold text-jade ring-1 ring-inset ring-jade/30">
+            <CheckIcon size={15} strokeWidth={2.5} />
             {t('saved', { price: formatMnt(price.subtotal - price.total) })}
           </p>
         ) : null}
         {blocker === 'no_search' && event.bundlePrice !== null ? (
-          <p className="text-sm text-ink-soft">
+          <p className="mt-4 text-sm leading-relaxed text-mist">
             {t('bundleHint', { price: formatMnt(event.bundlePrice) })}{' '}
-            <Link href={`/events/${event.slug}/find${eventQuery}`} className="font-medium underline underline-offset-4">
+            <Link href={`/events/${event.slug}/find${eventQuery}`} className="font-semibold text-gold underline underline-offset-4">
               {t('findMine')}
             </Link>
           </p>
         ) : null}
         {blocker === 'search_expired' ? (
-          <div className="flex flex-col items-start gap-2">
-            <p className="text-sm text-amber-800">{t('bundleExpired')}</p>
-            <ButtonLink href={`/events/${event.slug}/find${eventQuery}`} variant="secondary" className="min-h-11">
+          <div className="mt-4 flex flex-col items-start gap-2">
+            <p className="text-sm text-gold-soft">{t('bundleExpired')}</p>
+            <ButtonLink href={`/events/${event.slug}/find${eventQuery}`} variant="secondary">
               {t('searchAgain')}
             </ButtonLink>
           </div>
         ) : null}
-        {blocker === 'not_matched' ? <p className="text-sm text-amber-700">{t('bundleNotMatched')}</p> : null}
-      </div>
+        {blocker === 'not_matched' ? <p className="mt-4 text-sm text-gold-soft">{t('bundleNotMatched')}</p> : null}
 
-      {error ? <Alert>{error}</Alert> : null}
+        <Perforation />
 
-      <form onSubmit={(e) => void checkout(e)} className="flex flex-col gap-3">
-        <Field label={t('email')} hint={t('emailHint')} htmlFor={`email-${event.slug}`}>
-          <Input id={`email-${event.slug}`} name="email" type="email" autoComplete="email" inputMode="email" />
-        </Field>
-        <Button type="submit" disabled={busy || !price} className="min-h-14 w-full gap-2">
-          {!busy && price?.total !== 0 ? <QrIcon size={20} /> : null}
-          {busy ? t('creating') : price?.total === 0 ? t('getFree') : t('pay', { price: price ? formatMnt(price.total) : '' })}
-        </Button>
-        <p className="text-xs text-ink-soft">{t('terms')}</p>
-      </form>
-    </Card>
+        {error ? (
+          <div className="mb-4">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
+
+        <form onSubmit={(e) => void checkout(e)} className="flex flex-col gap-4">
+          <Field label={t('email')} hint={t('emailHint')} htmlFor={`email-${event.slug}`}>
+            <Input id={`email-${event.slug}`} name="email" type="email" autoComplete="email" inputMode="email" />
+          </Field>
+          <Button type="submit" size="lg" busy={busy} disabled={!price} className="w-full">
+            {!busy && price?.total !== 0 ? <QrIcon size={20} /> : null}
+            {busy ? t('creating') : price?.total === 0 ? t('getFree') : t('pay', { price: price ? formatMnt(price.total) : '' })}
+          </Button>
+          <p className="text-xs leading-relaxed text-dim">{t('terms')}</p>
+        </form>
+      </Ticket>
+    </section>
   );
 }

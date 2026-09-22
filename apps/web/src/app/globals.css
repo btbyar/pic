@@ -1,123 +1,306 @@
 @import "tailwindcss";
 
 /*
- * "Найрсаг апп" (2026-09-20). Утсаар анх удаа орж байгаа хүн ойлгохыг эрхэмлэнэ: цайвар дэвсгэр,
- * том товч, дугуй хэлбэр, нэг найрсаг өнгө. Харанхуй хувилбараас татгалзсан — оролцогчид эвэнт дээрээ,
- * гадаа, нарны гэрэлд ашигладаг тул цайвар дэвсгэр илүү уншигдана.
+ * «Премьер» (2026-09-22). Кино театрын харанхуй танхим: зураг бол дэлгэц, интерфейс бол танхим.
+ * Харанхуй суурь зургийг гэрэлтүүлж, нэг л гэрэл — вольфрам алт — хэрэглэгчийг дараагийн алхам руу хөтөлнө.
  *
- * Нил ягаан (brand) нь ердийн SaaS цэнхэр биш, бүртгэлгүй хүнд ч дотно мэдрэмж өгнө.
- * Товчны цагаан текст brand дээр 5.8:1 — AA давсан.
+ * Нарны гэрэлд: текст 16:1 (ivory), туслах текст 7.8:1 (mist), товчны хүрээ 3.4:1 — AA-аас дээш.
+ * Алтан товчны текст харанхуй (night) — 10.6:1.
  */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-montserrat), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  /* Гадаргуу */
-  --color-surface: #f6f5f8;
-  --color-surface-2: #ffffff;
-  --color-surface-3: #efeef3;
-  --color-line: #e4e2ea;
-  /* Маягт, товчны хүрээ: цагаан дээр 3.3:1 (WCAG 1.4.11) */
-  --color-line-strong: #8e8aa0;
+  /* Танхим — гүнээс гадагш */
+  --color-night: #0b0a0c;
+  --color-night-2: #141317;
+  --color-night-3: #1d1b21;
+  --color-night-4: #28252d;
+  --color-line: #2a2830;
+  --color-line-strong: #67636f;
 
-  /* Текст: 16:1, 6.3:1, 3.3:1 (сүүлийнх зөвхөн чимэг, идэвхгүй төлөвт) */
-  --color-ink: #1a1726;
-  --color-ink-soft: #5c586b;
-  --color-ink-faint: #8a8697;
+  /* Текст */
+  --color-ivory: #f5efe4;
+  --color-mist: #a9a3b0;
+  --color-dim: #858090;
 
-  /* Брэнд */
-  --color-brand-50: #f3eeff;
-  --color-brand-100: #e7ddff;
-  --color-brand-200: #d3c2ff;
-  --color-brand-300: #b79bff;
-  --color-brand-400: #9a72fb;
-  --color-brand-500: #8352f8;
-  --color-brand-600: #6d3bf5;
-  --color-brand-700: #5b2fe0;
-  --color-brand-800: #4a25b8;
-  --color-brand-900: #3a1d90;
-  --color-on-brand: #ffffff;
+  /* Гэрэл */
+  --color-gold: #e8b45a;
+  --color-gold-soft: #f3cd86;
+  --color-gold-deep: #b98535;
+  --color-gold-ink: #0b0a0c;
 
-  --color-paper: #ffffff;
+  /* Төлөв */
+  --color-jade: #62d3a2;
+  --color-ember: #ff7a5f;
+
+  --ease-cine: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-rise: rise 0.8s var(--ease-cine) both;
+  --animate-fade: fade 0.6s ease-out both;
+  --animate-pop: pop 0.38s var(--ease-cine) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-iris: iris 2.8s linear infinite;
+  --animate-drift: drift 18s ease-in-out infinite alternate;
+  --animate-reel: reel 60s linear infinite;
+  --animate-blink: blink 1.2s steps(2, jump-none) infinite;
+  --animate-kenburns: kenburns 24s var(--ease-cine) both;
+  --animate-ripple: ripple 2.4s var(--ease-cine) infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.12);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes iris {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes drift {
+    from {
+      transform: translate3d(-8%, -4%, 0) scale(1);
+    }
+    to {
+      transform: translate3d(8%, 6%, 0) scale(1.15);
+    }
+  }
+  @keyframes reel {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes kenburns {
+    from {
+      transform: scale(1.14);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  @keyframes ripple {
+    from {
+      transform: scale(0.8);
+      opacity: 0.7;
+    }
+    to {
+      transform: scale(2.2);
+      opacity: 0;
+    }
+  }
+  @keyframes blink {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.15;
+    }
+  }
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   /* Наалдсан толгойн доор фокус орсон элемент нуугдахгүй (WCAG 2.4.11) */
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 6rem;
+  /* Утсан дээрх доод цэсний өндөр — наалдсан мөрүүд үүний дээр суух ёстой */
+  --dock: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  :root {
+    --dock: 0px;
+  }
+}
+
+html {
+  background: var(--color-night);
 }
 
 body {
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Film grain: бүх хуудсыг нэг хальсан дээр буулгана */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @layer base {
   h1,
   h2,
   h3 {
-    font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
+  /*
+   * Cormorant анхдагчаар хуучин маягийн тоотой — үнэ, тоолуурт тэгш өндөртэй тоо.
+   * tabular-nums utility нь --tw-numeric-figure-ийг уншдаг тул хувьсагчийг хүүхэд элементэд ч тавина.
+   */
+  .font-display,
+  .font-display * {
+    --tw-numeric-figure: lining-nums;
+    font-variant-numeric: lining-nums;
+  }
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-gold-ink);
+  }
+}
+
+/* Жижиг шошго: timecode маягийн mono, том үсгээр */
+@utility kicker {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+/* Хөвөгч шил: толгой, доод цэс, наалдсан мөр */
+@utility glass {
+  background: rgb(20 19 23 / 0.72);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid rgb(255 255 255 / 0.07);
+}
+
+/* Карт: дээд ирмэгт нимгэн гэрэл тусна */
+@utility panel {
+  background: var(--color-night-2);
+  border-radius: 1.25rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 0 0 1px rgb(255 255 255 / 0.04);
+}
+
+/* Ачаалж буй хэсэг */
+@utility skeleton {
+  background: linear-gradient(90deg, var(--color-night-2) 0%, var(--color-night-3) 50%, var(--color-night-2) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Зургийн доод хэсэгт текст уншигдах харанхуйлалт */
+@utility scrim {
+  background: linear-gradient(180deg, rgb(11 10 12 / 0) 30%, rgb(11 10 12 / 0.55) 65%, rgb(11 10 12 / 0.95) 100%);
+}
+
+/* Товчны гэрлийн зурвас: hover үед нэг удаа гүйнэ */
+@utility shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--ease-cine);
+  }
+  &:hover::before {
+    transform: translateX(120%);
+  }
+}
+
+/* Дараалсан гарч ирэлт: style={{'--i': n}} */
+@utility stagger {
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Гарны навигацид тод фокус (хулганаар дарахад харагдахгүй) */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 /* Хөдөлгөөн багасгах тохиргоотой хэрэглэгчид (vestibular эмгэг) шилжилт харуулахгүй */
 @media (prefers-reduced-motion: reduce) {
   /* Ачаалж буйг заадаг эргэлт үлдэнэ — үгүй бол "гацсан" мэт харагдана */
-  *:not(.animate-spin),
+  *:not(.animate-spin):not(.animate-iris),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
 
-/* Гарны навигацид тод фокус (хулганаар дарахад харагдахгүй) */
-:focus-visible {
-  outline: 2px solid var(--color-brand-600);
-  outline-offset: 2px;
-}
-
-/*
- * Ганц зориудын хөдөлгөөн: хайлтын үр дүн гарахад фокусын хаалт агшин зуур "таталт хийнэ".
- * Камер фокус тогтоохтой ижил — үр дүн ирснийг л заана, бусад газар хөдөлгөөн байхгүй.
- */
-@keyframes focus-lock {
-  from {
-    opacity: 0;
-    transform: scale(1.35);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.focus-lock > span {
-  animation: focus-lock 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-/* Хайлтын үед селфи дээгүүр гүйх шугам (reduced-motion үед дээрх дүрмээр зогсоно) */
-@keyframes scan {
-  0%,
-  100% {
-    top: 10%;
-  }
-  50% {
-    top: 88%;
-  }
-}
-
-.scan-line {
-  top: 50%;
-  animation: scan 2.4s ease-in-out infinite;
-}
-
-/* Хэвлэх: дэвсгэр өнгө хэвлэхгүй */
+/* Хэвлэх: постер цагаан цаасан дээр */
 @media print {
+  html,
   body {
     background: #ffffff;
     color: #000000;
   }
+  body::after {
+    display: none;
+  }
+}
+
+/* Хальсны нүх: хэсэг хоорондын кино хальсан зурвас */
+@utility sprockets {
+  height: 14px;
+  background-image: repeating-linear-gradient(90deg, transparent 0 10px, rgb(255 255 255 / 0.09) 10px 24px, transparent 24px 34px);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  border-radius: 3px;
+}
+
+/* Хүрээтэй тоо: том дугаарын гадна зураас */
+@utility numeral-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(245 239 228 / 0.28);
 }

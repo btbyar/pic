@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ExternalLinkIcon, ImagesIcon, PlusIcon, QrIcon, UploadIcon } from '@/components/icons';
-import { Alert, ButtonLink } from '@/components/ui';
+import { Alert, ButtonLink, EmptyState, PageHeader } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { serverApi } from '@/lib/api-server';
 import { formatEventRange, formatMnt } from '@/lib/datetime';
 import type { MyEvent, MyProfile, PhotographerSales } from '@/lib/types';
+
+const COLS = 'lg:grid-cols-[minmax(0,1fr)_7rem_8rem_6rem_8.5rem_8rem]';
+const iconAction = 'flex size-11 items-center justify-center rounded-full transition';
 
 export default async function MyEventsPage() {
   const t = await getTranslations();
@@ -20,39 +23,37 @@ export default async function MyEventsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-extrabold">{t('photographer.myEvents')}</h1>
-          {events.length ? (
-            <p className="text-sm text-ink-soft">{t('photographer.eventsSummary', { events: events.length, photos: totalPhotos })}</p>
-          ) : null}
-        </div>
-      </div>
+      <PageHeader
+        kicker={t('photographer.eventsKicker')}
+        title={t('photographer.myEvents')}
+        intro={events.length ? <p className="font-mono text-xs uppercase tracking-[0.14em]">{t('photographer.eventsSummary', { events: events.length, photos: totalPhotos })}</p> : undefined}
+      />
 
       {profile && !profile.slugSaved ? (
         <Alert kind="info">
           {t('photographer.publishProfileHint')}{' '}
-          <Link href="/photographer/profile" className="font-medium underline underline-offset-4">
+          <Link href="/photographer/profile" className="font-semibold underline underline-offset-4">
             {t('photographer.publishProfile')}
           </Link>
         </Alert>
       ) : null}
 
       {events.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-surface-2 px-4 py-16 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-2 text-ink-soft">
-            <ImagesIcon size={28} />
-          </span>
-          <p className="text-ink-soft">{t('photographer.noEvents')}</p>
-          <ButtonLink href="/photographer/events/new" className="gap-2">
-            <PlusIcon size={16} />
-            {t('photographer.newEvent')}
-          </ButtonLink>
-        </div>
+        <EmptyState
+          icon={<ImagesIcon size={28} />}
+          title={t('photographer.noEvents')}
+          body={t('overview.firstEventBody')}
+          action={
+            <ButtonLink href="/photographer/events/new" className="gap-2">
+              <PlusIcon size={16} />
+              {t('photographer.newEvent')}
+            </ButtonLink>
+          }
+        />
       ) : (
-        <div className="overflow-hidden rounded-2xl bg-surface-2 p-2">
+        <div className="flex flex-col gap-2">
           {/* Өргөн дэлгэцэд хүснэгтийн толгой */}
-          <div className="hidden grid-cols-[minmax(0,1fr)_7rem_8rem_6rem_8rem_7.5rem] gap-4 px-3 py-2 text-xs font-semibold text-ink-soft lg:grid" aria-hidden>
+          <div className={`kicker hidden gap-4 px-4 lg:grid ${COLS}`} aria-hidden>
             <span>{t('photographer.colEvent')}</span>
             <span>{t('photographer.photos')}</span>
             <span>{t('photographer.colSales')}</span>
@@ -60,71 +61,82 @@ export default async function MyEventsPage() {
             <span>{t('photographer.colStatus')}</span>
             <span />
           </div>
-          <ul className="flex flex-col">
-            {events.map((e) => (
-              <li
-                key={e.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-xl p-3 transition hover:bg-surface lg:grid-cols-[minmax(0,1fr)_7rem_8rem_6rem_8rem_7.5rem]"
-              >
-                <Link href={`/photographer/events/${e.id}`} className="flex min-w-0 items-center gap-4">
-                  <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-3">
-                    {e.coverUrl ? (
-                      <img src={e.coverUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImagesIcon size={20} className="absolute inset-0 m-auto text-ink-faint" />
-                    )}
+          <ul className="flex flex-col gap-2">
+            {events.map((e, i) => {
+              const sold = salesByEvent.get(e.id);
+              return (
+                <li
+                  key={e.id}
+                  style={{ '--i': Math.min(i, 10) } as React.CSSProperties}
+                  className={`panel group relative grid animate-rise grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 p-3 transition duration-300 stagger hover:bg-night-3 ${COLS}`}
+                >
+                  <Link href={`/photographer/events/${e.id}`} className="flex min-w-0 items-center gap-4 after:absolute after:inset-0 after:rounded-[1.25rem]">
+                    <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-night-3 ring-1 ring-inset ring-white/5">
+                      {e.coverUrl ? (
+                        <img src={e.coverUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 ease-cine group-hover:scale-110" />
+                      ) : (
+                        <ImagesIcon size={20} className="absolute inset-0 m-auto text-dim" />
+                      )}
+                    </span>
+                    <span className="flex min-w-0 flex-col gap-1">
+                      <span className="truncate font-display text-xl font-semibold leading-tight group-hover:text-gold">{e.title}</span>
+                      <span className="truncate font-mono text-[11px] text-dim">
+                        {formatEventRange(e.startsAt, e.endsAt, e.timezone)}
+                        {e.location ? ` · ${e.location}` : ''}
+                      </span>
+                    </span>
+                  </Link>
+                  <span className="hidden text-sm font-semibold tabular-nums lg:block">
+                    {e.photoCount ? t('common.photos', { count: e.photoCount }) : <span className="text-gold">{t('photographer.noPhotosYet')}</span>}
                   </span>
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="truncate font-semibold">{e.title}</span>
-                    <span className="truncate text-sm text-ink-soft">
-                      {formatEventRange(e.startsAt, e.endsAt, e.timezone)}
-                      {e.location ? `, ${e.location}` : ''}
+                  <span className="hidden font-display text-lg font-semibold tabular-nums lg:block">
+                    {sold ? formatMnt(sold) : <span className="font-sans text-sm font-normal text-dim">—</span>}
+                  </span>
+                  <span className="hidden text-sm text-mist lg:block">{e.isOwner ? t('photographer.owner') : t('photographer.member')}</span>
+                  <span className="justify-self-end lg:justify-self-start">
+                    <VisibilityBadge visibility={e.visibility} />
+                  </span>
+                  {/* Мөр бүхэлдээ холбоос тул үйлдлүүд дээр нь (z-10) */}
+                  <span className="relative z-10 col-span-2 flex items-center justify-between gap-1 border-t border-line pt-2 lg:col-span-1 lg:justify-end lg:border-0 lg:pt-0">
+                    <span className="font-mono text-[11px] text-dim lg:hidden">
+                      {t('common.photos', { count: e.photoCount })}
+                      {sold ? ` · ${formatMnt(sold)}` : ''}
+                    </span>
+                    <span className="flex gap-1">
+                      <Link
+                        href={`/photographer/events/${e.id}/upload`}
+                        aria-label={`${t('photographer.uploadPhotos')}: ${e.title}`}
+                        title={t('photographer.uploadPhotos')}
+                        className={`${iconAction} ${e.photoCount === 0 ? 'text-gold ring-1 ring-inset ring-gold/60 hover:bg-gold hover:text-gold-ink' : 'text-mist hover:bg-white/[0.06] hover:text-ivory'}`}
+                      >
+                        <UploadIcon size={18} />
+                      </Link>
+                      <Link
+                        href={`/photographer/events/${e.id}/poster`}
+                        aria-label={`${t('poster.print')}: ${e.title}`}
+                        title={t('poster.print')}
+                        className={`${iconAction} text-mist hover:bg-white/[0.06] hover:text-ivory`}
+                      >
+                        <QrIcon size={18} />
+                      </Link>
+                      {/* Нууц холбоосны токен жагсаалтад ирдэггүй — зөвхөн нийтийн эвэнтэд */}
+                      {e.visibility === 'PUBLIC' ? (
+                        <Link
+                          href={`/events/${e.slug}`}
+                          aria-label={`${t('photographer.viewPublic')}: ${e.title}`}
+                          title={t('photographer.viewPublic')}
+                          className={`${iconAction} text-mist hover:bg-white/[0.06] hover:text-ivory`}
+                        >
+                          <ExternalLinkIcon size={18} />
+                        </Link>
+                      ) : (
+                        <span className="size-11" aria-hidden />
+                      )}
                     </span>
                   </span>
-                </Link>
-                <span className="hidden text-sm font-semibold tabular-nums lg:block">
-                  {e.photoCount ? t('common.photos', { count: e.photoCount }) : <span className="text-amber-800">{t('photographer.noPhotosYet')}</span>}
-                </span>
-                <span className="hidden text-sm font-semibold tabular-nums lg:block">
-                  {salesByEvent.get(e.id) ? formatMnt(salesByEvent.get(e.id)!) : <span className="font-normal text-ink-faint">—</span>}
-                </span>
-                <span className="hidden text-sm text-ink-soft lg:block">{e.isOwner ? t('photographer.owner') : t('photographer.member')}</span>
-                <span className="justify-self-end lg:justify-self-start">
-                  <VisibilityBadge visibility={e.visibility} />
-                </span>
-                <span className="col-span-2 flex justify-end gap-1 lg:col-span-1">
-                  <Link
-                    href={`/photographer/events/${e.id}/upload`}
-                    aria-label={`${t('photographer.uploadPhotos')}: ${e.title}`}
-                    title={t('photographer.uploadPhotos')}
-                    className={`flex size-10 items-center justify-center rounded-full ${e.photoCount === 0 ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:bg-surface-3 hover:text-ink'}`}
-                  >
-                    <UploadIcon size={18} />
-                  </Link>
-                  <Link
-                    href={`/photographer/events/${e.id}/poster`}
-                    aria-label={`${t('poster.print')}: ${e.title}`}
-                    title={t('poster.print')}
-                    className="flex size-10 items-center justify-center rounded-full text-ink-soft hover:bg-surface-3 hover:text-ink"
-                  >
-                    <QrIcon size={18} />
-                  </Link>
-                  {/* Нууц холбоосны токен жагсаалтад ирдэггүй — зөвхөн нийтийн эвэнтэд */}
-                  {e.visibility === 'PUBLIC' ? (
-                    <Link
-                      href={`/events/${e.slug}`}
-                      aria-label={`${t('photographer.viewPublic')}: ${e.title}`}
-                      title={t('photographer.viewPublic')}
-                      className="flex size-10 items-center justify-center rounded-full text-ink-soft hover:bg-surface-3 hover:text-ink"
-                    >
-                      <ExternalLinkIcon size={18} />
-                    </Link>
-                  ) : (
-                    <span className="size-10" aria-hidden />
-                  )}
-                </span>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

@@ -46,16 +46,16 @@ export default function LoginPage() {
         <Field label={t('password')} htmlFor="password">
           <Input id="password" name="password" type="password" autoComplete="current-password" required />
         </Field>
-        <Link href="/forgot-password" className="-mt-2 inline-flex min-h-11 items-center self-end text-sm text-ink-soft underline underline-offset-4">
+        <Link href="/forgot-password" className="-mt-2 inline-flex min-h-11 items-center self-end text-sm text-mist underline underline-offset-4">
           {t('forgotLink')}
         </Link>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" size="lg" busy={busy}>
           {busy ? t('loggingIn') : t('login')}
         </Button>
       </form>
-      <p className="text-sm text-ink-soft">
+      <p className="text-sm text-mist">
         {t('noAccount')}{' '}
-        <Link href="/register" className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4">
+        <Link href="/register" className="inline-flex min-h-11 items-center font-semibold text-gold underline-offset-4 hover:underline">
           {t('register')}
         </Link>
       </p>

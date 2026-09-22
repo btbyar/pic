@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
           <Field label={t('confirmPassword')} error={mismatch ? t('passwordMismatch') : undefined} htmlFor="confirm">
             <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={10} required invalid={mismatch} />
           </Field>
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" size="lg" busy={busy}>
             {busy ? tc('saving') : t('setPassword')}
           </Button>
         </form>

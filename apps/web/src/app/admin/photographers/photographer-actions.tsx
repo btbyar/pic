@@ -3,9 +3,9 @@
 import type { UserStatus } from '@pic/shared';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
-import { XIcon } from '@/components/icons';
-import { Alert, Button, Input } from '@/components/ui';
+import { useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Alert, Button, Field, Input } from '@/components/ui';
 import { api, type ApiError, useErrorMessage } from '@/lib/api-client';
 
 type Action = 'approve' | 'reject' | 'suspend' | 'reinstate';
@@ -18,9 +18,8 @@ const ACTIONS: Record<UserStatus, Action[]> = {
 };
 const NEEDS_REASON = new Set<Action>(['reject', 'suspend']);
 
-export function PhotographerActions({ id, status }: { id: string; status: UserStatus }) {
+export function PhotographerActions({ id, name, status }: { id: string; name: string; status: UserStatus }) {
   const t = useTranslations('admin');
-  const tc = useTranslations('common');
   const errorMessage = useErrorMessage();
   const router = useRouter();
   const [pending, setPending] = useState<Action | null>(null);
@@ -40,40 +39,39 @@ export function PhotographerActions({ id, status }: { id: string; status: UserSt
     router.refresh();
   }
 
-  function submitReason(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (pending) void run(pending, String(new FormData(e.currentTarget).get('reason') ?? ''));
-  }
-
   return (
     <div className="flex flex-col gap-2 sm:items-end">
-      {error ? <Alert>{errorMessage(error)}</Alert> : null}
-      {pending ? (
-        <form onSubmit={submitReason} className="flex flex-col gap-2 sm:w-72">
-          <Input name="reason" required minLength={3} maxLength={500} placeholder={t('reason')} aria-label={t('reason')} autoFocus />
-          <div className="flex gap-2">
-            <Button type="submit" variant="danger" disabled={busy}>
-              {t(pending)}
-            </Button>
-            <Button type="button" variant="secondary" aria-label={tc('cancel')} onClick={() => setPending(null)}>
-              <XIcon size={18} />
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <div className="flex gap-2">
-          {ACTIONS[status].map((action) => (
-            <Button
-              key={action}
-              variant={NEEDS_REASON.has(action) ? 'secondary' : 'primary'}
-              disabled={busy}
-              onClick={() => (NEEDS_REASON.has(action) ? setPending(action) : run(action))}
-            >
-              {t(action)}
-            </Button>
-          ))}
-        </div>
-      )}
+      {error && !pending ? <Alert>{errorMessage(error)}</Alert> : null}
+      <div className="flex gap-2">
+        {ACTIONS[status].map((action) => (
+          <Button
+            key={action}
+            variant={NEEDS_REASON.has(action) ? 'secondary' : 'primary'}
+            className={NEEDS_REASON.has(action) ? 'text-ember' : ''}
+            busy={busy && !pending}
+            onClick={() => (NEEDS_REASON.has(action) ? setPending(action) : void run(action))}
+          >
+            {t(action)}
+          </Button>
+        ))}
+      </div>
+      <ConfirmDialog
+        open={pending !== null}
+        title={pending ? `${t(pending)}: ${name}` : ''}
+        confirmLabel={pending ? t(pending) : ''}
+        tone="danger"
+        busy={busy}
+        error={error ? errorMessage(error) : null}
+        onConfirm={(form) => pending && void run(pending, String(form.get('reason') ?? ''))}
+        onClose={() => {
+          setPending(null);
+          setError(null);
+        }}
+      >
+        <Field label={t('reason')} hint={t('reasonHint')} htmlFor={`reason-${id}`}>
+          <Input id={`reason-${id}`} name="reason" required minLength={3} maxLength={500} autoFocus />
+        </Field>
+      </ConfirmDialog>
     </div>
   );
 }

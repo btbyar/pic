@@ -1,13 +1,13 @@
-/** Хуудас ачаалах зуур хоосон дэлгэцийн оронд бүтцийн төсөөлөл */
+/** Хуудас ачаалах зуур: гарчиг ба кадрын тор бүдэг гэрлээр гүйнэ */
 export default function Loading() {
   return (
-    <main className="mx-auto flex max-w-5xl animate-pulse flex-col gap-5 px-4 py-8" aria-busy="true" aria-label="…">
-      <div className="h-8 w-2/3 rounded-lg bg-surface-3" />
-      <div className="h-4 w-1/2 rounded bg-surface-3" />
-      <div className="h-24 rounded-xl bg-surface-3" />
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+    <main className="mx-auto flex max-w-7xl flex-col gap-8 px-5 pt-32" aria-busy="true" aria-label="…">
+      <div className="skeleton h-3 w-40 rounded" />
+      <div className="skeleton h-20 w-3/4 rounded-2xl" />
+      <div className="skeleton h-5 w-1/2 rounded" />
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className="aspect-[4/3] rounded-lg bg-surface-3" />
+          <div key={i} className="skeleton aspect-3/4 rounded-[18px]" style={{ animationDelay: `${i * 90}ms` }} />
         ))}
       </div>
     </main>

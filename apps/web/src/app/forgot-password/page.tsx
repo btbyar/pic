@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
           <Field label={t('email')} htmlFor="email">
             <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
           </Field>
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" size="lg" busy={busy}>
             {busy ? t('sending') : t('sendResetLink')}
           </Button>
         </form>

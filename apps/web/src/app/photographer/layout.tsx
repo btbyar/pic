@@ -32,9 +32,9 @@ export default async function PhotographerLayout({ children }: { children: React
       {...(approved
         ? {
             action: (
-              <ButtonLink href="/photographer/events/new" className="gap-2 lg:w-full">
-                <PlusIcon size={16} />
-                {t('photographer.newEvent')}
+              <ButtonLink href="/photographer/events/new" className="gap-2 px-3.5 lg:w-full lg:px-5">
+                <PlusIcon size={18} />
+                <span className="sr-only lg:not-sr-only">{t('photographer.newEvent')}</span>
               </ButtonLink>
             ),
           }

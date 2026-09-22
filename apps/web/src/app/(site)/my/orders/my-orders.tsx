@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { Badge, ButtonLink, Card } from '@/components/ui';
+import { TicketIcon } from '@/components/icons';
+import { Badge, ButtonLink, EmptyState, Kicker } from '@/components/ui';
 import { api } from '@/lib/api-client';
 import { formatDate, formatMnt } from '@/lib/datetime';
 import { forgetOrder, orderHref, useSavedOrders } from '@/lib/my-orders';
@@ -43,45 +44,58 @@ export function MyOrders() {
   }, [key]);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-ink-soft">{t('intro')}</p>
+    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-5 pt-32">
+      <header className="flex flex-col gap-4">
+        <Kicker className="animate-rise">{t('kicker')}</Kicker>
+        <h1 className="animate-rise font-display text-[clamp(3rem,8vw,6rem)] font-semibold leading-[0.88] tracking-[-0.035em] stagger [--i:1]">
+          {t('title')}
+        </h1>
+        <p className="max-w-xl animate-rise text-mist stagger [--i:2]">{t('intro')}</p>
       </header>
 
       {orders.length === 0 ? (
-        <Card className="flex flex-col items-start gap-3">
-          <p className="text-ink">{t('empty')}</p>
-          <ButtonLink href="/photographers">{t('browse')}</ButtonLink>
-        </Card>
+        <EmptyState icon={<TicketIcon size={28} />} title={t('empty')} action={<ButtonLink href="/photographers">{t('browse')}</ButtonLink>} />
       ) : (
         <ul className="flex flex-col gap-3">
-          {orders.map((order) => {
+          {orders.map((order, i) => {
             const status = statuses[order.id];
             return (
-              <li key={order.id}>
-                <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-col gap-1">
-                    <Link href={orderHref(order.id, order.token)} className="font-semibold underline-offset-4 hover:underline">
-                      {order.eventTitle}
-                    </Link>
-                    <p className="text-sm text-ink-soft">
-                      {formatDate(order.createdAt)} · {formatMnt(order.total)}
-                    </p>
+              <li key={order.id} className="animate-rise stagger" style={{ '--i': Math.min(i, 10) + 3 } as React.CSSProperties}>
+                {/* Тасалбарын хэлтэрхий: зүүн талд огноо, баруун талд үйлдэл */}
+                <div className="panel group relative flex flex-col overflow-hidden transition duration-300 hover:bg-night-3 sm:flex-row sm:items-stretch">
+                  <div className="flex shrink-0 flex-row items-center justify-between gap-2 border-b border-dashed border-line-strong/50 px-5 py-4 sm:w-40 sm:flex-col sm:items-start sm:justify-center sm:border-b-0 sm:border-r">
+                    <span className="kicker">{formatDate(order.createdAt)}</span>
+                    <span className="font-display text-3xl font-semibold leading-none tabular-nums">{formatMnt(order.total)}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {status && status !== 'gone' ? <Badge tone={STATUS_TONE[status]}>{to(`status.${status}`)}</Badge> : null}
-                    {status === 'gone' ? (
-                      <button type="button" className="min-h-11 cursor-pointer text-sm text-ink-soft underline" onClick={() => forgetOrder(order.id)}>
-                        {t('forget')}
-                      </button>
-                    ) : (
-                      <ButtonLink href={orderHref(order.id, order.token)} variant="secondary">
-                        {status === 'PENDING' ? t('pay') : t('open')}
-                      </ButtonLink>
-                    )}
+                  <div className="flex flex-1 flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <Link
+                        href={orderHref(order.id, order.token)}
+                        className="truncate font-display text-2xl font-semibold leading-tight after:absolute after:inset-0 hover:text-gold"
+                      >
+                        {order.eventTitle}
+                      </Link>
+                      {status && status !== 'gone' ? (
+                        <span>
+                          <Badge tone={STATUS_TONE[status]}>{to(`status.${status}`)}</Badge>
+                        </span>
+                      ) : !status ? (
+                        <span className="skeleton h-5 w-24 rounded-full" />
+                      ) : null}
+                    </div>
+                    <div className="relative z-10 flex items-center gap-3">
+                      {status === 'gone' ? (
+                        <button type="button" className="min-h-11 cursor-pointer text-sm text-mist underline underline-offset-4 hover:text-ivory" onClick={() => forgetOrder(order.id)}>
+                          {t('forget')}
+                        </button>
+                      ) : (
+                        <ButtonLink href={orderHref(order.id, order.token)} variant={status === 'PENDING' ? 'primary' : 'secondary'}>
+                          {status === 'PENDING' ? t('pay') : t('open')}
+                        </ButtonLink>
+                      )}
+                    </div>
                   </div>
-                </Card>
+                </div>
               </li>
             );
           })}

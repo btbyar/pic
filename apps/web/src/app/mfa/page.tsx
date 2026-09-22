@@ -53,12 +53,12 @@ export default function MfaVerifyPage() {
               : { inputMode: 'numeric', pattern: '[0-9 ]{6,7}', maxLength: 7, placeholder: '123456' })}
           />
         </Field>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" size="lg" busy={busy}>
           {busy ? t('verifying') : t('verify')}
         </Button>
         <button
           type="button"
-          className="cursor-pointer text-sm text-ink-soft underline underline-offset-4"
+          className="cursor-pointer text-sm text-mist underline underline-offset-4"
           onClick={() => {
             setUseRecovery(!useRecovery);
             setError(null);

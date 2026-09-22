@@ -2,7 +2,15 @@
 
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from './icons';
 import { useTranslations } from 'next-intl';
-import { type KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type TouchEvent as ReactTouchEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { addToCart, type CartEventInfo, removeFromCart, useCart } from '@/lib/cart';
 import { formatMnt, formatTime } from '@/lib/datetime';
 import type { PublicPhoto } from '@/lib/types';
@@ -14,10 +22,11 @@ export interface GridCart {
   searchSessionId?: string | undefined;
 }
 
+const frame = (n: number) => String(n).padStart(3, '0');
+
 /**
- * Зургийн grid + томоор харах цонх. Thumb-ууд lazy load, `content-visibility`-ээр дэлгэцэн гадуурх мөрүүдийг
- * browser render хийхгүй (олон зурагтай үед утсан дээр гүйлгэхэд хөнгөн).
- * `cart` өгвөл зураг бүр дээр сагсанд нэмэх/хасах товч гарна.
+ * Зургийн хана (masonry) + бүтэн дэлгэцийн үзүүлэгч. Зураг бүр өөрийн харьцаагаараа — тайрахгүй.
+ * `cart` өгвөл зураг бүр дээр сонгох товч гарна; сонгосон кадр алтан хүрээтэй.
  */
 export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; timezone: string; cart?: GridCart | undefined }) {
   const t = useTranslations('gallery');
@@ -34,15 +43,23 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4">
         {photos.map((photo, i) => {
           const selected = inCart.has(photo.id);
+          const ratio = photo.width && photo.height ? `${photo.width} / ${photo.height}` : '4 / 3';
           return (
-            <li key={photo.id} className="relative" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 180px' }}>
+            <li
+              key={photo.id}
+              className="relative mb-2 animate-rise break-inside-avoid sm:mb-3"
+              style={{ '--i': Math.min(i % 24, 12), animationDelay: `calc(var(--i) * 40ms)` } as CSSProperties}
+            >
               <button
                 type="button"
                 onClick={() => setOpenIndex(i)}
-                className={`block aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-lg bg-surface-3 ${selected ? 'ring-4 ring-brand-600 ring-inset' : ''}`}
+                className={`group relative block w-full cursor-zoom-in overflow-hidden rounded-[14px] bg-night-2 transition duration-500 ease-cine ${
+                  selected ? 'ring-2 ring-gold ring-offset-2 ring-offset-night' : ''
+                }`}
+                style={{ aspectRatio: ratio }}
                 aria-label={t('open', { index: i + 1 })}
               >
                 <img
@@ -52,8 +69,14 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
                   decoding="async"
                   width={photo.width ?? undefined}
                   height={photo.height ?? undefined}
-                  className="h-full w-full object-cover"
+                  className={`h-full w-full object-cover transition duration-700 ease-cine group-hover:scale-[1.04] ${selected ? 'opacity-80' : ''}`}
                 />
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 flex translate-y-2 items-end bg-linear-to-t from-night/85 to-transparent p-3 pt-10 font-mono text-[10px] tracking-[0.16em] text-ivory opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100"
+                >
+                  #{frame(i + 1)}
+                </span>
               </button>
               {cart ? (
                 <button
@@ -61,11 +84,15 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
                   onClick={() => toggle(photo)}
                   aria-pressed={selected}
                   aria-label={selected ? tc('removeOne', { index: i + 1 }) : tc('addOne', { index: i + 1 })}
-                  className={`absolute right-1.5 top-1.5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-xl font-bold shadow ${
-                    selected ? 'bg-brand-600 text-on-brand' : 'bg-surface-2/90 text-ink'
+                  className={`absolute right-2 top-2 flex size-11 cursor-pointer items-center justify-center rounded-full transition duration-300 ease-cine active:scale-90 ${
+                    selected ? 'bg-gold text-gold-ink shadow-[0_0_0_4px_rgba(232,180,90,0.25)]' : 'glass text-ivory hover:bg-white/20'
                   }`}
                 >
-                  {selected ? <CheckIcon size={20} strokeWidth={2.5} /> : <PlusIcon size={20} strokeWidth={2.5} />}
+                  {selected ? (
+                    <CheckIcon key="on" size={20} strokeWidth={2.4} className="animate-pop" />
+                  ) : (
+                    <PlusIcon key="off" size={20} strokeWidth={2} />
+                  )}
                 </button>
               ) : null}
             </li>
@@ -75,6 +102,8 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
       {openIndex !== null && photos[openIndex] ? (
         <Lightbox
           photo={photos[openIndex]}
+          index={openIndex}
+          total={photos.length}
           timezone={timezone}
           cart={cart}
           selected={inCart.has(photos[openIndex].id)}
@@ -90,6 +119,8 @@ export function PhotoGrid({ photos, timezone, cart }: { photos: PublicPhoto[]; t
 
 function Lightbox({
   photo,
+  index,
+  total,
   timezone,
   cart,
   selected,
@@ -99,6 +130,8 @@ function Lightbox({
   onNext,
 }: {
   photo: PublicPhoto;
+  index: number;
+  total: number;
   timezone: string;
   cart: GridCart | undefined;
   selected: boolean;
@@ -112,6 +145,7 @@ function Lightbox({
   const [reporting, setReporting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const touchX = useRef<number | null>(null);
 
   const onKey = useCallback(
     (e: KeyboardEvent) => {
@@ -156,7 +190,20 @@ function Lightbox({
     }
   };
 
-  const nav = 'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white disabled:opacity-0';
+  // Утсан дээр шударч солино
+  const onTouchStart = (e: ReactTouchEvent) => {
+    touchX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: ReactTouchEvent) => {
+    if (touchX.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+    touchX.current = null;
+    if (dx > 50) onPrev?.();
+    if (dx < -50) onNext?.();
+  };
+
+  const nav =
+    'glass absolute top-1/2 hidden size-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-ivory transition hover:bg-white/20 disabled:pointer-events-none disabled:opacity-0 sm:flex';
 
   return (
     <div
@@ -165,49 +212,73 @@ function Lightbox({
       aria-modal="true"
       aria-label={t('lightbox')}
       onKeyDown={trapTab}
-      className="fixed inset-0 z-50 flex flex-col bg-black/95"
+      className="fixed inset-0 z-50 flex animate-fade flex-col bg-black/[0.97]"
       onClick={onClose}
     >
-      <div className="flex items-center justify-between gap-2 px-4 py-3 text-sm text-white" onClick={(e) => e.stopPropagation()}>
-        <span>{photo.capturedAt ? formatTime(photo.capturedAt, timezone) : ''}</span>
+      <div
+        className="flex items-center justify-between gap-2 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] text-sm text-ivory"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="flex items-center gap-3 font-mono text-[11px] tracking-[0.16em] text-mist">
+          <span className="text-ivory">{t('counter', { index: frame(index + 1), total: frame(total) })}</span>
+          {photo.capturedAt ? <span>{formatTime(photo.capturedAt, timezone)}</span> : null}
+        </span>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setReporting(true)} className="min-h-11 cursor-pointer px-2 text-ink-faint underline-offset-4 hover:underline">
+          <button type="button" onClick={() => setReporting(true)} className="min-h-11 cursor-pointer rounded-lg px-3 text-mist transition hover:text-ivory">
             {t('requestRemoval')}
           </button>
-          <button ref={closeRef} type="button" onClick={onClose} className="min-h-11 cursor-pointer px-2 text-base">
-            <span className="inline-flex items-center gap-1.5">
-              {t('close')}
-              <XIcon size={18} />
-            </span>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label={t('close')}
+            className="glass flex size-11 cursor-pointer items-center justify-center rounded-full transition hover:bg-white/20"
+          >
+            <XIcon size={20} />
           </button>
         </div>
       </div>
-      <div className="relative flex flex-1 items-center justify-center px-2" onClick={(e) => e.stopPropagation()}>
-        <img src={photo.previewUrl} alt="" className="max-h-full max-w-full object-contain" />
-        <button type="button" className={`${nav} left-2`} onClick={onPrev} disabled={!onPrev} aria-label={t('prev')}>
-          <ChevronLeftIcon size={28} />
+      <div
+        className="relative flex flex-1 items-center justify-center overflow-hidden px-2 sm:px-20"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        <img key={photo.id} src={photo.previewUrl} alt="" className="max-h-full max-w-full animate-fade rounded-lg object-contain" />
+        <button type="button" className={`${nav} left-4`} onClick={onPrev} disabled={!onPrev} aria-label={t('prev')}>
+          <ChevronLeftIcon size={24} />
         </button>
-        <button type="button" className={`${nav} right-2`} onClick={onNext} disabled={!onNext} aria-label={t('next')}>
-          <ChevronRightIcon size={28} />
+        <button type="button" className={`${nav} right-4`} onClick={onNext} disabled={!onNext} aria-label={t('next')}>
+          <ChevronRightIcon size={24} />
         </button>
       </div>
-      <div className="flex min-h-16 items-center justify-center px-4 py-3" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex min-h-20 flex-col items-center justify-center gap-2 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3"
+        onClick={(e) => e.stopPropagation()}
+      >
         {cart ? (
           <button
             type="button"
             onClick={onToggleCart}
-            className={`min-h-11 cursor-pointer rounded-xl px-5 text-sm font-medium ${selected ? 'bg-brand-600 text-on-brand' : 'bg-surface-2 text-ink'}`}
+            aria-pressed={selected}
+            className={`inline-flex min-h-13 cursor-pointer items-center gap-2 rounded-full px-7 text-[15px] font-semibold transition duration-300 ease-cine active:scale-95 ${
+              selected ? 'bg-white/10 text-gold ring-1 ring-inset ring-gold/50' : 'shine bg-gold text-gold-ink hover:bg-gold-soft'
+            }`}
           >
             {selected ? (
-              <span className="inline-flex items-center gap-1.5">
-                <CheckIcon size={16} />
+              <>
+                <CheckIcon size={18} strokeWidth={2.4} className="animate-pop" />
                 {tc('inCart')}
-              </span>
+              </>
             ) : (
-              tc('add', { price: formatMnt(cart.event.pricePerPhoto) })
+              <>
+                <PlusIcon size={18} strokeWidth={2.2} />
+                {tc('add', { price: formatMnt(cart.event.pricePerPhoto) })}
+              </>
             )}
           </button>
         ) : null}
+        <span className="kicker sm:hidden">{t('swipeHint')}</span>
       </div>
       {reporting ? <RemovalDialog photoId={photo.id} onClose={() => setReporting(false)} /> : null}
     </div>

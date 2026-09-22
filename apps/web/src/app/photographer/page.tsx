@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { AlertIcon, CheckIcon, ImagesIcon, PlusIcon, QrIcon, UploadIcon } from '@/components/icons';
-import { ButtonLink, Card } from '@/components/ui';
+import { CountUp } from '@/components/count-up';
+import { AlertIcon, ArrowRightIcon, CheckIcon, ImagesIcon, PlusIcon, QrIcon, UploadIcon } from '@/components/icons';
+import { Perforation, Ticket } from '@/components/ticket';
+import { ButtonLink, EmptyState, PageHeader, Stat } from '@/components/ui';
 import { VisibilityBadge } from '@/components/visibility-badge';
 import { getMe, serverApi } from '@/lib/api-server';
 import { formatDate, formatEventRange, formatMnt } from '@/lib/datetime';
@@ -31,110 +33,92 @@ export default async function PhotographerOverview() {
   // Хамгийн сүүлийн, дуусаагүй эвэнт: зураггүй эсвэл нуусан хэвээр
   const pending = events.find((e) => e.isOwner && (e.photoCount === 0 || e.visibility === 'HIDDEN'));
 
-  const stats = [
-    { label: t('earnings.summary.thisMonth'), value: formatMnt(current?.payable ?? 0) },
-    { label: t('earnings.summary.awaiting'), value: formatMnt(awaiting) },
-    { label: t('overview.totalPhotos'), value: totalPhotos.toLocaleString('mn-MN') },
-  ];
-
   return (
     <>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold">{t('overview.greeting', { name: me?.displayName ?? '' })}</h1>
-        <p className="text-ink-soft">{t('overview.intro')}</p>
-      </div>
+      <PageHeader
+        kicker={t('overview.kicker')}
+        title={t('overview.greeting', { name: me?.displayName ?? '' })}
+        intro={<p>{t('overview.intro')}</p>}
+      />
 
       {earnings && !earnings.account ? (
-        <div className="flex flex-col gap-3 rounded-2xl bg-amber-50 px-4 py-3 sm:flex-row sm:items-center">
-          <AlertIcon size={20} className="shrink-0 text-amber-800" />
-          <p className="flex-1 text-[15px] font-medium text-amber-900">{t('earnings.accountMissing')}</p>
-          <ButtonLink href="/photographer/earnings" variant="dark" className="min-h-10 shrink-0 self-start text-sm sm:self-auto">
+        <div className="flex animate-rise flex-col gap-3 rounded-[14px] bg-gold/[0.07] px-4 py-3.5 ring-1 ring-inset ring-gold/30 sm:flex-row sm:items-center">
+          <AlertIcon size={20} className="shrink-0 text-gold" />
+          <p className="flex-1 text-[15px] text-gold-soft">{t('earnings.accountMissing')}</p>
+          <ButtonLink href="/photographer/earnings" className="min-h-11 shrink-0 self-start sm:self-auto">
             {t('overview.addAccount')}
           </ButtonLink>
         </div>
       ) : null}
 
-      <dl className="grid gap-3 sm:grid-cols-3">
-        {stats.map((s) => (
-          <div key={s.label} className="flex flex-col gap-1 rounded-2xl bg-surface-2 p-5">
-            <dt className="text-sm text-ink-soft">{s.label}</dt>
-            <dd className="font-display text-3xl font-extrabold tabular-nums">{s.value}</dd>
-          </div>
-        ))}
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label={t('earnings.summary.awaiting')} accent={awaiting > 0} className="col-span-2 sm:col-span-1">
+          <CountUp value={awaiting} /> ₮
+        </Stat>
+        <Stat label={t('earnings.summary.thisMonth')}>
+          <CountUp value={current?.payable ?? 0} /> ₮
+        </Stat>
+        <Stat label={t('overview.totalPhotos')}>
+          <CountUp value={totalPhotos} />
+        </Stat>
       </dl>
 
       {events.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 py-12 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-            <ImagesIcon size={28} />
-          </span>
-          <p className="text-ink-soft">{t('photographer.noEvents')}</p>
-          <ButtonLink href="/photographer/events/new" className="gap-2">
-            <PlusIcon size={16} />
-            {t('photographer.newEvent')}
-          </ButtonLink>
-        </Card>
+        <EmptyState
+          icon={<ImagesIcon size={28} />}
+          title={t('photographer.noEvents')}
+          body={t('overview.firstEventBody')}
+          action={
+            <ButtonLink href="/photographer/events/new" className="gap-2">
+              <PlusIcon size={16} />
+              {t('photographer.newEvent')}
+            </ButtonLink>
+          }
+        />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
           {pending ? <NextStep event={pending} /> : <AllSet />}
 
           {sales?.recent.length ? (
-            <Card className="flex flex-col gap-3">
-              <h2 className="text-lg font-bold">{t('overview.recentSales')}</h2>
-              <ul className="flex flex-col gap-3">
+            <Ticket>
+              <div className="flex items-center justify-between px-5 pb-1 pt-5">
+                <h2 className="kicker">{t('overview.recentSales')}</h2>
+                <Link href="/photographer/earnings" className="inline-flex min-h-11 items-center text-sm font-semibold text-gold hover:text-gold-soft">
+                  {t('photographer.earnings')}
+                </Link>
+              </div>
+              <Perforation />
+              <ul className="flex flex-col px-5 pb-4">
                 {sales.recent.map((o) => (
-                  <li key={o.id} className="flex items-center gap-3">
-                    <span className="flex min-w-0 flex-1 flex-col">
+                  <li key={o.id} className="flex items-center gap-3 border-b border-line py-3 last:border-0">
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="truncate text-sm font-semibold">
                         {o.bundle ? t('overview.saleBundle', { count: o.photos }) : t('common.photos', { count: o.photos })}
                       </span>
-                      <span className="flex gap-1 text-xs text-ink-soft">
+                      <span className="flex gap-1.5 text-xs text-dim">
                         <span className="truncate">{o.eventTitle}</span>
-                        <span className="shrink-0">· {formatDate(o.paidAt)}</span>
+                        <span className="shrink-0 font-mono">{formatDate(o.paidAt)}</span>
                       </span>
                     </span>
                     {o.refunded ? (
-                      <span className="text-sm font-semibold text-ink-faint line-through">{t('overview.refunded')}</span>
+                      <span className="text-sm text-dim line-through">{t('overview.refunded')}</span>
                     ) : (
-                      <span className="text-sm font-bold tabular-nums text-emerald-700">+{formatMnt(o.amount)}</span>
+                      <span className="font-display text-xl font-semibold tabular-nums text-jade">+{formatMnt(o.amount)}</span>
                     )}
                   </li>
                 ))}
               </ul>
-            </Card>
+            </Ticket>
           ) : (
-            <Card className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">{t('overview.recent')}</h2>
-                <Link href="/photographer/events" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700">
-                  {t('overview.all')}
-                </Link>
-              </div>
-              <ul className="flex flex-col gap-1">
-                {events.slice(0, 4).map((e) => (
-                  <li key={e.id}>
-                    <Link href={`/photographer/events/${e.id}`} className="-mx-2 flex items-center gap-3 rounded-xl p-2 hover:bg-surface-3">
-                      <span className="relative size-11 shrink-0 overflow-hidden rounded-lg bg-surface-3">
-                        {e.coverUrl ? <img src={e.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-sm font-semibold">{e.title}</span>
-                        <span className="text-xs text-ink-soft">{t('common.photos', { count: e.photoCount })}</span>
-                      </span>
-                      <VisibilityBadge visibility={e.visibility} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Card>
+            <RecentEvents events={events.slice(0, 4)} />
           )}
         </div>
       )}
 
       {profile && !profile.slugSaved ? (
-        <p className="text-sm text-ink-soft">
+        <p className="max-w-2xl text-sm text-mist">
           {t('photographer.publishProfileHint')}{' '}
-          <Link href="/photographer/profile" className="font-semibold text-brand-700 underline underline-offset-4">
+          <Link href="/photographer/profile" className="font-semibold text-gold underline underline-offset-4 hover:text-gold-soft">
             {t('photographer.publishProfile')}
           </Link>
         </p>
@@ -143,6 +127,7 @@ export default async function PhotographerOverview() {
   );
 }
 
+/** Дараагийн дүр зураг: эвэнтийн нүүр зураг дэлгэц болж, дээр нь хийх алхам */
 async function NextStep({ event }: { event: MyEvent }) {
   const t = await getTranslations();
   const hasPhotos = event.photoCount > 0;
@@ -155,71 +140,106 @@ async function NextStep({ event }: { event: MyEvent }) {
   const activeIndex = steps.findIndex((s) => !s.done);
 
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-600">{t('overview.nextStep')}</span>
-          <h2 className="font-display text-xl font-bold">{event.title}</h2>
-          <span className="text-sm text-ink-soft">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</span>
+    <section className="panel relative isolate flex min-h-80 animate-rise flex-col justify-end overflow-hidden stagger [--i:3]">
+      {event.coverUrl ? (
+        <img src={event.coverUrl} alt="" className="absolute inset-0 -z-20 h-full w-full animate-kenburns object-cover opacity-60" />
+      ) : (
+        <div aria-hidden className="absolute -left-10 -top-20 -z-20 size-80 animate-drift rounded-full bg-gold/15 blur-3xl" />
+      )}
+      <div aria-hidden className="scrim absolute inset-0 -z-10" />
+
+      <div className="flex flex-col gap-5 p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="kicker text-gold">{t('overview.nextStep')}</span>
+          <VisibilityBadge visibility={event.visibility} />
         </div>
-        <VisibilityBadge visibility={event.visibility} />
-      </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.02em] sm:text-5xl">{event.title}</h2>
+          <span className="font-mono text-xs text-mist">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</span>
+        </div>
 
-      <ol className="flex flex-wrap gap-2">
-        {steps.map((s, i) => {
-          const active = i === activeIndex;
-          return (
-            <li
-              key={s.label}
-              aria-current={active ? 'step' : undefined}
-              className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 text-sm font-semibold ${active ? 'bg-brand-50 text-brand-700' : 'bg-surface text-ink'} ${!s.done && !active ? 'text-ink-soft' : ''}`}
-            >
-              <span
-                className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
-                  s.done ? 'bg-emerald-700 text-white' : active ? 'bg-brand-600 text-on-brand' : 'bg-surface-3 text-ink-soft'
-                }`}
-              >
-                {s.done ? <CheckIcon size={14} strokeWidth={3} /> : i + 1}
-              </span>
-              {s.label}
-            </li>
-          );
-        })}
-      </ol>
+        {/* Алхмууд: timecode маягаар 01 · 02 · 03 */}
+        <ol className="grid grid-cols-3 gap-2">
+          {steps.map((s, i) => {
+            const active = i === activeIndex;
+            return (
+              <li key={s.label} aria-current={active ? 'step' : undefined} className="flex flex-col gap-2">
+                <span className={`h-[3px] rounded-full ${s.done ? 'bg-jade' : active ? 'bg-gold' : 'bg-white/15'}`} />
+                <span className={`flex items-center gap-1.5 text-xs font-semibold sm:text-sm ${s.done || active ? 'text-ivory' : 'text-dim'}`}>
+                  {s.done ? <CheckIcon size={14} strokeWidth={3} className="shrink-0 text-jade" /> : <span className="font-mono text-[11px] text-gold">0{i + 1}</span>}
+                  {s.label}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
 
-      <p className="text-[15px] text-ink-soft">{hasPhotos ? t('overview.publishBody') : t('overview.uploadBody')}</p>
+        <p className="max-w-lg text-[15px] text-mist">{hasPhotos ? t('overview.publishBody') : t('overview.uploadBody')}</p>
 
-      <div className="flex flex-wrap gap-2">
-        {hasPhotos ? (
-          <ButtonLink href={`/photographer/events/${event.id}`}>{t('overview.openEditor')}</ButtonLink>
-        ) : (
-          <ButtonLink href={`/photographer/events/${event.id}/upload`} className="gap-2">
-            <UploadIcon size={18} />
-            {t('photographer.uploadPhotos')}
+        <div className="flex flex-wrap gap-2">
+          {hasPhotos ? (
+            <ButtonLink href={`/photographer/events/${event.id}`} className="gap-2">
+              {t('overview.openEditor')}
+              <ArrowRightIcon size={16} />
+            </ButtonLink>
+          ) : (
+            <ButtonLink href={`/photographer/events/${event.id}/upload`} className="gap-2">
+              <UploadIcon size={18} />
+              {t('photographer.uploadPhotos')}
+            </ButtonLink>
+          )}
+          <ButtonLink href={`/photographer/events/${event.id}/poster`} variant="secondary" className="gap-2">
+            <QrIcon size={18} />
+            {t('overview.poster')}
           </ButtonLink>
-        )}
-        <ButtonLink href={`/photographer/events/${event.id}/poster`} variant="secondary" className="gap-2">
-          <QrIcon size={18} />
-          {t('overview.poster')}
-        </ButtonLink>
+        </div>
       </div>
-    </Card>
+    </section>
   );
 }
 
 async function AllSet() {
   const t = await getTranslations();
   return (
-    <Card className="flex flex-col items-start gap-3">
-      <span className="flex size-10 items-center justify-center rounded-full bg-emerald-700 text-white">
-        <CheckIcon size={20} strokeWidth={2.6} />
+    <section className="panel flex animate-rise flex-col items-start gap-4 p-5 stagger [--i:3] sm:p-7">
+      <span className="flex size-12 items-center justify-center rounded-full bg-jade/15 text-jade ring-1 ring-inset ring-jade/40">
+        <CheckIcon size={22} strokeWidth={2.6} />
       </span>
-      <h2 className="font-display text-xl font-bold">{t('overview.allSetTitle')}</h2>
-      <p className="text-[15px] text-ink-soft">{t('overview.allSetBody')}</p>
+      <h2 className="font-display text-4xl font-semibold leading-none">{t('overview.allSetTitle')}</h2>
+      <p className="max-w-md text-[15px] text-mist">{t('overview.allSetBody')}</p>
       <ButtonLink href="/photographer/events/new" variant="secondary" className="gap-2">
         <PlusIcon size={16} />
         {t('photographer.newEvent')}
       </ButtonLink>
-    </Card>
+    </section>
+  );
+}
+
+async function RecentEvents({ events }: { events: MyEvent[] }) {
+  const t = await getTranslations();
+  return (
+    <section className="panel flex flex-col gap-2 p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="kicker">{t('overview.recent')}</h2>
+        <Link href="/photographer/events" className="inline-flex min-h-11 items-center text-sm font-semibold text-gold hover:text-gold-soft">
+          {t('overview.all')}
+        </Link>
+      </div>
+      <ul className="flex flex-col">
+        {events.map((e) => (
+          <li key={e.id}>
+            <Link href={`/photographer/events/${e.id}`} className="-mx-2 flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/[0.04]">
+              <span className="relative h-11 w-14 shrink-0 overflow-hidden rounded-lg bg-night-3">
+                {e.coverUrl ? <img src={e.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-sm font-semibold">{e.title}</span>
+                <span className="font-mono text-[11px] text-dim">{t('common.photos', { count: e.photoCount })}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

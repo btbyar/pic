@@ -4,30 +4,33 @@ import { formatEventRange } from '@/lib/datetime';
 import type { PublicEvent } from '@/lib/types';
 import { ImagesIcon } from './icons';
 
-/** Эвэнтийн карт: зураг гол, доор нь нэр ба нэг мөр мэдээлэл */
-export async function EventCard({ event }: { event: PublicEvent }) {
+/** Эвэнт = нэг үзэгдэл: өргөн кадр, гарчиг нь зураг дээрээ */
+export async function EventCard({ event, index = 0 }: { event: PublicEvent; index?: number }) {
   const t = await getTranslations();
   return (
-    <Link href={`/events/${event.slug}`} className="group flex h-full flex-col gap-3">
-      <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-surface-2">
-        {event.coverUrl ? (
-          <img
-            src={event.coverUrl}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:opacity-90"
-          />
-        ) : (
-          <ImagesIcon size={28} className="absolute inset-0 m-auto text-ink-faint" />
-        )}
-      </div>
-      <div className="flex flex-col gap-1">
-        <h3 className="line-clamp-2 font-display font-semibold leading-snug group-hover:text-ink">{event.title}</h3>
-        <p className="flex flex-wrap gap-x-4 text-sm text-ink-soft">
-          <span>{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</span>
-          <span>{t('common.photos', { count: event.photoCount })}</span>
-        </p>
+    <Link
+      href={`/events/${event.slug}`}
+      className="group relative flex aspect-[4/3] animate-rise flex-col justify-end overflow-hidden rounded-[18px] bg-night-2 ring-1 ring-inset ring-white/[0.06] stagger transition duration-500 ease-cine hover:ring-gold/60"
+      style={{ '--i': index } as React.CSSProperties}
+    >
+      {event.coverUrl ? (
+        <img
+          src={event.coverUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover transition duration-[1.2s] ease-cine group-hover:scale-[1.06]"
+        />
+      ) : (
+        <ImagesIcon size={32} className="absolute inset-0 m-auto text-line-strong" />
+      )}
+      <div aria-hidden className="scrim absolute inset-0" />
+      <span className="glass absolute right-3 top-3 rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ivory">
+        {t('common.photos', { count: event.photoCount })}
+      </span>
+      <div className="relative flex flex-col gap-1.5 p-5">
+        <span className="kicker text-mist">{formatEventRange(event.startsAt, event.endsAt, event.timezone)}</span>
+        <h3 className="line-clamp-2 font-display text-3xl font-semibold leading-[1.02]">{event.title}</h3>
       </div>
     </Link>
   );

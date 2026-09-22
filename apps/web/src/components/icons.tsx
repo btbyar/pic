@@ -12,7 +12,7 @@ function icon(paths: ReactNode) {
         height={size}
         fill="none"
         stroke="currentColor"
-        strokeWidth={2}
+        strokeWidth={1.6}
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden
@@ -194,3 +194,26 @@ export const AlertIcon = icon(
 );
 
 export const RefreshIcon = icon(<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" />);
+
+export const TicketIcon = icon(
+  <>
+    <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
+    <path d="M14 6v2M14 11v2M14 16v2" />
+  </>,
+);
+
+export const FilmIcon = icon(
+  <>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M7 3v18M17 3v18M3 8h4M3 16h4M17 8h4M17 16h4M3 12h18" />
+  </>,
+);
+
+export const SparkIcon = icon(<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5" />);
+
+export const UsersIcon = icon(
+  <>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5" />
+  </>,
+);

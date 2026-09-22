@@ -29,7 +29,7 @@ export function isoToLocalInput(iso: string, timeZone = DEFAULT_TIMEZONE): strin
  * (ихэвчлэн mm/dd/yyyy) харуулдаг тул сар, өдрийг андуурахаас сэргийлж давтан харуулна.
  */
 export function describeLocalInput(value: string): string {
-  const m = /^(d{4})-(d{2})-(d{2})T(d{2}):(d{2})/.exec(value);
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
   if (!m) return '';
   const [, y, mo, dd, hh, mi] = m;
   return `${y} оны ${Number(mo)} сарын ${Number(dd)}, ${hh}:${mi}`;

@@ -67,13 +67,13 @@ export default function RegisterPage() {
             invalid={invalid.has('password')}
           />
         </Field>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" size="lg" busy={busy}>
           {busy ? t('registering') : t('register')}
         </Button>
       </form>
-      <p className="text-sm text-ink-soft">
+      <p className="text-sm text-mist">
         {t('haveAccount')}{' '}
-        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-ink underline underline-offset-4">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-gold underline-offset-4 hover:underline">
           {t('login')}
         </Link>
       </p>
