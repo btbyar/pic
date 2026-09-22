@@ -6,8 +6,8 @@ FROM node:24-bookworm-slim
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN npm install -g pnpm@12.4.2
-# Worker-ийн preview watermark-ийн SVG текстэд фонт хэрэгтэй
-RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core fontconfig && rm -rf /var/lib/apt/lists/*
+# Worker-ийн preview watermark-д фонт, Prisma-д openssl хэрэгтэй
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core fontconfig openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
 
 COPY . .
