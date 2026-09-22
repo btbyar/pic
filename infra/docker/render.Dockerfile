@@ -13,10 +13,10 @@ WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@pic/api..."
 RUN pnpm --filter "@pic/api..." build
-RUN chmod +x infra/docker/render-entrypoint.sh
+RUN chmod +x infra/docker/render-entrypoint.sh infra/docker/render-start.sh
 
 ENV NODE_ENV=production
 WORKDIR /repo/apps/api
 EXPOSE 4000
 ENTRYPOINT ["/repo/infra/docker/render-entrypoint.sh"]
-CMD ["node", "dist/main.js"]
+CMD ["/repo/infra/docker/render-start.sh"]

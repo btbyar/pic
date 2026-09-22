@@ -73,7 +73,7 @@ services:
     dockerfilePath: ./infra/docker/render.Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    preDeployCommand: /repo/infra/docker/render-entrypoint.sh sh -c "cd /repo/packages/db && pnpm migrate:deploy && pnpm bootstrap"
+    # migration + bootstrap нь image-ийн CMD (render-start.sh) дотор ажиллана
     buildFilter:
       paths:
         - apps/api/**
