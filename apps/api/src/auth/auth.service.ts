@@ -71,7 +71,7 @@ export class AuthService {
     this.cipher = new FieldCipher(config.get('FIELD_ENCRYPTION_KEY', { infer: true }));
     this.ipSecret = config.get('IP_HASH_SECRET', { infer: true });
     this.adminMfaRequired = config.get('ADMIN_MFA_REQUIRED', { infer: true });
-    if (!this.adminMfaRequired) this.logger.warn('ADMIN_MFA_REQUIRED=false — админы 2FA унтарсан (зөвхөн хөгжүүлэлтэд)');
+    if (!this.adminMfaRequired) this.logger.warn('ADMIN_MFA_REQUIRED=false — админы 2FA унтарсан (зөвхөн хөгжүүлэлт эсвэл түр demo)');
   }
 
   // ---------------------------------------------------------------- бүртгэл, нэвтрэлт

@@ -49,6 +49,11 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+  // Production-д 2FA-г унтраах цорын ганц зам — хаалттай demo-д түр. Жинхэнэ ашиглалтын өмнө устгана.
+  ALLOW_INSECURE_ADMIN: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
 
   // Төлбөр: "mock" нь зөвхөн хөгжүүлэлтэд (жинхэнэ мөнгө шилжихгүй)
   PAYMENT_PROVIDER: z.enum(['mock', 'qpay']).default('mock'),
@@ -63,9 +68,9 @@ const envSchema = z.object({
   SMTP_URL: z.string().regex(/^smtps?:\/\//, 'must start with smtp:// or smtps://').default('smtp://localhost:1025'),
   MAIL_FROM: z.string().min(3).default('Pic <no-reply@pic.local>'),
 })
-  .refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED, {
+  .refine((env) => env.NODE_ENV !== 'production' || env.ADMIN_MFA_REQUIRED || env.ALLOW_INSECURE_ADMIN, {
     path: ['ADMIN_MFA_REQUIRED'],
-    message: 'admin 2FA cannot be disabled in production',
+    message: 'admin 2FA cannot be disabled in production (unless ALLOW_INSECURE_ADMIN=true)',
   })
   .refine((env) => env.NODE_ENV !== 'production' || env.ML_SERVICE_TOKEN.length >= 32, {
     path: ['ML_SERVICE_TOKEN'],
